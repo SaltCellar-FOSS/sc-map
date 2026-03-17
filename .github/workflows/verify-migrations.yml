@@ -1,0 +1,15 @@
+name: Verify Migrations
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/db/migrations/*.up.sql'
+
+jobs:
+  check-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check up migrations have corresponding down migrations
+        run: ./scripts/verify-migrations.sh
