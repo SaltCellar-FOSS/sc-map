@@ -22,6 +22,12 @@ export class UsersDao {
 		return UserSchema.parse(result);
 	}
 
+	public async findByDiscordId(discordId: string): Promise<User | null> {
+		const [result] = await this.sql`SELECT * FROM users WHERE discord_id = ${discordId}`;
+		if (!result) return null;
+		return UserSchema.parse(result);
+	}
+
 	public async listUsers(): Promise<User[]> {
 		const results = await this.sql`SELECT * FROM users`;
 		return results.map((row: unknown) => UserSchema.parse(row));
