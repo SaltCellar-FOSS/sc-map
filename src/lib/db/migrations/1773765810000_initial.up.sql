@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     google_id                TEXT UNIQUE,
     has_lifetime_access      BOOLEAN NOT NULL DEFAULT FALSE,
     is_current_server_member BOOLEAN NOT NULL DEFAULT FALSE,
-    last_checked_at          TIMESTAMPTZ,
+    last_checked_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
