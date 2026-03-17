@@ -8,7 +8,7 @@ export const PlaceSchema = z.object({
 	google_place_id: z.string(),
 	type: z.enum(['RESTAURANT', 'BAR', 'BAKERY']),
 	submitted_by: z.bigint(),
-	created_at: z.date(),
+	created_at: z.date()
 });
 
 export const PlaceInsertSchema = PlaceSchema.omit({ id: true, created_at: true });

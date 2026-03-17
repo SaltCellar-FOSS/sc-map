@@ -5,18 +5,21 @@ function isPostgresError(e: unknown): e is { errno: string } {
 	return typeof e === 'object' && e !== null && 'errno' in e && typeof e.errno === 'string';
 }
 
-export class DuplicateGooglePlaceIdError extends Error { }
-export class InvalidPlaceTypeError extends Error { }
-export class UserNotFoundError extends Error { }
-export class PlaceNotFoundError extends Error { }
+export class DuplicateGooglePlaceIdError extends Error {}
+export class InvalidPlaceTypeError extends Error {}
+export class UserNotFoundError extends Error {}
+export class PlaceNotFoundError extends Error {}
 
-export type InsertPlaceError = DuplicateGooglePlaceIdError | InvalidPlaceTypeError | UserNotFoundError;
+export type InsertPlaceError =
+	| DuplicateGooglePlaceIdError
+	| InvalidPlaceTypeError
+	| UserNotFoundError;
 
 export type DeletePlaceError = PlaceNotFoundError;
 export type UpdatePlaceError = PlaceNotFoundError | InvalidPlaceTypeError | UserNotFoundError;
 
 export class PlacesDao {
-	constructor(private readonly sql: SQL) { }
+	constructor(private readonly sql: SQL) {}
 
 	public async retrievePlace(placeId: bigint) {
 		const [result] = await this.sql`SELECT * FROM places WHERE id=${placeId}`;
@@ -44,10 +47,10 @@ export class PlacesDao {
 			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id)
-				if (e.errno === '23514') throw new InvalidPlaceTypeError(placeInsert.type)
-				if (e.errno === '23503') throw new UserNotFoundError(String(placeInsert.submitted_by))
-			};
+				if (e.errno === '23505') throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id);
+				if (e.errno === '23514') throw new InvalidPlaceTypeError(placeInsert.type);
+				if (e.errno === '23503') throw new UserNotFoundError(String(placeInsert.submitted_by));
+			}
 			throw e;
 		}
 	}
@@ -60,17 +63,22 @@ export class PlacesDao {
 		return PlaceSchema.parse(result);
 	}
 
-	public async updatePlace(placeId: bigint, placeUpdate: PlaceUpdate, tx?: TransactionSQL): Promise<Place> {
+	public async updatePlace(
+		placeId: bigint,
+		placeUpdate: PlaceUpdate,
+		tx?: TransactionSQL
+	): Promise<Place> {
 		const sql = tx ?? this.sql;
 
 		try {
-			const [result] = await sql`UPDATE places SET ${sql(placeUpdate)} WHERE id = ${placeId} RETURNING *`;
+			const [result] =
+				await sql`UPDATE places SET ${sql(placeUpdate)} WHERE id = ${placeId} RETURNING *`;
 			if (!result) throw new PlaceNotFoundError(String(placeId));
 			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23514') throw new InvalidPlaceTypeError(String(placeUpdate.type))
-				if (e.errno === '23503') throw new UserNotFoundError(String(placeUpdate.submitted_by))
+				if (e.errno === '23514') throw new InvalidPlaceTypeError(String(placeUpdate.type));
+				if (e.errno === '23503') throw new UserNotFoundError(String(placeUpdate.submitted_by));
 			}
 			throw e;
 		}
