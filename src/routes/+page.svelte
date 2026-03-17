@@ -1,6 +1,6 @@
 <script lang="ts">
-  import PlaceMap from '$lib/PlaceMap.svelte';
-  import PlacePanel from '$lib/PlacePanel.svelte';
+  import PlaceMap from '$lib/components/PlaceMap.svelte';
+  import PlacePanel from '$lib/components/PlacePanel.svelte';
   import { generatePlaces } from '$lib/places';
   import { type Place } from '$lib/types';
 

@@ -3,7 +3,7 @@
 	import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { CATEGORIES, type Category, type Place } from '$lib/types';
-	import PlaceMarker from '$lib/PlaceMarker.svelte';
+	import PlaceMarker from '$lib/components/PlaceMarker.svelte';
 
 	let { places, onplaceclick }: { places: Place[]; onplaceclick: (place: Place) => void } =
 		$props();
@@ -32,7 +32,6 @@
 			streetViewControl: false,
 			fullscreenControl: false
 		});
-
 	});
 </script>
 
