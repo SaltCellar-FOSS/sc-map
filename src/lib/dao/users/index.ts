@@ -1,0 +1,65 @@
+import { type SQL, type TransactionSQL } from 'bun';
+import { UserSchema, type User, type UserInsert, type UserUpdate } from './types';
+
+function isPostgresError(e: unknown): e is { errno: string } {
+	return typeof e === 'object' && e !== null && 'errno' in e && typeof e.errno === 'string';
+}
+
+export class UserNotFoundError extends Error { }
+export class DuplicateExternalIdError extends Error { }
+export class NoIdentityError extends Error { }
+
+export type InsertUserError = DuplicateExternalIdError | NoIdentityError;
+export type UpdateUserError = UserNotFoundError | DuplicateExternalIdError | NoIdentityError;
+export type DeleteUserError = UserNotFoundError;
+
+export class UsersDao {
+	constructor(private readonly sql: SQL) { }
+
+	public async retrieveUser(userId: bigint): Promise<User> {
+		const [result] = await this.sql`SELECT * FROM users WHERE id = ${userId}`;
+		if (!result) throw new UserNotFoundError(String(userId));
+		return UserSchema.parse(result);
+	}
+
+	public async listUsers(): Promise<User[]> {
+		const results = await this.sql`SELECT * FROM users`;
+		return results.map((row: unknown) => UserSchema.parse(row));
+	}
+
+	public async insertUser(userInsert: UserInsert, tx?: TransactionSQL): Promise<User> {
+		const sql = tx ?? this.sql;
+		try {
+			const [result] = await sql`INSERT INTO users ${sql(userInsert)} RETURNING *`;
+			return UserSchema.parse(result);
+		} catch (e) {
+			if (isPostgresError(e)) {
+				if (e.errno === '23505') throw new DuplicateExternalIdError();
+				if (e.errno === '23514') throw new NoIdentityError();
+			}
+			throw e;
+		}
+	}
+
+	public async updateUser(userId: bigint, userUpdate: UserUpdate, tx?: TransactionSQL): Promise<User> {
+		const sql = tx ?? this.sql;
+		try {
+			const [result] = await sql`UPDATE users SET ${sql(userUpdate)} WHERE id = ${userId} RETURNING *`;
+			if (!result) throw new UserNotFoundError(String(userId));
+			return UserSchema.parse(result);
+		} catch (e) {
+			if (isPostgresError(e)) {
+				if (e.errno === '23505') throw new DuplicateExternalIdError();
+				if (e.errno === '23514') throw new NoIdentityError();
+			}
+			throw e;
+		}
+	}
+
+	public async deleteUser(userId: bigint, tx?: TransactionSQL): Promise<User> {
+		const sql = tx ?? this.sql;
+		const [result] = await sql`DELETE FROM users WHERE id = ${userId} RETURNING *`;
+		if (!result) throw new UserNotFoundError(String(userId));
+		return UserSchema.parse(result);
+	}
+}

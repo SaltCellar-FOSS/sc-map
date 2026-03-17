@@ -13,7 +13,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"migrate": "bun scripts/migrate.ts",
-		"test": "TEST_SQL_URL=postgres://sc_map:sc_map@localhost:5432/sc_map_test bun test"
+		"test": "bun test .test.ts",
+		"test:integration": "SQL_URL=postgres://sc_map:sc_map@localhost:5432/sc_map_test bun --config=bunfig.integration.toml test .integration.spec.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",

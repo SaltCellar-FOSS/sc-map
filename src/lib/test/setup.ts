@@ -2,14 +2,13 @@ import { SQL } from 'bun';
 import { beforeEach } from 'bun:test';
 
 const result = await Bun.spawn(['bun', 'scripts/migrate.ts'], {
-	env: { ...process.env, SQL_URL: process.env.TEST_SQL_URL! },
 	stdout: 'inherit',
 	stderr: 'inherit'
 }).exited;
 
 if (result !== 0) throw new Error(`Migration failed with exit code ${result}`);
 
-const sql = new SQL(process.env.TEST_SQL_URL!);
+const sql = new SQL(process.env.SQL_URL!);
 
 beforeEach(async () => {
 	const tables = await sql`
