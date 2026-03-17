@@ -1,5 +1,5 @@
 import { type SQL, type TransactionSQL } from 'bun';
-import type { Place, PlaceInsert, PlaceUpdate } from './types';
+import { PlaceSchema, type Place, type PlaceInsert, type PlaceUpdate } from './types';
 
 function isPostgresError(e: unknown): e is { errno: string } {
 	return typeof e === 'object' && e !== null && 'errno' in e && typeof e.errno === 'string';
@@ -19,29 +19,29 @@ export class PlacesDao {
 	constructor(private readonly sql: SQL) { }
 
 	public async retrievePlace(placeId: bigint) {
-		const [result] = await this.sql`SELECT * FROM places WHERE id=${placeId}` as Place[];
+		const [result] = await this.sql`SELECT * FROM places WHERE id=${placeId}`;
 
 		if (!result) throw new PlaceNotFoundError(String(placeId));
 
-		return result;
+		return PlaceSchema.parse(result);
 	}
 
 	public async listPlaces() {
-		const results = (await this.sql`
+		const results = await this.sql`
         SELECT * FROM places;
-    `) as Place[];
-		return results;
+    `;
+		return results.map((row: unknown) => PlaceSchema.parse(row));
 	}
 
 	public async insertPlace(placeInsert: PlaceInsert, tx?: TransactionSQL): Promise<Place> {
 		const sql = tx ?? this.sql;
 
 		try {
-			const [result] = (await sql`
+			const [result] = await sql`
 	            INSERT INTO places ${sql(placeInsert)}
 	            RETURNING *
-	        `) as Place[];
-			return result;
+	        `;
+			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
 				if (e.errno === '23505') throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id)
@@ -55,18 +55,18 @@ export class PlacesDao {
 	public async deletePlace(placeId: bigint, tx?: TransactionSQL): Promise<Place> {
 		const sql = tx ?? this.sql;
 
-		const [result] = await sql`DELETE FROM places WHERE id=${placeId} RETURNING *` as Place[];
+		const [result] = await sql`DELETE FROM places WHERE id=${placeId} RETURNING *`;
 		if (!result) throw new PlaceNotFoundError(String(placeId));
-		return result;
+		return PlaceSchema.parse(result);
 	}
 
 	public async updatePlace(placeId: bigint, placeUpdate: PlaceUpdate, tx?: TransactionSQL): Promise<Place> {
 		const sql = tx ?? this.sql;
 
 		try {
-			const [result] = await sql`UPDATE places SET ${sql(placeUpdate)} WHERE id = ${placeId} RETURNING *` as Place[];
+			const [result] = await sql`UPDATE places SET ${sql(placeUpdate)} WHERE id = ${placeId} RETURNING *`;
 			if (!result) throw new PlaceNotFoundError(String(placeId));
-			return result;
+			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
 				if (e.errno === '23514') throw new InvalidPlaceTypeError(String(placeUpdate.type))

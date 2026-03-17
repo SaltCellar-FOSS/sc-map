@@ -1,6 +1,6 @@
-import { SQL } from 'bun';
+import type { SQL } from 'bun';
 import { beforeEach, describe, expect, test } from 'bun:test';
-import type { Place, PlaceInsert } from './types';
+import type { PlaceInsert } from './types';
 import {
 	PlacesDao,
 	DuplicateGooglePlaceIdError,
@@ -9,160 +9,176 @@ import {
 	PlaceNotFoundError
 } from '.';
 
-const testSQL = new SQL(process.env.TEST_SQL_URL!);
+const placeRow = {
+	id: 1n,
+	name: 'Test Bakery',
+	lat: 40.7128,
+	lng: -74.006,
+	google_place_id: 'abc123',
+	type: 'BAKERY',
+	submitted_by: 42n,
+	created_at: new Date('2024-01-01'),
+};
 
-async function createTestUser({ discordId = '123', discordHandle = 'testuser' } = {}) {
-	const [user] = await testSQL`
-		INSERT INTO users (discord_id, discord_handle)
-		VALUES (${discordId}, ${discordHandle})
-		RETURNING *`;
-	return user;
+function createMockSQL(rows: unknown[] = []): SQL {
+	return function (strings: unknown): unknown {
+		if (Array.isArray(strings) && 'raw' in (strings as object)) {
+			return Promise.resolve(rows);
+		}
+		return strings;
+	} as unknown as SQL;
 }
 
+function createErrorSQL(errno: string): SQL {
+	return function (strings: unknown): unknown {
+		if (Array.isArray(strings) && 'raw' in (strings as object)) {
+			return Promise.reject(Object.assign(new Error('db error'), { errno }));
+		}
+		return strings;
+	} as unknown as SQL;
+}
+
+const placeInsert: PlaceInsert = {
+	name: 'Test Bakery',
+	lat: 40.7128,
+	lng: -74.006,
+	google_place_id: 'abc123',
+	type: 'BAKERY',
+	submitted_by: 42n,
+};
+
 describe('PlacesDao', () => {
-	let placesDao: PlacesDao;
-	let user: unknown & { id: bigint };
-	beforeEach(async () => {
-		placesDao = new PlacesDao(testSQL);
-		user = await createTestUser();
+	describe('retrievePlace', () => {
+		describe('success', () => {
+			let dao: PlacesDao;
+			beforeEach(() => {
+				dao = new PlacesDao(createMockSQL([placeRow]));
+			});
+
+			test('retrieves a Place', async () => {
+				const place = await dao.retrievePlace(1n);
+				expect(place.name).toEqual('Test Bakery');
+			});
+		});
+
+		describe('errors', () => {
+			test('throws PlaceNotFoundError when place does not exist', async () => {
+				const dao = new PlacesDao(createMockSQL([]));
+				expect(dao.retrievePlace(1n)).rejects.toBeInstanceOf(PlaceNotFoundError);
+			});
+		});
 	});
 
-	describe('retrievePlace', () => {
-		let placeId: bigint;
-
-		beforeEach(async () => {
-			const [place] = await testSQL`
-				INSERT INTO places (name, lat, lng, google_place_id, type, submitted_by)
-				VALUES
-					('Place One', 40.7128, -74.006, 'gid001', 'RESTAURANT', ${user.id})
-				RETURNING *`;
-
-			placeId = place.id;
-		})
-
-		test('successfully retrieves a Place', async () => {
-			const place = await placesDao.retrievePlace(placeId);
-
-			expect(place.name).toEqual('Place One');
-		})
-
-		test('throws PlaceNotFoundError when place does not exist', async () => {
-			expect(placesDao.retrievePlace(BigInt(999999))).rejects.toBeInstanceOf(PlaceNotFoundError);
-		})
-	})
-
-
 	describe('insertPlace', () => {
-		let placeInsert: PlaceInsert;
+		describe('success', () => {
+			let dao: PlacesDao;
+			beforeEach(() => {
+				dao = new PlacesDao(createMockSQL([placeRow]));
+			});
 
-		beforeEach(() => {
-			placeInsert = {
-				name: 'Test Bakery',
-				lat: 40.7128,
-				lng: -74.006,
-				google_place_id: 'abc123',
-				type: 'BAKERY',
-				submitted_by: user.id
-			};
-		})
-
-		test('inserts and returns a place', async () => {
-			const place = await placesDao.insertPlace(placeInsert);
-
-			expect(place.id).toBeDefined();
-			expect(place.name).toBe('Test Bakery');
-			expect(place.google_place_id).toBe('abc123');
-			expect(place.type).toBe('BAKERY');
-			expect(place.submitted_by).toBe(user.id);
+			test('inserts and returns a place', async () => {
+				const place = await dao.insertPlace(placeInsert);
+				expect(place.id).toBeDefined();
+				expect(place.name).toBe('Test Bakery');
+				expect(place.google_place_id).toBe('abc123');
+				expect(place.type).toBe('BAKERY');
+				expect(place.submitted_by).toBe(42n);
+			});
 		});
 
-		test('throws DuplicateGooglePlaceIdError on duplicate google_place_id', async () => {
-			await placesDao.insertPlace(placeInsert);
-			expect(placesDao.insertPlace(placeInsert)).rejects.toBeInstanceOf(
-				DuplicateGooglePlaceIdError
-			);
-		});
+		describe('errors', () => {
+			test('throws DuplicateGooglePlaceIdError on duplicate google_place_id', async () => {
+				const dao = new PlacesDao(createErrorSQL('23505'));
+				expect(dao.insertPlace(placeInsert)).rejects.toBeInstanceOf(DuplicateGooglePlaceIdError);
+			});
 
-		test('throws InvalidPlaceTypeError on invalid type', async () => {
-			expect(
-				placesDao.insertPlace({ ...placeInsert, type: 'INVALID' as 'BAKERY' })
-			).rejects.toBeInstanceOf(InvalidPlaceTypeError);
-		});
+			test('throws InvalidPlaceTypeError on invalid type', async () => {
+				const dao = new PlacesDao(createErrorSQL('23514'));
+				expect(
+					dao.insertPlace({ ...placeInsert, type: 'INVALID' as 'BAKERY' })
+				).rejects.toBeInstanceOf(InvalidPlaceTypeError);
+			});
 
-		test('throws UserNotFoundError when submitted_by user does not exist', async () => {
-			expect(
-				placesDao.insertPlace({ ...placeInsert, submitted_by: BigInt(999999) })
-			).rejects.toBeInstanceOf(UserNotFoundError);
+			test('throws UserNotFoundError when submitted_by user does not exist', async () => {
+				const dao = new PlacesDao(createErrorSQL('23503'));
+				expect(
+					dao.insertPlace({ ...placeInsert, submitted_by: BigInt(999999) })
+				).rejects.toBeInstanceOf(UserNotFoundError);
+			});
 		});
 	});
 
 	describe('listPlaces', () => {
-		beforeEach(async () => {
-			await testSQL`
-				INSERT INTO places (name, lat, lng, google_place_id, type, submitted_by)
-				VALUES
-					('Place One', 40.7128, -74.006, 'gid001', 'RESTAURANT', ${user.id}),
-					('Place Two', 34.0522, -118.2437, 'gid002', 'BAR', ${user.id}),
-					('Place Three', 41.8781, -87.6298, 'gid003', 'BAKERY', ${user.id})`;
-		})
-		test('lists all places', async () => {
-			const places = await placesDao.listPlaces();
-			expect(places).toHaveLength(3);
-		})
-	})
+		describe('success', () => {
+			let dao: PlacesDao;
+			beforeEach(() => {
+				dao = new PlacesDao(createMockSQL([
+					{ ...placeRow, id: 1n, google_place_id: 'gid001' },
+					{ ...placeRow, id: 2n, google_place_id: 'gid002' },
+					{ ...placeRow, id: 3n, google_place_id: 'gid003' },
+				]));
+			});
+
+			test('lists all places', async () => {
+				const places = await dao.listPlaces();
+				expect(places).toHaveLength(3);
+			});
+		});
+	});
 
 	describe('deletePlace', () => {
-		let placeToDeleteId: bigint;
-		beforeEach(async () => {
-			const [place] = await testSQL`
-				INSERT INTO places (name, lat, lng, google_place_id, type, submitted_by)
-				VALUES
-					('Place One', 40.7128, -74.006, 'gid001', 'RESTAURANT', ${user.id})
-				RETURNING *`;
-			placeToDeleteId = place.id;
-		})
+		describe('success', () => {
+			let dao: PlacesDao;
+			beforeEach(() => {
+				dao = new PlacesDao(createMockSQL([placeRow]));
+			});
 
-		test('deletes place', async () => {
-			const deleted = await placesDao.deletePlace(placeToDeleteId);
-			expect(deleted.id).toBe(placeToDeleteId);
-		})
+			test('deletes place', async () => {
+				const deleted = await dao.deletePlace(1n);
+				expect(deleted.id).toBe(1n);
+			});
+		});
 
-		test('throws PlaceNotFoundError when place does not exist', async () => {
-			expect(placesDao.deletePlace(BigInt(999999))).rejects.toBeInstanceOf(PlaceNotFoundError);
-		})
-	})
+		describe('errors', () => {
+			test('throws PlaceNotFoundError when place does not exist', async () => {
+				const dao = new PlacesDao(createMockSQL([]));
+				expect(dao.deletePlace(1n)).rejects.toBeInstanceOf(PlaceNotFoundError);
+			});
+		});
+	});
 
 	describe('updatePlace', () => {
-		let place: Place;
+		describe('success', () => {
+			let dao: PlacesDao;
+			beforeEach(() => {
+				dao = new PlacesDao(createMockSQL([{ ...placeRow, name: 'Test Name' }]));
+			});
 
-		beforeEach(async () => {
-			[place] = await testSQL`
-				INSERT INTO places (name, lat, lng, google_place_id, type, submitted_by)
-				VALUES
-					('Place One', 40.7128, -74.006, 'gid001', 'RESTAURANT', ${user.id})
-				RETURNING *`;
-		})
+			test('updates place', async () => {
+				const updated = await dao.updatePlace(1n, { name: 'Test Name' });
+				expect(updated.name).toEqual('Test Name');
+			});
+		});
 
-		test('updates place', async () => {
-			const updated = await placesDao.updatePlace(place.id, { name: 'Test Name' })
+		describe('errors', () => {
+			test('throws PlaceNotFoundError when place does not exist', async () => {
+				const dao = new PlacesDao(createMockSQL([]));
+				expect(dao.updatePlace(1n, { name: 'Ghost' })).rejects.toBeInstanceOf(PlaceNotFoundError);
+			});
 
-			expect(updated.name).toEqual('Test Name');
-		})
+			test('throws InvalidPlaceTypeError on invalid type', async () => {
+				const dao = new PlacesDao(createErrorSQL('23514'));
+				expect(
+					dao.updatePlace(1n, { type: 'INVALID' as 'BAKERY' })
+				).rejects.toBeInstanceOf(InvalidPlaceTypeError);
+			});
 
-		test('throws PlaceNotFoundError when place does not exist', async () => {
-			expect(placesDao.updatePlace(BigInt(999999), { name: 'Ghost' })).rejects.toBeInstanceOf(PlaceNotFoundError);
-		})
-
-		test('throws InvalidPlaceTypeError on invalid type', async () => {
-			expect(
-				placesDao.updatePlace(place.id, { type: 'INVALID' as 'BAKERY' })
-			).rejects.toBeInstanceOf(InvalidPlaceTypeError);
-		})
-
-		test('throws UserNotFoundError when submitted_by user does not exist', async () => {
-			expect(
-				placesDao.updatePlace(place.id, { submitted_by: BigInt(999999) })
-			).rejects.toBeInstanceOf(UserNotFoundError);
-		})
-	})
+			test('throws UserNotFoundError when submitted_by user does not exist', async () => {
+				const dao = new PlacesDao(createErrorSQL('23503'));
+				expect(
+					dao.updatePlace(1n, { submitted_by: BigInt(999999) })
+				).rejects.toBeInstanceOf(UserNotFoundError);
+			});
+		});
+	});
 });
