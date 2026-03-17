@@ -1,4 +1,3 @@
-import type { SQL } from 'bun';
 import { beforeEach, describe, expect, test } from 'bun:test';
 import type { PlaceInsert } from './types';
 import {
@@ -8,6 +7,7 @@ import {
 	UserNotFoundError,
 	PlaceNotFoundError
 } from '.';
+import { createMockSQL, createErrorSQL } from '../mock';
 
 const placeRow = {
 	id: 1n,
@@ -19,28 +19,6 @@ const placeRow = {
 	submitted_by: 42n,
 	created_at: new Date('2024-01-01')
 };
-
-import { mock } from 'bun:test';
-
-function createMockSQL(rows: unknown[] = []): SQL {
-	const mockFn = mock(() => Promise.resolve(rows));
-	return ((strings: unknown) => {
-		if (Array.isArray(strings) && 'raw' in (strings as object)) {
-			return mockFn();
-		}
-		return strings;
-	}) as unknown as SQL;
-}
-
-function createErrorSQL(errno: string): SQL {
-	const mockFn = mock(() => Promise.reject(Object.assign(new Error('db error'), { errno })));
-	return ((strings: unknown) => {
-		if (Array.isArray(strings) && 'raw' in (strings as object)) {
-			return mockFn();
-		}
-		return strings;
-	}) as unknown as SQL;
-}
 
 const placeInsert: PlaceInsert = {
 	name: 'Test Bakery',

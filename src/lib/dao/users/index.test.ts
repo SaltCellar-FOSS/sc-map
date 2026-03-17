@@ -1,7 +1,7 @@
-import type { SQL } from 'bun';
 import { describe, expect, test, beforeEach } from 'bun:test';
 import type { User, UserInsert } from './types';
 import { UsersDao, UserNotFoundError, DuplicateExternalIdError, NoIdentityError } from '.';
+import { createMockSQL, createErrorSQL } from '../mock';
 
 const userRow: User = {
 	id: 1n,
@@ -14,28 +14,6 @@ const userRow: User = {
 	created_at: new Date('2024-01-01'),
 	updated_at: new Date('2024-01-01')
 };
-
-import { mock } from 'bun:test';
-
-function createMockSQL(rows: unknown[] = []): SQL {
-	const mockFn = mock(() => Promise.resolve(rows));
-	return ((strings: unknown) => {
-		if (Array.isArray(strings) && 'raw' in (strings as object)) {
-			return mockFn();
-		}
-		return strings;
-	}) as unknown as SQL;
-}
-
-function createErrorSQL(errno: string): SQL {
-	const mockFn = mock(() => Promise.reject(Object.assign(new Error('db error'), { errno })));
-	return ((strings: unknown) => {
-		if (Array.isArray(strings) && 'raw' in (strings as object)) {
-			return mockFn();
-		}
-		return strings;
-	}) as unknown as SQL;
-}
 
 const userInsert: UserInsert = {
 	discord_id: 'discord123',

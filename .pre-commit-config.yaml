@@ -1,6 +1,30 @@
 repos:
   - repo: local
     hooks:
+      - id: typescript-check
+        name: TypeScript Check
+        entry: bun run check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: lint
+        name: Lint (Prettier + ESLint)
+        entry: bun run lint
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: unit-tests
+        name: Unit Tests
+        entry: bun run test
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: integration-tests
+        name: Integration Tests
+        entry: bun run test:integration
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
       - id: verify-migrations
         name: Verify migrations have down files
         entry: ./scripts/verify-migrations.sh
