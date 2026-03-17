@@ -34,6 +34,9 @@ export default defineConfig(
 				parser: ts.parser,
 				svelteConfig
 			}
+		},
+		rules: {
+			'@typescript-eslint/consistent-type-assertions': 'error'
 		}
 	}
 );
