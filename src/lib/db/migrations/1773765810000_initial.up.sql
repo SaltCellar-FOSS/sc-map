@@ -1,6 +1,6 @@
 -- Apply migration
 BEGIN;
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id                       BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     discord_id               TEXT UNIQUE,
     discord_handle           TEXT,
@@ -15,7 +15,7 @@ CREATE TABLE users (
         CHECK (discord_id IS NOT NULL OR google_id IS NOT NULL)
 );
 
-CREATE TABLE places (
+CREATE TABLE IF NOT EXISTS places (
     id              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name            TEXT NOT NULL,
     lat             FLOAT8 NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE places (
         CHECK (type IN ('RESTAURANT', 'BAR', 'BAKERY'))
 );
 
-CREATE TABLE visits (
+CREATE TABLE IF NOT EXISTS visits (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     place_id   BIGINT NOT NULL REFERENCES places(id) ON DELETE RESTRICT,
@@ -43,7 +43,7 @@ CREATE TABLE visits (
         CHECK (rating BETWEEN 1 AND 5)
 );
 
-CREATE TABLE visit_photos (
+CREATE TABLE IF NOT EXISTS visit_photos (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     visit_id   BIGINT NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
     url        TEXT NOT NULL,

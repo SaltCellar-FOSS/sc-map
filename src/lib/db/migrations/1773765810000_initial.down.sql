@@ -1,1 +1,7 @@
 -- Revert migration
+BEGIN;
+DROP TABLE IF EXISTS visit_photos;
+DROP TABLE IF EXISTS visits;
+DROP TABLE IF EXISTS places;
+DROP TABLE IF EXISTS users;
+COMMIT;
