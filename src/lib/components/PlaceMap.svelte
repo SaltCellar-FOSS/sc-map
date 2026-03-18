@@ -4,22 +4,27 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { Place } from '$lib/dao/places/types';
 	import PlaceMarker from './PlaceMarker.svelte';
+	import type { CategoryConfig } from './types';
+	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 
 	type Category = Place['type'];
 
 	const CATEGORIES: Record<Category, CategoryConfig> = {
 		RESTAURANT: {
-            label: "Restaurants",
-            color: "#E8472A"
-        },
+			label: 'Restaurants',
+			color: '#E8472A',
+			glyphText: '🍽️'
+		},
 		BAR: {
-            label: "Bars",
-            color: "#6B4FBB"
-        },
+			label: 'Bars',
+			color: '#6B4FBB',
+			glyphText: '🍸'
+		},
 		BAKERY: {
-            label: "Bakeries",
-            color: "#F0A500"
-        },
+			label: 'Bakeries',
+			color: '#F0A500',
+			glyphText: '🥐'
+		}
 	};
 
 	let { places, onplaceclick }: { places: Place[]; onplaceclick: (place: Place) => void } =
@@ -37,7 +42,7 @@
 	}
 
 	onMount(async () => {
-		setOptions({ key: 'REDACTED_GOOGLE_MAPS_API_KEY' });
+		setOptions({ key: PUBLIC_GOOGLE_MAPS_API_KEY });
 
 		const { Map } = await importLibrary('maps');
 
@@ -55,8 +60,14 @@
 <div bind:this={mapEl} style="width: 100%; height: 100vh;"></div>
 
 {#if map}
-	{#each places as place (place.name)}
-		<PlaceMarker {map} {place} visible={activeCategories.has(place.type)} onclick={onplaceclick} />
+	{#each places as place (place.id)}
+		<PlaceMarker
+			{map}
+			{place}
+			visible={activeCategories.has(place.type)}
+			onclick={onplaceclick}
+			categoryConfig={CATEGORIES[place.type]}
+		/>
 	{/each}
 {/if}
 

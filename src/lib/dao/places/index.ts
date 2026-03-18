@@ -30,7 +30,7 @@ export class PlacesDao {
 	}
 
 	public async listPlaces() {
-		const results = await this.sql`
+		const results: unknown[] = await this.sql`
         SELECT * FROM places;
     `;
 		return results.map((row: unknown) => PlaceSchema.parse(row));
@@ -40,7 +40,7 @@ export class PlacesDao {
 		const sql = tx ?? this.sql;
 
 		try {
-			const [result] = await sql`
+			const [result]: unknown[] = await sql`
 	            INSERT INTO places ${sql(placeInsert)}
 	            RETURNING *
 	        `;
