@@ -20,6 +20,7 @@ import {
 	GuildMemberNotFoundError
 } from '$lib/server/discord';
 import { createSessionCookie } from '$lib/server/cookie';
+import { SESSION_COOKIE_MAX_AGE_SECONDS } from '$lib/server/constants';
 
 const usersDao = new UsersDao(sql);
 
@@ -73,7 +74,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		});
 	}
 
-	const maxAge = 60 * 60 * 24 * 3; // 3 days
+	const maxAge = SESSION_COOKIE_MAX_AGE_SECONDS;
 	const sessionToken = await createSessionCookie(user.id, maxAge);
 	cookies.set('session', sessionToken, {
 		path: '/',

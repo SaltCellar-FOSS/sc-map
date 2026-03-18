@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SearchSuggestionList from './SearchSuggestionList.svelte';
 	import SearchIcon from '$lib/icons/SearchIcon.svelte';
+	import { SEARCH_BLUR_DELAY_MS } from '$lib/components/ui-constants';
 
 	let { placeholder = 'Search Google Maps' }: { placeholder?: string } = $props();
 
@@ -57,7 +58,7 @@
 					autocomplete="off"
 					{placeholder}
 					onfocus={() => (focused = true)}
-					onblur={() => setTimeout(() => (focused = false), 150)}
+					onblur={() => setTimeout(() => (focused = false), SEARCH_BLUR_DELAY_MS)}
 				/>
 			</form>
 

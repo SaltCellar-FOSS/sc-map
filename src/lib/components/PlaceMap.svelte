@@ -5,6 +5,7 @@
 	import PlaceMarker from './PlaceMarker.svelte';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import type { CategoryConfig } from './types';
+	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
 
 	let {
 		categories,
@@ -25,9 +26,9 @@
 		const { Map } = await importLibrary('maps');
 
 		map = new Map(mapEl, {
-			center: { lat: 39.5, lng: -98.35 },
-			zoom: 4,
-			mapId: 'sc-map',
+			center: DEFAULT_MAP_CENTER,
+			zoom: DEFAULT_MAP_ZOOM,
+			mapId: MAP_ID,
 			mapTypeControl: false,
 			streetViewControl: false,
 			fullscreenControl: false

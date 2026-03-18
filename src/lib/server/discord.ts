@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { UserInsert } from '$lib/dao/users/types';
+import { TIMEOUT_MS } from './constants';
 
 const TokenResponseSchema = z.object({
 	access_token: z.string(),
@@ -28,8 +29,6 @@ export class TokenExchangeError extends Error {}
 export class UserFetchError extends Error {}
 export class GuildMemberFetchError extends Error {}
 export class GuildMemberNotFoundError extends Error {}
-
-const TIMEOUT_MS = 5_000;
 
 export async function exchangeCode(
 	code: string,
