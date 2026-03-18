@@ -53,8 +53,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		guildMember = await getGuildMember(token, DISCORD_GUILD_ID);
 	} catch (e) {
 		if (e instanceof GuildMemberFetchError) redirect(303, '/?error=guild_member_fetch_failed');
-		if (e instanceof GuildMemberNotFoundError) guildMember = null;
-		throw e;
+		else if (e instanceof GuildMemberNotFoundError) guildMember = null;
+		else throw e;
 	}
 	const is_current_server_member = guildMember !== null;
 	const has_lifetime_access = guildMember?.roles.includes(DISCORD_GOATED_ROLE_ID) ?? false;
@@ -65,13 +65,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	if (!user) {
 		user = await usersDao.insertUser(insert);
 		console.log('user created', user);
-	} else if (user.discord_handle !== insert.discord_handle) {
+	} else {
 		user = await usersDao.updateUser(user.id, {
 			discord_handle: insert.discord_handle,
 			is_current_server_member,
 			has_lifetime_access
 		});
-		console.log('user updated', user);
 	}
 
 	const maxAge = 60 * 60 * 24 * 3; // 3 days
