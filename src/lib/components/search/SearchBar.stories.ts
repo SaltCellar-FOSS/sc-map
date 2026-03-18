@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/svelte';
 import SearchBar from './SearchBar.svelte';
-
 const meta = {
 	title: 'Search/SearchBar',
 	component: SearchBar,
