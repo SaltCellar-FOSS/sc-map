@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export const PlaceSchema = z.object({
-	id: z.bigint(),
+	id: z.coerce.bigint(),
 	name: z.string(),
 	lat: z.number(),
 	lng: z.number(),
 	formatted_address: z.string(),
 	google_place_id: z.string(),
 	type: z.enum(['RESTAURANT', 'BAR', 'BAKERY']),
-	submitted_by: z.bigint(),
-	created_at: z.date()
+	submitted_by: z.coerce.bigint(),
+	created_at: z.coerce.date()
 });
 
 export const PlaceInsertSchema = PlaceSchema.omit({ id: true, created_at: true });

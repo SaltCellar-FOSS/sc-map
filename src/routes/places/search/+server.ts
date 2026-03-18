@@ -46,7 +46,10 @@ export const GET: RequestHandler = async ({ url }) => {
 		}))
 	];
 
-	return new Response(JSON.stringify(searchResults), {
-		headers: { 'Content-Type': 'application/json' }
-	});
+	return new Response(
+		JSON.stringify(searchResults, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+		{
+			headers: { 'Content-Type': 'application/json' }
+		}
+	);
 };

@@ -7,7 +7,7 @@ export const BaseSearchResultSchema = PlaceSchema.omit({
 	created_at: true
 });
 
-export const SearchResultSchema = z.union([BaseSearchResultSchema, PlaceSchema]);
+export const SearchResultSchema = z.union([PlaceSchema, BaseSearchResultSchema]);
 
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 
