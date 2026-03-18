@@ -1,5 +1,5 @@
 export interface CategoryConfig {
-    label: string;
-    color: string;
-    glyphText: string;
+	label: string;
+	color: string;
+	glyphText: string;
 }

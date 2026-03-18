@@ -9,13 +9,13 @@
 		place,
 		visible,
 		onclick,
-        categoryConfig
+		categoryConfig
 	}: {
 		map: google.maps.Map;
 		place: Place;
 		visible: boolean;
 		onclick: (place: Place) => void;
-        categoryConfig: CategoryConfig;
+		categoryConfig: CategoryConfig;
 	} = $props();
 
 	let marker: google.maps.marker.AdvancedMarkerElement | null = $state(null);
