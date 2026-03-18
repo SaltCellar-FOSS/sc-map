@@ -2,7 +2,9 @@
 	import SearchSuggestionList from './SearchSuggestionList.svelte';
 	import SearchIcon from '$lib/icons/SearchIcon.svelte';
 	import { SEARCH_BLUR_DELAY_MS } from '$lib/components/ui-constants';
-	import { SuggestionSchema, type Suggestion } from '$lib/schemas/search';
+	import type { Suggestion } from '$lib/schemas/search';
+	import { createQuery } from '@tanstack/svelte-query';
+	import { searchPlacesOptions } from '$lib/queries';
 
 	let {
 		placeholder = 'Search Google Maps',
@@ -16,18 +18,14 @@
 
 	let focused = $state(false);
 	let query = $state('');
-	let suggestions = $state<Suggestion[]>([]);
 	let open = $derived(focused);
 
-	async function handleInput(e: Event) {
+	const searchQuery = createQuery(() => searchPlacesOptions(query));
+	const suggestions = $derived(searchQuery.data ?? []);
+
+	function handleInput(e: Event) {
 		query = (e.target as HTMLInputElement).value;
 		onchange?.(query);
-		if (!query.trim()) {
-			suggestions = [];
-			return;
-		}
-		const res = await fetch(`/places/search?q=${encodeURIComponent(query)}`);
-		suggestions = SuggestionSchema.array().parse(await res.json());
 	}
 </script>
 

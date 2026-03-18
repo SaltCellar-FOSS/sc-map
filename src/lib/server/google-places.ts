@@ -23,6 +23,29 @@ interface NewPlacesResponse {
 	places: NewPlaceResult[];
 }
 
+export async function getGooglePlaceById(placeId: string): Promise<GooglePlaceResult | null> {
+	const apiKey = process.env.PUBLIC_GOOGLE_MAPS_API_KEY;
+	if (!apiKey) return null;
+
+	const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+		headers: {
+			'X-Goog-Api-Key': apiKey,
+			'X-Goog-FieldMask': 'id,displayName,formattedAddress,location,types'
+		}
+	});
+
+	if (!response.ok) return null;
+
+	const p: NewPlaceResult = await response.json();
+	return {
+		place_id: p.id,
+		name: p.displayName.text,
+		formatted_address: p.formattedAddress,
+		geometry: { location: { lat: p.location.latitude, lng: p.location.longitude } },
+		types: p.types
+	};
+}
+
 export async function searchGooglePlaces(
 	query: string,
 	includedType?: string

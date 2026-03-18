@@ -13,7 +13,7 @@
 		places,
 		selectedPlace,
 		onmapclick,
-		oninfobuttonclick
+		onaddtolist
 	}: {
 		categories: Record<Place['type'], CategoryConfig>;
 		places: Place[];
@@ -26,7 +26,7 @@
 			address?: string;
 		} | null;
 		onmapclick?: () => void;
-		oninfobuttonclick?: (placeId: string) => void;
+		onaddtolist?: (placeId: string) => void;
 	} = $props();
 
 	let mapEl: HTMLDivElement;
@@ -58,7 +58,7 @@
 			selectedMarker = null;
 		}
 		if (selectedPlace && map) {
-			const handleInfoButtonClick = oninfobuttonclick;
+			const handleInfoButtonClick = onaddtolist;
 			map.moveCamera({ center: { lat: selectedPlace.lat, lng: selectedPlace.lng }, zoom: 15 });
 			importLibrary('marker').then(({ AdvancedMarkerElement }: google.maps.MarkerLibrary) => {
 				const place = selectedPlace!;

@@ -5,6 +5,9 @@
 	import { CATEGORIES } from '$lib/categories';
 	import type { Place } from '$lib/dao/places/types.js';
 	import type { Suggestion } from '$lib/schemas/search';
+	import { createMutation } from '@tanstack/svelte-query';
+	import { addPlaceOptions } from '$lib/queries';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 
@@ -39,6 +42,12 @@
 						address: suggestion.data.formatted_address
 					};
 	}
+
+	const addPlace = createMutation(() => ({ ...addPlaceOptions, onSuccess: () => invalidateAll() }));
+
+	function handleAddToList(placeId: string) {
+		addPlace.mutate(placeId);
+	}
 </script>
 
 <PlaceMap
@@ -47,7 +56,7 @@
 	onplaceclick={() => {}}
 	{selectedPlace}
 	onmapclick={() => (selectedPlace = null)}
-	oninfobuttonclick={(placeId) => console.log('place id:', placeId)}
+	onaddtolist={handleAddToList}
 />
 <div class="controls">
 	<SearchBar placeholder="Search for something yummy" onsuggestionclick={handleSuggestionClick} />
