@@ -1,9 +1,6 @@
 import { type SQL, type TransactionSQL } from 'bun';
 import { VisitSchema, type Visit, type VisitInsert, type VisitUpdate } from './types';
-
-function isPostgresError(e: unknown): e is { errno: string } {
-	return typeof e === 'object' && e !== null && 'errno' in e && typeof e.errno === 'string';
-}
+import { isPostgresError } from '$lib/db/utils';
 
 export class VisitNotFoundError extends Error {}
 export class DuplicateVisitError extends Error {}

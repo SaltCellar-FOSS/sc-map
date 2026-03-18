@@ -1,9 +1,6 @@
 import { type SQL, type TransactionSQL } from 'bun';
 import { UserSchema, type User, type UserInsert, type UserUpdate } from './types';
-
-function isPostgresError(e: unknown): e is { errno: string } {
-	return typeof e === 'object' && e !== null && 'errno' in e && typeof e.errno === 'string';
-}
+import { isPostgresError } from '$lib/db/utils';
 
 export class UserNotFoundError extends Error {}
 export class DuplicateExternalIdError extends Error {}
