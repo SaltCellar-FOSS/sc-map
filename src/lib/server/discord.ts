@@ -29,6 +29,8 @@ export class UserFetchError extends Error {}
 export class GuildMemberFetchError extends Error {}
 export class GuildMemberNotFoundError extends Error {}
 
+const TIMEOUT_MS = 5_000;
+
 export async function exchangeCode(
 	code: string,
 	clientId: string,
@@ -37,6 +39,7 @@ export async function exchangeCode(
 ): Promise<TokenResponse> {
 	const res = await fetch('https://discord.com/api/oauth2/token', {
 		method: 'POST',
+		signal: AbortSignal.timeout(TIMEOUT_MS),
 		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 		body: new URLSearchParams({
 			client_id: clientId,
@@ -72,6 +75,7 @@ export async function getGuildMember(
 	guildId: string
 ): Promise<GuildMember | null> {
 	const res = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
+		signal: AbortSignal.timeout(TIMEOUT_MS),
 		headers: { Authorization: `${token.token_type} ${token.access_token}` }
 	});
 	if (res.status === 404) throw new GuildMemberNotFoundError();
@@ -81,6 +85,7 @@ export async function getGuildMember(
 
 export async function getCurrentUser(token: TokenResponse): Promise<DiscordUser> {
 	const res = await fetch('https://discord.com/api/users/@me', {
+		signal: AbortSignal.timeout(TIMEOUT_MS),
 		headers: { Authorization: `${token.token_type} ${token.access_token}` }
 	});
 	if (!res.ok) throw new UserFetchError(`${res.status}`);
