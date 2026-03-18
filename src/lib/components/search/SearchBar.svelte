@@ -75,13 +75,6 @@
 </div>
 
 <style>
-	.search-wrapper {
-		position: fixed;
-		top: 10px;
-		left: 10px;
-		z-index: 10;
-	}
-
 	.search-container {
 		width: 376px;
 		border-radius: 24px;

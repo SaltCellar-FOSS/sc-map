@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FilterChips from '$lib/components/FilterChips.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import SearchBar from '$lib/components/search/SearchBar.svelte';
 	import type { CategoryConfig } from '$lib/components/types.js';
@@ -26,5 +27,26 @@
 </script>
 
 <PlaceMap categories={CATEGORIES} places={data.places} onplaceclick={() => {}} />
+<div class="controls">
+	<SearchBar placeholder="Search for something yummy" />
+	<FilterChips />
+</div>
 
-<SearchBar placeholder="Search for something yummy" />
+<style>
+	.controls {
+		position: fixed;
+		display: flex;
+		flex-direction: row;
+		top: 10px;
+		left: 10px;
+		z-index: 100;
+		gap: 8px;
+	}
+
+	@media (max-width: 600px) {
+		.controls {
+			flex-direction: column;
+			gap: 8px;
+		}
+	}
+</style>
