@@ -1,0 +1,61 @@
+name: Pre-commit Hooks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: sc_map
+          POSTGRES_PASSWORD: sc_map
+          POSTGRES_DB: sc_map
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Create test database
+        env:
+          POSTGRES_USER: sc_map
+          POSTGRES_DB: sc_map
+          PGPASSWORD: sc_map
+        run: ./scripts/init-db.sh
+
+      - name: Run migrations on test database
+        env:
+          SQL_URL: postgres://sc_map:sc_map@localhost:5432/sc_map_test
+        run: bun run migrate
+
+      - name: TypeScript Check
+        run: bun run check
+
+      - name: Lint (Prettier + ESLint)
+        run: bun run lint
+
+      - name: Unit Tests
+        run: bun run test
+
+      - name: Integration Tests
+        env:
+          SQL_URL: postgres://sc_map:sc_map@localhost:5432/sc_map_test
+        run: bun run test:integration
+
+      - name: Verify migrations have down files
+        run: ./scripts/verify-migrations.sh
