@@ -5,20 +5,26 @@
 	import type { SearchResult } from '$lib/schemas/search';
 	import { createQuery } from '@tanstack/svelte-query';
 	import { searchPlacesOptions } from '$lib/queries';
+	import type { SelectedLocation } from '../types';
 
 	let {
 		placeholder = 'Search Google Maps',
-		query = $bindable(''),
-		onchange,
-		onsearchresultclick
+		selectedLocation = $bindable()
 	}: {
 		placeholder?: string;
-		query?: string;
-		onchange?: (query: string) => void;
-		onsearchresultclick?: (searchResult: SearchResult) => void;
+		selectedLocation: SelectedLocation | null;
 	} = $props();
 
 	let focused = $state(false);
+	let query = $state('');
+
+	$effect(() => {
+		if (!selectedLocation) {
+			return;
+		}
+
+		query = selectedLocation.name;
+	});
 
 	const searchQuery = createQuery(() => searchPlacesOptions(query));
 	const suggestions = $derived(searchQuery.data ?? []);
@@ -27,12 +33,11 @@
 
 	function handleInput(e: Event) {
 		query = (e.target as HTMLInputElement).value;
-		onchange?.(query);
 	}
 
 	function handleResultClick(searchResult: SearchResult) {
 		query = searchResult.name;
-		onsearchresultclick?.(searchResult);
+		selectedLocation = searchResult;
 	}
 </script>
 

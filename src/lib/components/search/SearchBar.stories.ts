@@ -10,6 +10,9 @@ const meta = {
 			default: 'map',
 			values: [{ name: 'map', value: '#e5e3df' }]
 		}
+	},
+	args: {
+		selectedLocation: null
 	}
 } satisfies Meta<typeof SearchBar>;
 

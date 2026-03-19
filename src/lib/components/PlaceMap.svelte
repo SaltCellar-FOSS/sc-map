@@ -4,26 +4,34 @@
 	import type { Place } from '$lib/dao/places/types';
 	import PlaceMarker from './PlaceMarker.svelte';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
-	import type { CategoryConfig } from './types';
+	import { type CategoryConfig, type SelectedLocation } from './types';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
 
 	let {
 		categories,
-		onplaceclick,
 		places,
-		onmapclick,
-		onaddtolist
+		onaddtolist,
+		selectedLocation = $bindable()
 	}: {
 		categories: Record<Place['type'], CategoryConfig>;
 		places: Place[];
-		onplaceclick: (place: Place) => void;
-		onmapclick?: () => void;
 		onaddtolist?: (placeId: string) => void;
+		selectedLocation: SelectedLocation | null;
 	} = $props();
 
-	let mapEl: HTMLDivElement;
 	let map: google.maps.Map | null = $state(null);
 	let currentInfoWindow: google.maps.InfoWindow | null = null;
+
+	let mapEl: HTMLDivElement;
+
+	$effect(() => {
+		if (map === null || selectedLocation === null) {
+			return;
+		}
+
+		map.panTo(selectedLocation);
+		map.setZoom(15);
+	});
 
 	function openInfoWindow(iw: google.maps.InfoWindow) {
 		currentInfoWindow?.close();
@@ -52,7 +60,7 @@
 			if (!event.placeId) {
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
-				onmapclick?.();
+				selectedLocation = null;
 				return;
 			}
 
@@ -60,7 +68,7 @@
 
 			const place = new Place({ id: event.placeId });
 			await place.fetchFields({
-				fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount']
+				fields: ['displayName', 'formattedAddress', 'location']
 			});
 
 			const iw = new InfoWindow({
@@ -84,6 +92,13 @@
 					?.addEventListener('click', () => onaddtolist?.(place.id));
 			});
 			openInfoWindow(iw);
+			selectedLocation = {
+				name: place.displayName ?? '',
+				lat: place.location?.lat() ?? 0,
+				lng: place.location?.lng() ?? 0,
+				formatted_address: place.formattedAddress ?? '',
+				google_place_id: event.placeId
+			};
 		});
 	});
 </script>
@@ -96,7 +111,7 @@
 			{map}
 			{place}
 			visible={true}
-			onclick={onplaceclick}
+			onclick={(savedPlace) => (selectedLocation = savedPlace)}
 			categoryConfig={categories[place.type]}
 		/>
 	{/each}

@@ -5,36 +5,28 @@
 	import SideDrawer from '$lib/components/SideDrawer.svelte';
 	import { CATEGORIES } from '$lib/categories';
 	import type { Place } from '$lib/dao/places/types.js';
-	import { isPlace, type SearchResult } from '$lib/schemas/search.js';
+	import type { SelectedLocation } from '$lib/components/types.js';
 
 	let { data } = $props();
 
 	let activeFilter = $state<Place['type'] | null>(null);
-	let focusedPlace = $state<Place | null>(null);
+	let selectedLocation = $state<SelectedLocation | null>(null);
 	let drawerOpen = $state(false);
-	let searchQuery = $state('');
 
 	let filteredPlaces = $derived(
 		activeFilter ? data.places.filter((place) => place.type === activeFilter) : data.places
 	);
 
-	function handlePlaceClick(place: Place) {
-		focusedPlace = place;
-		drawerOpen = true;
-		searchQuery = place.name;
-	}
-
-	function handleSearchResultClick(searchResult: SearchResult) {
-		if (isPlace(searchResult)) {
-			handlePlaceClick(searchResult);
+	$effect(() => {
+		if (selectedLocation === null) {
+			drawerOpen = false;
+			return;
 		}
-	}
 
-	function handleMapClick() {
-		focusedPlace = null;
-		drawerOpen = false;
-		searchQuery = '';
-	}
+		if ('id' in selectedLocation) {
+			drawerOpen = true;
+		}
+	});
 
 	// function handleAddToList() {}
 </script>
@@ -42,27 +34,22 @@
 <PlaceMap
 	categories={CATEGORIES}
 	places={filteredPlaces}
-	onplaceclick={handlePlaceClick}
-	onmapclick={handleMapClick}
+	bind:selectedLocation
 	// onaddtolist={handleAddToList}
 />
-<SideDrawer bind:open={drawerOpen} title={focusedPlace?.name ?? ''} width="396px">
-	{#if focusedPlace}
+<SideDrawer bind:open={drawerOpen} title={selectedLocation?.name ?? ''} width="396px">
+	{#if selectedLocation !== null}
 		<div class="place-details">
 			<p class="place-type">
-				{data.places.find((p) => p.google_place_id === focusedPlace?.google_place_id)?.type ??
+				{data.places.find((p) => p.google_place_id === selectedLocation!.google_place_id)?.type ??
 					'Place'}
 			</p>
-			<p class="place-address">{focusedPlace.formatted_address}</p>
+			<p class="place-address">{selectedLocation.formatted_address}</p>
 		</div>
 	{/if}
 </SideDrawer>
 <div class="controls">
-	<SearchBar
-		placeholder="Search for something yummy"
-		bind:query={searchQuery}
-		onsearchresultclick={handleSearchResultClick}
-	/>
+	<SearchBar placeholder="Search for something yummy" bind:selectedLocation />
 	<FilterChips
 		filters={CATEGORIES}
 		{activeFilter}
