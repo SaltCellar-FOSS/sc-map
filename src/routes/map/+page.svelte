@@ -3,6 +3,7 @@
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import SearchBar from '$lib/components/search/SearchBar.svelte';
 	import SideDrawer from '$lib/components/SideDrawer.svelte';
+	import AvatarButton from '$lib/components/AvatarButton.svelte';
 	import { CATEGORIES } from '$lib/categories';
 	import type { Place } from '$lib/dao/places/types.js';
 	import type { SelectedLocation } from '$lib/components/types.js';
@@ -56,6 +57,7 @@
 		onchange={(newFilter) => (activeFilter = newFilter)}
 	/>
 </div>
+<AvatarButton alt="User profile" src={data.user?.avatar_url ?? undefined} />
 
 <style>
 	.controls {
