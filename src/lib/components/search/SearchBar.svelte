@@ -27,6 +27,11 @@
 		query = (e.target as HTMLInputElement).value;
 		onchange?.(query);
 	}
+
+	function handleResultClick(searchResult: SearchResult) {
+		query = searchResult.name;
+		onsearchresultclick?.(searchResult);
+	}
 </script>
 
 <div class="search-wrapper" role="search">
@@ -47,6 +52,7 @@
 					onfocus={() => (focused = true)}
 					onblur={() => setTimeout(() => (focused = false), SEARCH_BLUR_DELAY_MS)}
 					oninput={handleInput}
+					value={query}
 				/>
 			</form>
 
@@ -58,7 +64,7 @@
 		</div>
 
 		{#if open}
-			<SearchResultList searchResults={suggestions} onsuggestionclick={onsearchresultclick} />
+			<SearchResultList searchResults={suggestions} onsuggestionclick={handleResultClick} />
 		{/if}
 	</div>
 </div>
