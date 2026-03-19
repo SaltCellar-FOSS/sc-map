@@ -1,12 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { PUBLIC_DISCORD_CLIENT_ID } from '$env/static/public';
-import {
-	DISCORD_CLIENT_SECRET,
-	DISCORD_REDIRECT_URI,
-	DISCORD_GUILD_ID,
-	DISCORD_GOATED_ROLE_ID
-} from '$env/static/private';
+import { env } from '$env/dynamic/private';
+const { DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, DISCORD_GUILD_ID, DISCORD_GOATED_ROLE_ID } =
+	env;
 import { sql } from '$lib/db';
 import { UsersDao } from '$lib/dao/users';
 import {
