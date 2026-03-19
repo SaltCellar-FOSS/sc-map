@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     id                       BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     discord_id               TEXT UNIQUE,
     discord_handle           TEXT,
+    avatar_url               TEXT,
     google_id                TEXT UNIQUE,
     has_lifetime_access      BOOLEAN NOT NULL DEFAULT FALSE,
     is_current_server_member BOOLEAN NOT NULL DEFAULT FALSE,
