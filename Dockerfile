@@ -27,9 +27,7 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
 
-# Production deps for the app server (zod, @tanstack/svelte-query, etc.)
-COPY --from=builder /app/package.json /app/bun.lock* ./
-RUN bun install --production
+COPY --from=builder /app/node_modules ./node_modules
 
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
