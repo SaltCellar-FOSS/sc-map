@@ -16,6 +16,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sc_map -d sc_map"]
       interval: 5s
@@ -32,7 +34,11 @@ services:
 
     expose:
       - "3000"
-      
+
+    networks:
+      - web
+      - internal
+
     environment:
       SQL_URL: postgres://sc_map:sc_map@db:5432/sc_map
       ORIGIN: ${ORIGIN}
@@ -42,24 +48,27 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
 
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - app
-    networks:
-      - web
-      - internal
     labels:
       - traefik.enable=true
+      - "traefik.docker.network=web"
       - traefik.http.routers.${PROJECT}.entryPoints=${ENTRYPOINT}
       - "traefik.http.routers.${PROJECT}.rule=Host(`${PROJECT}.${DOMAIN}`)"    
       - "traefik.http.services.${PROJECT}.loadbalancer.server.port=${PORT}"
       - "traefik.http.routers.${PROJECT}.service=${PROJECT}"
       - "traefik.http.routers.${PROJECT}.tls=true"
       - traefik.http.routers.${PROJECT}.tls.certresolver=default
+
+  # nginx:
+  #   image: nginx:alpine
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - web
+  #     - internal
+
 
 volumes:
   db_data:
