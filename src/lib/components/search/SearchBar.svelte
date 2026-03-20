@@ -106,6 +106,7 @@
 
 	.search-container {
 		width: 376px;
+		max-width: 80vw;
 		border-radius: var(--md-sys-shape-corner-extra-large);
 		transition: box-shadow var(--duration-slow);
 		box-shadow: var(--shadow-material);
