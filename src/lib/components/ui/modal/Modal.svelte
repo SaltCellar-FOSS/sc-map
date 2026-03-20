@@ -1,23 +1,23 @@
 <script lang="ts">
 	/**
-	 * Material 3 Dialog — Svelte-native, SSR-safe
+	 * Material 3 Modal — Svelte-native, SSR-safe
 	 *
 	 * Props:
 	 *   open        — bindable boolean to control visibility
-	 *   headline    — dialog title string
+	 *   headline    — modal title string
 	 *   icon        — optional snippet for an icon above the headline
 	 *   supportingText — body text (alternative to default slot)
-	 *   onclose     — called when dialog requests close (Escape or scrim click)
+	 *   onclose     — called when modal requests close (Escape or scrim click)
 	 *   closeOnScrim — close when clicking the scrim (default: true)
 	 *
 	 * Slots:
-	 *   default  — dialog body content
+	 *   default  — modal body content
 	 *   actions  — footer action buttons
 	 *
 	 * Accessibility:
 	 *   - Uses role="dialog" + aria-modal="true"
-	 *   - Focus is trapped inside the dialog while open
-	 *   - Escape key closes the dialog
+	 *   - Focus is trapped inside the modal while open
+	 *   - Escape key closes the modal
 	 *   - Returns focus to the trigger element on close
 	 */
 
@@ -47,7 +47,7 @@
 		class: extraClass = ''
 	}: Props = $props();
 
-	let dialogEl = $state<HTMLDivElement | null>(null);
+	let modalEl = $state<HTMLDivElement | null>(null);
 	let previousFocus = $state<HTMLElement | null>(null);
 
 	// Focusable elements query
@@ -64,7 +64,7 @@
 		if (open) {
 			previousFocus = document.activeElement as HTMLElement;
 			tick().then(() => {
-				const first = dialogEl?.querySelector<HTMLElement>(FOCUSABLE);
+				const first = modalEl?.querySelector<HTMLElement>(FOCUSABLE);
 				first?.focus();
 			});
 		} else {
@@ -94,8 +94,8 @@
 		}
 
 		// Trap focus
-		if (e.key === 'Tab' && dialogEl) {
-			const focusable = Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE));
+		if (e.key === 'Tab' && modalEl) {
+			const focusable = Array.from(modalEl.querySelectorAll<HTMLElement>(FOCUSABLE));
 			if (focusable.length === 0) {
 				e.preventDefault();
 				return;
@@ -115,7 +115,7 @@
 	}
 
 	// Unique ID for accessibility
-	const headlineId = `dialog-headline-${Math.random().toString(36).slice(2, 7)}`;
+	const headlineId = `modal-headline-${Math.random().toString(36).slice(2, 7)}`;
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -123,39 +123,39 @@
 {#if open}
 	<!-- Scrim -->
 	<div
-		class="dialog-scrim"
-		class:dialog-scrim--visible={open}
+		class="modal-scrim"
+		class:modal-scrim--visible={open}
 		onclick={handleScrimClick}
 		aria-hidden="true"
 	></div>
 
-	<!-- Dialog surface -->
+	<!-- Modal surface -->
 	<div
-		bind:this={dialogEl}
+		bind:this={modalEl}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={headline ? headlineId : undefined}
-		class="dialog {extraClass}"
-		class:dialog--open={open}
+		class="modal {extraClass}"
+		class:modal--open={open}
 	>
 		<!-- Optional icon -->
 		{#if icon}
-			<div class="dialog-icon" aria-hidden="true">
+			<div class="modal-icon" aria-hidden="true">
 				{@render icon()}
 			</div>
 		{/if}
 
 		<!-- Headline -->
 		{#if headline}
-			<h2 class="dialog-headline" id={headlineId}>
+			<h2 class="modal-headline" id={headlineId}>
 				{headline}
 			</h2>
 		{/if}
 
 		<!-- Body -->
-		<div class="dialog-body">
+		<div class="modal-body">
 			{#if supportingText}
-				<p class="dialog-supporting-text">{supportingText}</p>
+				<p class="modal-supporting-text">{supportingText}</p>
 			{/if}
 			{#if children}
 				{@render children()}
@@ -164,7 +164,7 @@
 
 		<!-- Actions -->
 		{#if actions}
-			<div class="dialog-actions">
+			<div class="modal-actions">
 				{@render actions()}
 			</div>
 		{/if}
@@ -173,7 +173,7 @@
 
 <style>
 	/* ---- Scrim ---- */
-	.dialog-scrim {
+	.modal-scrim {
 		position: fixed;
 		inset: 0;
 		background-color: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
@@ -191,8 +191,8 @@
 		}
 	}
 
-	/* ---- Dialog surface ---- */
-	.dialog {
+	/* ---- Modal surface ---- */
+	.modal {
 		position: fixed;
 		top: 50%;
 		left: 50%;
@@ -211,11 +211,11 @@
 
 		overflow: hidden;
 
-		animation: dialog-in var(--md-sys-motion-duration-medium2)
-			var(--md-sys-motion-easing-emphasized) forwards;
+		animation: modal-in var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized)
+			forwards;
 	}
 
-	@keyframes dialog-in {
+	@keyframes modal-in {
 		from {
 			opacity: 0;
 			transform: translate(-50%, calc(-50% + var(--md-sys-spacing-lg))) scale(0.97);
@@ -227,7 +227,7 @@
 	}
 
 	/* ---- Icon ---- */
-	.dialog-icon {
+	.modal-icon {
 		display: flex;
 		justify-content: center;
 		padding: var(--md-comp-dialog-padding) var(--md-comp-dialog-padding) 0;
@@ -235,7 +235,7 @@
 	}
 
 	/* ---- Headline ---- */
-	.dialog-headline {
+	.modal-headline {
 		font-family: var(--md-sys-typescale-display-font);
 		font-size: var(--md-sys-typescale-title-large-size);
 		font-weight: 400;
@@ -246,13 +246,13 @@
 	}
 
 	/* Center headline when there's an icon */
-	.dialog:has(.dialog-icon) .dialog-headline {
+	.modal:has(.modal-icon) .modal-headline {
 		text-align: center;
 		padding-top: var(--md-comp-dialog-gap);
 	}
 
 	/* ---- Body ---- */
-	.dialog-body {
+	.modal-body {
 		flex: 1;
 		overflow-y: auto;
 		padding: var(--md-comp-dialog-gap) var(--md-comp-dialog-padding);
@@ -261,15 +261,15 @@
 		scrollbar-width: thin;
 		scrollbar-color: var(--md-sys-color-outline-variant) transparent;
 	}
-	.dialog-body::-webkit-scrollbar {
+	.modal-body::-webkit-scrollbar {
 		width: var(--md-sys-spacing-sm);
 	}
-	.dialog-body::-webkit-scrollbar-thumb {
+	.modal-body::-webkit-scrollbar-thumb {
 		background-color: var(--md-sys-color-outline-variant);
 		border-radius: var(--md-sys-shape-corner-extra-small);
 	}
 
-	.dialog-supporting-text {
+	.modal-supporting-text {
 		font-size: var(--md-sys-typescale-body-medium-size);
 		color: var(--md-sys-color-on-surface-variant);
 		line-height: 1.6;
@@ -277,7 +277,7 @@
 	}
 
 	/* ---- Actions ---- */
-	.dialog-actions {
+	.modal-actions {
 		display: flex;
 		justify-content: flex-end;
 		gap: var(--md-comp-dialog-actions-gap);

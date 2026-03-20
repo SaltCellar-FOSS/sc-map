@@ -7,12 +7,14 @@
 	import { CATEGORIES } from '$lib/categories';
 	import type { Place } from '$lib/dao/places/types.js';
 	import type { SelectedLocation } from '$lib/components/types.js';
+	import Modal from '$lib/components/ui/modal/Modal.svelte';
 
 	let { data } = $props();
 
 	let activeFilter = $state<Place['type'] | null>(null);
 	let selectedLocation = $state<SelectedLocation | null>(null);
 	let drawerOpen = $state(false);
+	let modalOpen = $state(false);
 
 	let filteredPlaces = $derived(
 		activeFilter ? data.places.filter((place) => place.type === activeFilter) : data.places
@@ -28,8 +30,6 @@
 			drawerOpen = true;
 		}
 	});
-
-	// function handleAddToList() {}
 </script>
 
 <div class="map-root">
@@ -37,7 +37,7 @@
 		categories={CATEGORIES}
 		places={filteredPlaces}
 		bind:selectedLocation
-		// onaddtolist={handleAddToList}
+		onaddtolist={() => (modalOpen = true)}
 	/>
 </div>
 
@@ -69,6 +69,7 @@
 	/>
 </div>
 <AvatarButton alt="User profile" src={data.user?.avatar_url ?? undefined} />
+<Modal bind:open={modalOpen}>TODO</Modal>
 
 <style>
 	:global(.place-drawer) {

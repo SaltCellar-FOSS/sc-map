@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/svelte';
-import Dialog from './Dialog.svelte';
+import Modal from './Modal.svelte';
 
 const meta = {
-	title: 'UI/Dialog',
-	component: Dialog,
+	title: 'UI/Modal',
+	component: Modal,
 	tags: ['autodocs'],
 	parameters: {
 		layout: 'fullscreen'
@@ -14,7 +14,7 @@ const meta = {
 		supportingText: { control: 'text' },
 		closeOnScrim: { control: 'boolean' }
 	}
-} satisfies Meta<typeof Dialog>;
+} satisfies Meta<typeof Modal>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -26,7 +26,7 @@ const actionButtons = `
 
 export const Default: Story = {
 	render: (args) => ({
-		Component: Dialog,
+		Component: Modal,
 		props: args,
 		slots: { actions: actionButtons }
 	}),
@@ -39,7 +39,7 @@ export const Default: Story = {
 
 export const WithBodyContent: Story = {
 	render: (args) => ({
-		Component: Dialog,
+		Component: Modal,
 		props: args,
 		slots: {
 			default: `<p style="font-family:system-ui;font-size:14px;line-height:1.6;margin:0;">This will remove the place from all your saved lists. This action cannot be undone.</p>`,
@@ -51,7 +51,7 @@ export const WithBodyContent: Story = {
 
 export const WithIcon: Story = {
 	render: (args) => ({
-		Component: Dialog,
+		Component: Modal,
 		props: args,
 		slots: {
 			icon: `<span style="font-size:24px;">🗑️</span>`,
@@ -67,7 +67,7 @@ export const WithIcon: Story = {
 
 export const LongContent: Story = {
 	render: (args) => ({
-		Component: Dialog,
+		Component: Modal,
 		props: args,
 		slots: {
 			default: `
@@ -86,7 +86,7 @@ export const LongContent: Story = {
 export const Closed: Story = {
 	args: {
 		open: false,
-		headline: 'Dialog',
-		supportingText: 'This dialog is closed and not visible.'
+		headline: 'Modal',
+		supportingText: 'This modal is closed and not visible.'
 	}
 };
