@@ -114,7 +114,7 @@
 	}
 
 	.search-container.open {
-		border-radius: var(--md-sys-shape-corner-extra-large-top);
+		border-radius: var(--md-sys-shape-corner-extra-large);
 		box-shadow: var(--shadow-search-open);
 	}
 
@@ -129,6 +129,11 @@
 
 	:global(.search-field .tf-active-indicator) {
 		display: none;
+	}
+
+	#map-search-listbox :global(.list-root--surface) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
 	}
 
 	.search-btn {
