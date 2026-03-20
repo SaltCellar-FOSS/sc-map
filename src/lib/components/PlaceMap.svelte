@@ -20,7 +20,10 @@
 	} = $props();
 
 	let map: google.maps.Map | null = $state(null);
+	let InfoWindowClass: typeof google.maps.InfoWindow | null = $state(null);
+	let AdvancedMarkerClass: typeof google.maps.marker.AdvancedMarkerElement | null = $state(null);
 	let currentInfoWindow: google.maps.InfoWindow | null = null;
+	let selectedPin: google.maps.marker.AdvancedMarkerElement | null = null;
 
 	let mapEl: HTMLDivElement;
 
@@ -33,19 +36,74 @@
 		map.setZoom(15);
 	});
 
-	function openInfoWindow(iw: google.maps.InfoWindow) {
+	$effect(() => {
+		if (
+			map === null ||
+			InfoWindowClass === null ||
+			AdvancedMarkerClass === null ||
+			selectedLocation === null
+		) {
+			if (selectedPin) {
+				selectedPin.map = null;
+				selectedPin = null;
+			}
+			return;
+		}
+
+		const isSavedPlace = places.some(
+			(p) => p.google_place_id === selectedLocation!.google_place_id
+		);
+		if (isSavedPlace) {
+			if (selectedPin) {
+				selectedPin.map = null;
+				selectedPin = null;
+			}
+			return;
+		}
+
+		if (selectedPin) selectedPin.map = null;
+		selectedPin = new AdvancedMarkerClass({
+			position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
+			map,
+			title: selectedLocation.name
+		});
+
+		const iw = new InfoWindowClass({
+			position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
+			content: `
+				<div style="max-width: 200px; color: #000">
+					<strong>${selectedLocation.name}</strong><br />
+					${selectedLocation.formatted_address}<br />
+					<button
+						data-place-id="${selectedLocation.google_place_id}"
+						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
+					>
+						Add to list
+					</button>
+				</div>
+			`
+		});
+		iw.addListener('domready', () => {
+			document
+				.querySelector<HTMLButtonElement>(`[data-place-id="${selectedLocation!.google_place_id}"]`)
+				?.addEventListener('click', () => onaddtolist?.(selectedLocation!.google_place_id));
+		});
 		currentInfoWindow?.close();
 		currentInfoWindow = iw;
-		iw.open(map!);
-	}
+		iw.open({ map, anchor: selectedPin });
+	});
 
 	onMount(async () => {
 		setOptions({ key: PUBLIC_GOOGLE_MAPS_API_KEY });
 
-		const [{ Map, InfoWindow }, { Place }] = await Promise.all([
+		const [{ Map, InfoWindow }, { Place }, { AdvancedMarkerElement }] = await Promise.all([
 			importLibrary('maps') as Promise<google.maps.MapsLibrary>,
-			importLibrary('places') as Promise<google.maps.PlacesLibrary>
+			importLibrary('places') as Promise<google.maps.PlacesLibrary>,
+			importLibrary('marker') as Promise<google.maps.MarkerLibrary>
 		]);
+
+		InfoWindowClass = InfoWindow;
+		AdvancedMarkerClass = AdvancedMarkerElement;
 
 		map = new Map(mapEl, {
 			center: DEFAULT_MAP_CENTER,
@@ -60,6 +118,10 @@
 			if (!event.placeId) {
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
+				if (selectedPin) {
+					selectedPin.map = null;
+					selectedPin = null;
+				}
 				selectedLocation = null;
 				return;
 			}
@@ -71,27 +133,6 @@
 				fields: ['displayName', 'formattedAddress', 'location']
 			});
 
-			const iw = new InfoWindow({
-				position: event.latLng,
-				content: `
-				<div style="max-width: 200px">
-					<strong>${place.displayName}</strong><br />
-					${place.formattedAddress ?? ''}<br />
-					<button
-						data-place-id="${place.id}"
-						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
-					>
-						Add to list
-					</button>
-				</div>
-			`
-			});
-			iw.addListener('domready', () => {
-				document
-					.querySelector<HTMLButtonElement>(`[data-place-id="${place.id}"]`)
-					?.addEventListener('click', () => onaddtolist?.(place.id));
-			});
-			openInfoWindow(iw);
 			selectedLocation = {
 				name: place.displayName ?? '',
 				lat: place.location?.lat() ?? 0,
