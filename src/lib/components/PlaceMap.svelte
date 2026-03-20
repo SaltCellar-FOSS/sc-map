@@ -27,6 +27,13 @@
 
 	let mapEl: HTMLDivElement;
 
+	function clearSelectedPin() {
+		if (selectedPin) {
+			selectedPin.map = null;
+			selectedPin = null;
+		}
+	}
+
 	$effect(() => {
 		if (map === null || selectedLocation === null) {
 			return;
@@ -43,10 +50,7 @@
 			AdvancedMarkerClass === null ||
 			selectedLocation === null
 		) {
-			if (selectedPin) {
-				selectedPin.map = null;
-				selectedPin = null;
-			}
+			clearSelectedPin();
 			return;
 		}
 
@@ -54,14 +58,11 @@
 			(p) => p.google_place_id === selectedLocation!.google_place_id
 		);
 		if (isSavedPlace) {
-			if (selectedPin) {
-				selectedPin.map = null;
-				selectedPin = null;
-			}
+			clearSelectedPin();
 			return;
 		}
 
-		if (selectedPin) selectedPin.map = null;
+		clearSelectedPin();
 		selectedPin = new AdvancedMarkerClass({
 			position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
 			map,
@@ -87,6 +88,10 @@
 			document
 				.querySelector<HTMLButtonElement>(`[data-place-id="${selectedLocation!.google_place_id}"]`)
 				?.addEventListener('click', () => onaddtolist?.(selectedLocation!.google_place_id));
+		});
+		iw.addListener('closeclick', () => {
+			clearSelectedPin();
+			selectedLocation = null;
 		});
 		currentInfoWindow?.close();
 		currentInfoWindow = iw;
@@ -118,10 +123,7 @@
 			if (!event.placeId) {
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
-				if (selectedPin) {
-					selectedPin.map = null;
-					selectedPin = null;
-				}
+				clearSelectedPin();
 				selectedLocation = null;
 				return;
 			}
