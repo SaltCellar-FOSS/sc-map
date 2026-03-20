@@ -1,8 +1,12 @@
 <script lang="ts">
-	import SearchResultList from './SearchResultList.svelte';
+	import TextField from '$lib/components/ui/textfield/TextField.svelte';
+	import List from '$lib/components/ui/list/List.svelte';
+	import ListItem from '$lib/components/ui/list/ListItem.svelte';
 	import SearchIcon from '$lib/icons/SearchIcon.svelte';
 	import { SEARCH_BLUR_DELAY_MS } from '$lib/components/ui-constants';
-	import type { SearchResult } from '$lib/schemas/search';
+	import { isPlace, type SearchResult } from '$lib/schemas/search';
+	import { CATEGORIES } from '$lib/categories';
+	import PinIcon from '$lib/icons/PinIcon.svelte';
 	import { createQuery } from '@tanstack/svelte-query';
 	import { searchPlacesOptions } from '$lib/queries';
 	import type { SelectedLocation } from '../types';
@@ -31,114 +35,106 @@
 
 	let open = $derived(focused && suggestions.length > 0);
 
-	function handleInput(e: Event) {
-		query = (e.target as HTMLInputElement).value;
-	}
-
 	function handleResultClick(searchResult: SearchResult) {
 		query = searchResult.name;
 		selectedLocation = searchResult;
 	}
 </script>
 
+{#snippet searchButton()}
+	<button class="search-btn" aria-label="Search" type="submit">
+		<SearchIcon />
+	</button>
+{/snippet}
+
+{#snippet resultIcon(searchResult: SearchResult)}
+	{@const isSavedPlace = isPlace(searchResult)}
+	{#if isSavedPlace}
+		{@const glyph = CATEGORIES[searchResult.type]}
+		{#if 'glyphText' in glyph}
+			<span class="place-glyph" style="background: {glyph.color}">{glyph.glyphText}</span>
+		{:else}
+			{@const GlyphIcon = glyph.icon}
+			<GlyphIcon />
+		{/if}
+	{:else}
+		<PinIcon />
+	{/if}
+{/snippet}
+
 <div class="search-wrapper" role="search">
 	<div class="search-container" class:open>
-		<div class="search-bar" class:open>
-			<form spellcheck="false">
-				<label class="visually-hidden" for="map-search">{placeholder}</label>
-				<input
-					id="map-search"
-					class="search-input"
-					type="text"
-					role="combobox"
-					aria-controls="map-search-listbox"
-					aria-expanded={open}
-					aria-haspopup="listbox"
-					autocomplete="off"
-					{placeholder}
-					onfocus={() => (focused = true)}
-					onblur={() => setTimeout(() => (focused = false), SEARCH_BLUR_DELAY_MS)}
-					oninput={handleInput}
-					value={query}
-				/>
-			</form>
-
-			<div class="search-btn-wrapper">
-				<button class="search-btn" aria-label="Search" type="submit">
-					<SearchIcon />
-				</button>
-			</div>
-		</div>
+		<form spellcheck="false">
+			<TextField
+				id="map-search"
+				{placeholder}
+				bind:value={query}
+				autocomplete="off"
+				trailingIcon={searchButton}
+				onfocus={() => (focused = true)}
+				onblur={() => setTimeout(() => (focused = false), SEARCH_BLUR_DELAY_MS)}
+				class={open ? 'search-field search-field--open' : 'search-field'}
+			/>
+		</form>
 
 		{#if open}
-			<SearchResultList searchResults={suggestions} onsuggestionclick={handleResultClick} />
+			<div id="map-search-listbox" role="listbox" aria-label="Search suggestions">
+				<List surface>
+					{#each suggestions as searchResult (searchResult.google_place_id)}
+						<ListItem
+							headline={searchResult.name}
+							supportingText={searchResult.formatted_address}
+							interactive
+							onclick={() => handleResultClick(searchResult)}
+						>
+							{#snippet leadingIcon()}
+								{@render resultIcon(searchResult)}
+							{/snippet}
+						</ListItem>
+					{/each}
+				</List>
+			</div>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.search-wrapper {
+		position: relative;
+		z-index: 300;
+	}
+
 	.search-container {
 		width: 376px;
-		border-radius: var(--radius-xl);
+		max-width: 80vw;
+		border-radius: var(--md-sys-shape-corner-extra-large);
 		transition: box-shadow var(--duration-slow);
 		box-shadow: var(--shadow-material);
+		overflow: hidden;
+		border: 1px solid var(--md-sys-color-outline-variant);
 	}
 
 	.search-container.open {
+		border-radius: var(--md-sys-shape-corner-extra-large);
 		box-shadow: var(--shadow-search-open);
-		border-radius: var(--radius-xl);
-	}
-
-	.search-bar {
-		position: relative;
-		display: flex;
-		align-items: center;
-		width: 100%;
-		height: 48px;
-		background: var(--color-surface);
-		border-radius: var(--radius-xl);
-		padding: 0 56px 0 var(--space-5);
-		box-sizing: border-box;
-		transition: border-radius var(--duration-fast);
-	}
-
-	.search-bar.open {
-		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 	}
 
 	form {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		min-width: 0;
+		margin: 0;
 	}
 
-	.search-input {
-		width: 100%;
-		border: none;
-		outline: none;
-		background: transparent;
-		font-family: var(--font-family);
-		font-size: var(--text-base);
-		font-weight: 400;
-		line-height: 24px;
-		color: var(--color-on-surface);
-		transition: color var(--duration-slow);
+	/* Square the bottom corners of the TextField when the list is open */
+	:global(.search-field--open .tf-container) {
+		border-radius: var(--md-sys-shape-corner-extra-small-top) !important;
 	}
 
-	.search-input::placeholder {
-		color: var(--color-on-surface-variant);
+	:global(.search-field .tf-active-indicator) {
+		display: none;
 	}
 
-	.search-btn-wrapper {
-		position: absolute;
-		right: 0;
-		top: 0;
-		width: 48px;
-		height: 48px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	#map-search-listbox :global(.list-root--surface) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
 	}
 
 	.search-btn {
@@ -149,9 +145,9 @@
 		height: 40px;
 		border: none;
 		background: transparent;
-		border-radius: var(--radius-full);
+		border-radius: var(--md-sys-shape-corner-extra-large);
 		cursor: pointer;
-		color: var(--color-on-surface-variant);
+		color: var(--md-sys-color-on-surface-variant);
 		padding: var(--space-2);
 		transition:
 			background-color var(--duration-base),
@@ -159,24 +155,22 @@
 	}
 
 	.search-btn:hover {
-		background-color: rgba(95, 99, 104, 0.1);
-		color: var(--color-on-surface);
+		background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+		color: var(--md-sys-color-on-surface);
 	}
 
 	.search-btn:focus-visible {
-		outline: 2px solid var(--color-primary);
+		outline: 2px solid var(--md-sys-color-primary);
 		outline-offset: 2px;
 	}
 
-	.visually-hidden {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
+	.place-glyph {
+		width: 100%;
+		height: 100%;
+		border-radius: var(--md-sys-shape-corner-medium);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-lg);
 	}
 </style>

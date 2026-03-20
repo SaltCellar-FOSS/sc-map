@@ -19,7 +19,7 @@ services:
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sc_map -d sc_map"]
+      test: ['CMD-SHELL', 'pg_isready -U sc_map -d sc_map']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,10 +33,10 @@ services:
     restart: unless-stopped
 
     expose:
-      - "3000"
+      - '3000'
 
     ports:
-      - "3000:3000"
+      - '3000:3000'
 
     networks:
       - web
@@ -54,12 +54,12 @@ services:
 
     labels:
       - traefik.enable=true
-      - "traefik.docker.network=web"
+      - 'traefik.docker.network=web'
       - traefik.http.routers.${PROJECT}.entryPoints=${ENTRYPOINT}
-      - "traefik.http.routers.${PROJECT}.rule=Host(`${PROJECT}.${DOMAIN}`)"    
-      - "traefik.http.services.${PROJECT}.loadbalancer.server.port=${PORT}"
-      - "traefik.http.routers.${PROJECT}.service=${PROJECT}"
-      - "traefik.http.routers.${PROJECT}.tls=true"
+      - 'traefik.http.routers.${PROJECT}.rule=Host(`${PROJECT}.${DOMAIN}`)'
+      - 'traefik.http.services.${PROJECT}.loadbalancer.server.port=${PORT}'
+      - 'traefik.http.routers.${PROJECT}.service=${PROJECT}'
+      - 'traefik.http.routers.${PROJECT}.tls=true'
       - traefik.http.routers.${PROJECT}.tls.certresolver=default
 
 volumes:

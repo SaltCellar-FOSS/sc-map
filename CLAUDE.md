@@ -17,11 +17,13 @@ bun run format       # auto-format
 ```
 
 Run a single test file:
+
 ```sh
 bun test src/lib/dao/places/index.test.ts
 ```
 
 Run Docker (full stack: app + postgres + nginx):
+
 ```sh
 cp .env.example .env   # fill in secrets first
 docker compose up --build
@@ -32,6 +34,7 @@ docker compose up --build
 **Full-stack SvelteKit app** (SSR + API routes) backed by PostgreSQL, with Discord OAuth for auth.
 
 ### Request flow
+
 ```
 nginx :80 → app :3000 (SvelteKit/adapter-node)
                 ↓
@@ -51,19 +54,23 @@ nginx :80 → app :3000 (SvelteKit/adapter-node)
 - `src/routes/` — SvelteKit routes. Auth flow: `/auth/discord/callback` → exchange code → upsert user → set cookie → redirect. `/places/search` — hybrid search combining full-text Postgres query + Google Places API.
 
 ### Data model (Postgres)
+
 `users` → `places` (submitted_by FK) → `visits` → `visit_photos`
 
 `places` has a GIN index on `name` for full-text search (`to_tsvector / plainto_tsquery`).
 
 ### Auth
+
 Session cookie format: `userId:expiresAt.<HMAC-SHA256-base64>` signed with `SESSION_SECRET`. Verified in `+layout.server.ts` on every request; `user` (or `null`) is available to all pages via layout data.
 
 Discord OAuth checks guild membership and optionally a "goated" role for tiered access.
 
 ### Environment variables
+
 `PUBLIC_GOOGLE_MAPS_API_KEY` is baked into the client bundle at Vite build time (`$env/static/public`). All other secrets are runtime-only. See `.env.example` for the full list.
 
 ### Testing
+
 - Unit tests mock the SQL layer via `src/lib/dao/mock.ts`.
 - Integration tests use a real `sc_map_test` database (connection via `SQL_URL` env, set automatically in the `test:integration` script).
 - `src/lib/test/setup.ts` runs migrations before each integration suite.

@@ -1,6 +1,7 @@
 import { type SQL, type TransactionSQL } from 'bun';
 import { VisitSchema, type Visit, type VisitInsert, type VisitUpdate } from './types';
 import { isPostgresError } from '$lib/db/utils';
+import { PG_ERRORS } from '$lib/db/errors';
 
 export class VisitNotFoundError extends Error {}
 export class DuplicateVisitError extends Error {}
@@ -41,8 +42,8 @@ export class VisitsDao {
 			return VisitSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateVisitError();
-				if (e.errno === '23514') throw new InvalidRatingError();
+				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateVisitError();
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new InvalidRatingError();
 			}
 			throw e;
 		}
@@ -61,8 +62,8 @@ export class VisitsDao {
 			return VisitSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateVisitError();
-				if (e.errno === '23514') throw new InvalidRatingError();
+				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateVisitError();
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new InvalidRatingError();
 			}
 			throw e;
 		}

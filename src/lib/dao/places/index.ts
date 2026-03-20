@@ -1,6 +1,7 @@
 import { type SQL, type TransactionSQL } from 'bun';
 import { PlaceSchema, type Place, type PlaceInsert, type PlaceUpdate } from './types';
 import { isPostgresError } from '$lib/db/utils';
+import { PG_ERRORS } from '$lib/db/errors';
 
 export class DuplicateGooglePlaceIdError extends Error {}
 export class InvalidPlaceTypeError extends Error {}
@@ -44,9 +45,12 @@ export class PlacesDao {
 			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id);
-				if (e.errno === '23514') throw new InvalidPlaceTypeError(placeInsert.type);
-				if (e.errno === '23503') throw new UserNotFoundError(String(placeInsert.submitted_by));
+				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION)
+					throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id);
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION)
+					throw new InvalidPlaceTypeError(placeInsert.type);
+				if (e.errno === PG_ERRORS.FOREIGN_KEY_VIOLATION)
+					throw new UserNotFoundError(String(placeInsert.submitted_by));
 			}
 			throw e;
 		}
@@ -74,8 +78,10 @@ export class PlacesDao {
 			return PlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23514') throw new InvalidPlaceTypeError(String(placeUpdate.type));
-				if (e.errno === '23503') throw new UserNotFoundError(String(placeUpdate.submitted_by));
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION)
+					throw new InvalidPlaceTypeError(String(placeUpdate.type));
+				if (e.errno === PG_ERRORS.FOREIGN_KEY_VIOLATION)
+					throw new UserNotFoundError(String(placeUpdate.submitted_by));
 			}
 			throw e;
 		}

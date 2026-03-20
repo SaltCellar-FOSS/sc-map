@@ -1,6 +1,7 @@
 import { type SQL, type TransactionSQL } from 'bun';
 import { UserSchema, type User, type UserInsert, type UserUpdate } from './types';
 import { isPostgresError } from '$lib/db/utils';
+import { PG_ERRORS } from '$lib/db/errors';
 
 export class UserNotFoundError extends Error {}
 export class DuplicateExternalIdError extends Error {}
@@ -37,8 +38,8 @@ export class UsersDao {
 			return UserSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateExternalIdError();
-				if (e.errno === '23514') throw new NoIdentityError();
+				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateExternalIdError();
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new NoIdentityError();
 			}
 			throw e;
 		}
@@ -57,8 +58,8 @@ export class UsersDao {
 			return UserSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
-				if (e.errno === '23505') throw new DuplicateExternalIdError();
-				if (e.errno === '23514') throw new NoIdentityError();
+				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateExternalIdError();
+				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new NoIdentityError();
 			}
 			throw e;
 		}

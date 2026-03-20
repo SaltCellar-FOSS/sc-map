@@ -25,13 +25,13 @@
 			'marker'
 		)) as google.maps.MarkerLibrary;
 
-		const { color, glyphText } = categoryConfig;
+		const { color } = categoryConfig;
 
 		const pin = new PinElement({
 			background: color,
 			borderColor: color,
 			glyphColor: 'white',
-			glyph: glyphText
+			glyph: 'glyphText' in categoryConfig ? categoryConfig.glyphText : undefined
 		} as google.maps.marker.PinElementOptions);
 
 		pin.element.style.cursor = 'pointer';

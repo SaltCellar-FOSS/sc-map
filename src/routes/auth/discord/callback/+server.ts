@@ -2,15 +2,11 @@ import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { PUBLIC_DISCORD_CLIENT_ID } from '$env/static/public';
 import { env } from '$env/dynamic/private';
-const { DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, DISCORD_GUILD_ID, DISCORD_GOATED_ROLE_ID } =
-	env;
-import { sql } from '$lib/db';
-import { UsersDao } from '$lib/dao/users';
+const { DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, DISCORD_GUILD_ID } = env;
 import {
 	exchangeCode,
 	getCurrentUser,
 	getGuildMember,
-	discordUserToInsert,
 	TokenExchangeError,
 	UserFetchError,
 	GuildMemberFetchError,
@@ -18,8 +14,7 @@ import {
 } from '$lib/server/discord';
 import { createSessionCookie } from '$lib/server/cookie';
 import { SESSION_COOKIE_MAX_AGE_SECONDS } from '$lib/server/constants';
-
-const usersDao = new UsersDao(sql);
+import { upsertDiscordUser } from '$lib/services/auth';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
@@ -54,22 +49,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		else if (e instanceof GuildMemberNotFoundError) guildMember = null;
 		else throw e;
 	}
-	const is_current_server_member = guildMember !== null;
-	const has_lifetime_access = guildMember?.roles.includes(DISCORD_GOATED_ROLE_ID) ?? false;
 
-	const insert = discordUserToInsert(discordUser, is_current_server_member, has_lifetime_access);
-
-	let user = await usersDao.findByDiscordId(discordUser.id);
-	if (!user) {
-		user = await usersDao.insertUser(insert);
-		console.log('user created', user);
-	} else {
-		user = await usersDao.updateUser(user.id, {
-			discord_handle: insert.discord_handle,
-			is_current_server_member,
-			has_lifetime_access
-		});
-	}
+	const user = await upsertDiscordUser(discordUser, guildMember);
 
 	const maxAge = SESSION_COOKIE_MAX_AGE_SECONDS;
 	const sessionToken = await createSessionCookie(user.id, maxAge);

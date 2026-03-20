@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const VisitSchema = z.object({
-	id: z.bigint(),
-	user_id: z.bigint(),
-	place_id: z.bigint(),
+	id: z.coerce.bigint(),
+	user_id: z.coerce.bigint(),
+	place_id: z.coerce.bigint(),
 	summary: z.string(),
 	rating: z.number().min(1).max(5).nullable(),
 	visited_at: z.date(),

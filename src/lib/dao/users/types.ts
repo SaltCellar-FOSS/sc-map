@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const UserSchema = z.object({
-	id: z.bigint(),
+	id: z.coerce.bigint(),
 	discord_id: z.string().nullable(),
 	discord_handle: z.string().nullable(),
 	avatar_url: z.string().nullable(),

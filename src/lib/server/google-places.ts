@@ -1,3 +1,18 @@
+const GOOGLE_TYPE_MAP: Record<string, 'RESTAURANT' | 'BAR' | 'BAKERY'> = {
+	restaurant: 'RESTAURANT',
+	bar: 'BAR',
+	night_club: 'BAR',
+	bakery: 'BAKERY'
+};
+
+export function inferPlaceType(googleTypes: string[]): 'RESTAURANT' | 'BAR' | 'BAKERY' | null {
+	for (const t of googleTypes) {
+		const mapped = GOOGLE_TYPE_MAP[t];
+		if (mapped) return mapped;
+	}
+	return null;
+}
+
 export interface GooglePlaceResult {
 	place_id: string;
 	name: string;
