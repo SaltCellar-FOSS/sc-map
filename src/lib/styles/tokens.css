@@ -1,10 +1,3 @@
-/* ============================================
-   Material 3 Design Tokens — CSS Custom Properties
-   Import this once in your root layout:
-   <style>@import '$lib/styles/theme.css';</style>
-   or in app.css
-   ============================================ */
-
 :root {
 	/* --- Color Scheme (Light) --- */
 	--md-sys-color-primary: #6750a4;
