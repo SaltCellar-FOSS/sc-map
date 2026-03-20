@@ -124,7 +124,7 @@
 					{required}
 					{maxlength}
 					{autocomplete}
-					placeholder={focused ? placeholder : ''}
+					placeholder={focused || !label ? placeholder : ''}
 					class="tf-input"
 					onfocus={handleFocus}
 					onblur={handleBlur}
@@ -171,7 +171,7 @@
 					{required}
 					{maxlength}
 					{autocomplete}
-					placeholder={focused ? placeholder : ''}
+					placeholder={focused || !label ? placeholder : ''}
 					class="tf-input"
 					onfocus={handleFocus}
 					onblur={handleBlur}
@@ -263,11 +263,18 @@
 	.tf--has-leading .tf-input {
 		padding-top: 22px;
 	}
+	.tf:not(:has(.tf-label)) .tf-input {
+		padding-top: var(--md-comp-textfield-padding-v);
+	}
+	.tf:not(:has(.tf-label)) .tf-inner {
+		justify-content: center;
+	}
 
 	.tf-input::placeholder {
 		color: transparent;
 	}
-	.tf--focused .tf-input::placeholder {
+	.tf--focused .tf-input::placeholder,
+	.tf:not(:has(.tf-label)) .tf-input::placeholder {
 		color: var(--md-sys-color-on-surface-variant);
 	}
 

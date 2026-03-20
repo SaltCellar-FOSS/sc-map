@@ -2,8 +2,8 @@
 	import FilterChips from '$lib/components/FilterChips.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import SearchBar from '$lib/components/search/SearchBar.svelte';
-	import SideDrawer from '$lib/components/SideDrawer.svelte';
 	import AvatarButton from '$lib/components/AvatarButton.svelte';
+	import Drawer from '$lib/components/ui/drawer/Drawer.svelte';
 	import { CATEGORIES } from '$lib/categories';
 	import type { Place } from '$lib/dao/places/types.js';
 	import type { SelectedLocation } from '$lib/components/types.js';
@@ -38,7 +38,10 @@
 	bind:selectedLocation
 	// onaddtolist={handleAddToList}
 />
-<SideDrawer bind:open={drawerOpen} title={selectedLocation?.name ?? ''} width="396px">
+<Drawer bind:open={drawerOpen} onclose={() => (selectedLocation = null)} class="place-drawer">
+	{#snippet header()}
+		<span>{selectedLocation?.name ?? ''}</span>
+	{/snippet}
 	{#if selectedLocation !== null}
 		<div class="place-details">
 			<p class="place-type">
@@ -48,7 +51,7 @@
 			<p class="place-address">{selectedLocation.formatted_address}</p>
 		</div>
 	{/if}
-</SideDrawer>
+</Drawer>
 <div class="controls">
 	<SearchBar placeholder="Search for something yummy" bind:selectedLocation />
 	<FilterChips
@@ -60,13 +63,17 @@
 <AvatarButton alt="User profile" src={data.user?.avatar_url ?? undefined} />
 
 <style>
+	:global(.place-drawer) {
+		--md-comp-drawer-width: 396px;
+	}
+
 	.controls {
 		position: fixed;
 		display: flex;
 		flex-direction: row;
 		top: 10px;
 		left: 10px;
-		z-index: 100;
+		z-index: 300;
 		gap: var(--space-2);
 	}
 

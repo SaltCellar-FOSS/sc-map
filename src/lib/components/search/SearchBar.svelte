@@ -67,7 +67,7 @@
 		<form spellcheck="false">
 			<TextField
 				id="map-search"
-				label={placeholder}
+				{placeholder}
 				bind:value={query}
 				autocomplete="off"
 				trailingIcon={searchButton}
@@ -99,6 +99,11 @@
 </div>
 
 <style>
+	.search-wrapper {
+		position: relative;
+		z-index: 300;
+	}
+
 	.search-container {
 		width: 376px;
 		border-radius: var(--radius-xl);
@@ -108,6 +113,7 @@
 	}
 
 	.search-container.open {
+		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 		box-shadow: var(--shadow-search-open);
 	}
 
