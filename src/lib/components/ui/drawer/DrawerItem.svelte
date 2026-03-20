@@ -19,6 +19,8 @@
 	 *   activeIcon  — icon to use when active (falls back to icon)
 	 */
 
+	import { createRipple } from '$lib/components/ui/ripple.svelte';
+
 	interface Props {
 		label: string;
 		active?: boolean;
@@ -41,19 +43,11 @@
 		class: extraClass = ''
 	}: Props = $props();
 
-	// Ripple
-	let ripples = $state<{ id: number; x: number; y: number }[]>([]);
-	let nextId = 0;
+	const ripple = createRipple();
 
 	function handleClick(e: MouseEvent) {
 		if (disabled) return;
-		const el = e.currentTarget as HTMLElement;
-		const rect = el.getBoundingClientRect();
-		const id = nextId++;
-		ripples = [...ripples, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }];
-		setTimeout(() => {
-			ripples = ripples.filter((r) => r.id !== id);
-		}, 600);
+		ripple.addRipple(e);
 		onclick?.(e);
 	}
 </script>
@@ -79,7 +73,7 @@
 
 	<span class="di-state-layer" aria-hidden="true"></span>
 	<span class="di-ripple-container" aria-hidden="true">
-		{#each ripples as r (r.id)}
+		{#each ripple.ripples as r (r.id)}
 			<span class="di-ripple" style="left:{r.x}px;top:{r.y}px;"></span>
 		{/each}
 	</span>

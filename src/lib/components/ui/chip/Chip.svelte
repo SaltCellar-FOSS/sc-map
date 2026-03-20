@@ -24,6 +24,8 @@
 	 *   selectedIcon— icon to show when filter chip is selected (defaults to ✓)
 	 */
 
+	import { createRipple } from '$lib/components/ui/ripple.svelte';
+
 	type Variant = 'assist' | 'filter' | 'input' | 'suggestion';
 
 	interface Props {
@@ -52,22 +54,14 @@
 		class: extraClass = ''
 	}: Props = $props();
 
-	// Ripple
-	let ripples = $state<{ id: number; x: number; y: number }[]>([]);
-	let nextId = 0;
+	const ripple = createRipple();
 
 	function handleClick(e: MouseEvent) {
 		if (disabled) return;
 		if (variant === 'filter' || variant === 'suggestion') {
 			selected = !selected;
 		}
-		const el = e.currentTarget as HTMLElement;
-		const rect = el.getBoundingClientRect();
-		const id = nextId++;
-		ripples = [...ripples, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }];
-		setTimeout(() => {
-			ripples = ripples.filter((r) => r.id !== id);
-		}, 600);
+		ripple.addRipple(e);
 		onclick?.(e);
 	}
 
@@ -116,7 +110,7 @@
 	<!-- State layer + ripple -->
 	<span class="chip-state-layer" aria-hidden="true"></span>
 	<span class="chip-ripple-container" aria-hidden="true">
-		{#each ripples as r (r.id)}
+		{#each ripple.ripples as r (r.id)}
 			<span class="chip-ripple" style="left:{r.x}px;top:{r.y}px;"></span>
 		{/each}
 	</span>

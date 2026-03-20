@@ -10,6 +10,8 @@
 	 *   onclick  — event handler
 	 */
 
+	import { createRipple } from '$lib/components/ui/ripple.svelte';
+
 	type Variant = 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
 
 	interface Props {
@@ -34,24 +36,11 @@
 		class: extraClass = ''
 	}: Props = $props();
 
-	// Ripple state
-	let ripples = $state<{ id: number; x: number; y: number }[]>([]);
-	let nextId = 0;
+	const ripple = createRipple();
 
 	function handleClick(e: MouseEvent) {
 		if (disabled) return;
-
-		const el = e.currentTarget as HTMLElement;
-		const rect = el.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
-		const id = nextId++;
-
-		ripples = [...ripples, { id, x, y }];
-		setTimeout(() => {
-			ripples = ripples.filter((r) => r.id !== id);
-		}, 600);
-
+		ripple.addRipple(e);
 		onclick?.(e);
 	}
 </script>
@@ -78,8 +67,8 @@
 
 	<!-- Ripple container -->
 	<span class="btn-ripple-container" aria-hidden="true">
-		{#each ripples as ripple (ripple.id)}
-			<span class="btn-ripple" style="left:{ripple.x}px; top:{ripple.y}px;"></span>
+		{#each ripple.ripples as r (r.id)}
+			<span class="btn-ripple" style="left:{r.x}px; top:{r.y}px;"></span>
 		{/each}
 	</span>
 {/snippet}

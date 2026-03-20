@@ -18,6 +18,8 @@
 	 *   trailingIcon  — 24px icon area (right, e.g. chevron, checkbox)
 	 */
 
+	import { createRipple } from '$lib/components/ui/ripple.svelte';
+
 	type Lines = 'one' | 'two' | 'three';
 
 	interface Props {
@@ -51,19 +53,11 @@
 	// Auto-infer line count from content when not explicit
 	const resolvedLines = $derived(lines ?? (supportingText ? 'two' : 'one'));
 
-	// Ripple
-	let ripples = $state<{ id: number; x: number; y: number }[]>([]);
-	let nextId = 0;
+	const ripple = createRipple();
 
 	function handleClick(e: MouseEvent) {
 		if (disabled || !interactive) return;
-		const el = e.currentTarget as HTMLElement;
-		const rect = el.getBoundingClientRect();
-		const id = nextId++;
-		ripples = [...ripples, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }];
-		setTimeout(() => {
-			ripples = ripples.filter((r) => r.id !== id);
-		}, 600);
+		ripple.addRipple(e);
 		onclick?.(e);
 	}
 </script>
@@ -98,7 +92,7 @@
 	{#if interactive}
 		<span class="li-state-layer" aria-hidden="true"></span>
 		<span class="li-ripple-container" aria-hidden="true">
-			{#each ripples as r (r.id)}
+			{#each ripple.ripples as r (r.id)}
 				<span class="li-ripple" style="left:{r.x}px;top:{r.y}px;"></span>
 			{/each}
 		</span>

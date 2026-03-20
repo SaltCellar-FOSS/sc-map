@@ -1,15 +1,13 @@
 import { PlacesDao } from '$lib/dao/places';
 import { sql } from '$lib/db';
-import { searchGooglePlaces } from '$lib/server/google-places';
+import { searchGooglePlaces, inferPlaceType } from '$lib/server/google-places';
 import { type SearchResult } from '$lib/schemas/search';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const q = url.searchParams.get('q');
 	if (!q) {
-		return new Response(JSON.stringify([]), {
-			headers: { 'Content-Type': 'application/json' }
-		});
+		return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } });
 	}
 
 	const placesDao = new PlacesDao(sql);
@@ -38,18 +36,12 @@ export const GET: RequestHandler = async ({ url }) => {
 			lng: result.geometry.location.lng,
 			formatted_address: result.formatted_address,
 			google_place_id: result.place_id,
-			type: result.types.includes('bar')
-				? 'BAR'
-				: result.types.includes('bakery')
-					? 'BAKERY'
-					: 'RESTAURANT'
+			type: inferPlaceType(result.types) ?? 'RESTAURANT'
 		}))
 	];
 
 	return new Response(
 		JSON.stringify(searchResults, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
-		{
-			headers: { 'Content-Type': 'application/json' }
-		}
+		{ headers: { 'Content-Type': 'application/json' } }
 	);
 };

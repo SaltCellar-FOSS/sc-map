@@ -1,53 +1,25 @@
 import { PlacesDao, DuplicateGooglePlaceIdError, InvalidPlaceTypeError } from '$lib/dao/places';
 import { sql } from '$lib/db';
-import { getGooglePlaceById } from '$lib/server/google-places';
+import { getGooglePlaceById, inferPlaceType } from '$lib/server/google-places';
 import { verifySessionCookie } from '$lib/server/cookie';
+import { jsonResponse, errorResponse } from '$lib/server/response';
 import type { RequestHandler } from './$types';
-
-const GOOGLE_TYPE_MAP: Record<string, 'RESTAURANT' | 'BAR' | 'BAKERY'> = {
-	restaurant: 'RESTAURANT',
-	bar: 'BAR',
-	night_club: 'BAR',
-	bakery: 'BAKERY'
-};
-
-function inferType(googleTypes: string[]): 'RESTAURANT' | 'BAR' | 'BAKERY' | null {
-	for (const t of googleTypes) {
-		const mapped = GOOGLE_TYPE_MAP[t];
-		if (mapped) return mapped;
-	}
-	return null;
-}
 
 const placesDao = new PlacesDao(sql);
 
 export const POST: RequestHandler = async ({ params, cookies }) => {
 	const sessionCookie = cookies.get('session');
 	const userId = sessionCookie ? await verifySessionCookie(sessionCookie) : null;
-	if (!userId) {
-		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-			status: 401,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	}
+	if (!userId) return errorResponse('Unauthorized', 401);
 
 	const { googlePlaceId } = params;
 
 	const googlePlace = await getGooglePlaceById(googlePlaceId);
-	if (!googlePlace) {
-		return new Response(JSON.stringify({ error: 'Google place not found' }), {
-			status: 404,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	}
+	if (!googlePlace) return errorResponse('Google place not found', 404);
 
-	const type = inferType(googlePlace.types);
-	if (!type) {
-		return new Response(
-			JSON.stringify({ error: 'Place type could not be mapped to RESTAURANT, BAR, or BAKERY' }),
-			{ status: 422, headers: { 'Content-Type': 'application/json' } }
-		);
-	}
+	const type = inferPlaceType(googlePlace.types);
+	if (!type)
+		return errorResponse('Place type could not be mapped to RESTAURANT, BAR, or BAKERY', 422);
 
 	try {
 		const place = await placesDao.insertPlace({
@@ -67,23 +39,10 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			created_at: place.created_at.toISOString()
 		};
 
-		return new Response(JSON.stringify(serialized), {
-			status: 201,
-			headers: { 'Content-Type': 'application/json' }
-		});
+		return jsonResponse(serialized, 201);
 	} catch (e) {
-		if (e instanceof DuplicateGooglePlaceIdError) {
-			return new Response(JSON.stringify({ error: 'Place already exists' }), {
-				status: 409,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
-		if (e instanceof InvalidPlaceTypeError) {
-			return new Response(JSON.stringify({ error: 'Invalid place type' }), {
-				status: 422,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
+		if (e instanceof DuplicateGooglePlaceIdError) return errorResponse('Place already exists', 409);
+		if (e instanceof InvalidPlaceTypeError) return errorResponse('Invalid place type', 422);
 		throw e;
 	}
 };
