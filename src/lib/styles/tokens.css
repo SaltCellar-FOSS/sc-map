@@ -143,6 +143,9 @@
 	--md-comp-drawer-border-radius: var(--md-sys-shape-corner-extra-large);
 	--md-comp-drawer-section-gap: var(--md-sys-spacing-sm);
 
+	--md-comp-icon-button-container-size: 40px;
+	--md-comp-icon-button-icon-size: 24px;
+
 	/* --- Typography --- */
 	--md-sys-typescale-display-font: 'DM Serif Display', Georgia, serif;
 	--md-sys-typescale-body-font: 'DM Sans', system-ui, sans-serif;

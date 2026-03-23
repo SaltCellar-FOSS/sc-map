@@ -4,20 +4,21 @@
 	import type { Place } from '$lib/dao/places/types';
 	import PlaceMarker from './PlaceMarker.svelte';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
-	import { type CategoryConfig, type SelectedLocation } from './types';
+	import { type CategoryConfig } from './types';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
+	import { getSelectedLocationContext } from '$lib/contexts/selected-location.svelte';
 
 	let {
 		categories,
 		places,
 		onaddtolist,
-		selectedLocation = $bindable()
 	}: {
 		categories: Record<Place['type'], CategoryConfig>;
 		places: Place[];
 		onaddtolist?: (placeId: string) => void;
-		selectedLocation: SelectedLocation | null;
 	} = $props();
+
+	const ctx = getSelectedLocationContext();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass: typeof google.maps.InfoWindow | null = $state(null);
@@ -35,11 +36,11 @@
 	}
 
 	$effect(() => {
-		if (map === null || selectedLocation === null) {
+		if (map === null || ctx.selectedLocation === null) {
 			return;
 		}
 
-		map.panTo(selectedLocation);
+		map.panTo(ctx.selectedLocation);
 		map.setZoom(15);
 	});
 
@@ -48,14 +49,14 @@
 			map === null ||
 			InfoWindowClass === null ||
 			AdvancedMarkerClass === null ||
-			selectedLocation === null
+			ctx.selectedLocation === null
 		) {
 			clearSelectedPin();
 			return;
 		}
 
 		const isSavedPlace = places.some(
-			(p) => p.google_place_id === selectedLocation!.google_place_id
+			(p) => p.google_place_id === ctx.selectedLocation!.google_place_id
 		);
 		if (isSavedPlace) {
 			clearSelectedPin();
@@ -64,19 +65,19 @@
 
 		clearSelectedPin();
 		selectedPin = new AdvancedMarkerClass({
-			position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
+			position: { lat: ctx.selectedLocation.lat, lng: ctx.selectedLocation.lng },
 			map,
-			title: selectedLocation.name
+			title: ctx.selectedLocation.name
 		});
 
 		const iw = new InfoWindowClass({
-			position: { lat: selectedLocation.lat, lng: selectedLocation.lng },
+			position: { lat: ctx.selectedLocation.lat, lng: ctx.selectedLocation.lng },
 			content: `
 				<div style="max-width: 200px; color: #000">
-					<strong>${selectedLocation.name}</strong><br />
-					${selectedLocation.formatted_address}<br />
+					<strong>${ctx.selectedLocation.name}</strong><br />
+					${ctx.selectedLocation.formatted_address}<br />
 					<button
-						data-place-id="${selectedLocation.google_place_id}"
+						data-place-id="${ctx.selectedLocation.google_place_id}"
 						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
 					>
 						Add to list
@@ -86,12 +87,12 @@
 		});
 		iw.addListener('domready', () => {
 			document
-				.querySelector<HTMLButtonElement>(`[data-place-id="${selectedLocation!.google_place_id}"]`)
-				?.addEventListener('click', () => onaddtolist?.(selectedLocation!.google_place_id));
+				.querySelector<HTMLButtonElement>(`[data-place-id="${ctx.selectedLocation!.google_place_id}"]`)
+				?.addEventListener('click', () => onaddtolist?.(ctx.selectedLocation!.google_place_id));
 		});
 		iw.addListener('closeclick', () => {
 			clearSelectedPin();
-			selectedLocation = null;
+			ctx.selectedLocation = null;
 		});
 		currentInfoWindow?.close();
 		currentInfoWindow = iw;
@@ -124,7 +125,7 @@
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
 				clearSelectedPin();
-				selectedLocation = null;
+				ctx.selectedLocation = null;
 				return;
 			}
 
@@ -135,7 +136,7 @@
 				fields: ['displayName', 'formattedAddress', 'location']
 			});
 
-			selectedLocation = {
+			ctx.selectedLocation = {
 				name: place.displayName ?? '',
 				lat: place.location?.lat() ?? 0,
 				lng: place.location?.lng() ?? 0,
@@ -154,7 +155,7 @@
 			{map}
 			{place}
 			visible={true}
-			onclick={(savedPlace) => (selectedLocation = savedPlace)}
+			onclick={(savedPlace) => (ctx.selectedLocation = savedPlace)}
 			categoryConfig={categories[place.type]}
 		/>
 	{/each}
