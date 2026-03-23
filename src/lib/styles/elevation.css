@@ -1,0 +1,65 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — ELEVATION UTILITIES
+   
+   Classes: .md-elevation-{0-5}
+   
+   Each level applies:
+     1. Tonal surface color — primary tint mixed into surface via color-mix()
+     2. Box shadow          — per M3 shadow specification
+   
+   Usage:
+     <div class="md-elevation-2">...</div>
+   
+   Note: Components that need elevation should apply these classes or
+   reference the --md-sys-elevation-* tokens directly in their component CSS.
+   ============================================================================= */
+
+.md-elevation-0 {
+	background-color: var(--md-sys-color-surface);
+	box-shadow: var(--md-sys-elevation-level0-shadow);
+}
+
+.md-elevation-1 {
+	background-color: color-mix(
+		in srgb,
+		var(--md-sys-color-primary) var(--md-sys-elevation-level1-tint),
+		var(--md-sys-color-surface)
+	);
+	box-shadow: var(--md-sys-elevation-level1-shadow);
+}
+
+.md-elevation-2 {
+	background-color: color-mix(
+		in srgb,
+		var(--md-sys-color-primary) var(--md-sys-elevation-level2-tint),
+		var(--md-sys-color-surface)
+	);
+	box-shadow: var(--md-sys-elevation-level2-shadow);
+}
+
+.md-elevation-3 {
+	background-color: color-mix(
+		in srgb,
+		var(--md-sys-color-primary) var(--md-sys-elevation-level3-tint),
+		var(--md-sys-color-surface)
+	);
+	box-shadow: var(--md-sys-elevation-level3-shadow);
+}
+
+.md-elevation-4 {
+	background-color: color-mix(
+		in srgb,
+		var(--md-sys-color-primary) var(--md-sys-elevation-level4-tint),
+		var(--md-sys-color-surface)
+	);
+	box-shadow: var(--md-sys-elevation-level4-shadow);
+}
+
+.md-elevation-5 {
+	background-color: color-mix(
+		in srgb,
+		var(--md-sys-color-primary) var(--md-sys-elevation-level5-tint),
+		var(--md-sys-color-surface)
+	);
+	box-shadow: var(--md-sys-elevation-level5-shadow);
+}

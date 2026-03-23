@@ -1,0 +1,28 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — THEME ENTRY POINT
+   
+   This is the ONE file consumers import into their app.
+   Import order is load-order significant:
+     1. Reference tokens  — concrete hex values, font names
+     2. System tokens     — semantic roles + dark mode overrides
+     3. Base styles       — reset and document defaults
+     4. Elevation utility — .md-elevation-{0-5}
+     5. Typography utility — .md-typescale-{role}-{size}
+   
+   Usage in SvelteKit (src/app.css or src/routes/+layout.svelte):
+     @import '$lib/styles/theme.css';
+   
+   To retheme: override --md-sys-color-* (or --md-ref-palette-*) AFTER this
+   import. The dark mode block in system.css will automatically derive
+   correct dark values from any reference palette you substitute.
+   ============================================================================= */
+
+@import './tokens/reference.css';
+@import './tokens/system.css';
+@import './base.css';
+@import './elevation.css';
+@import './typography.css';
+@import './motion.css';
+
+/* Component token layers (Layer 3) */
+@import './tokens/components/button.css';

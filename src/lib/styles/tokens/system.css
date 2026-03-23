@@ -1,0 +1,427 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 2: SYSTEM TOKENS
+   
+   System tokens assign semantic meaning to reference palette values.
+   This is the ONLY file where dark/light theming is resolved.
+   
+   Components and utilities NEVER read --md-ref-* directly — always --md-sys-*.
+   
+   Sections:
+     1. Color — light theme (default)
+     2. Color — dark theme (@media prefers-color-scheme: dark)
+     3. Typescale
+     4. Shape
+     5. State (interaction overlays)
+     6. Elevation (tonal + shadow levels)
+   ============================================================================= */
+
+/* =============================================================================
+   1. COLOR — LIGHT THEME (default)
+   Role → palette tone mapping per M3 spec
+   ============================================================================= */
+:root {
+	/* --- Primary --- */
+	--md-sys-color-primary: var(--md-ref-palette-primary40);
+	--md-sys-color-on-primary: var(--md-ref-palette-primary100);
+	--md-sys-color-primary-container: var(--md-ref-palette-primary90);
+	--md-sys-color-on-primary-container: var(--md-ref-palette-primary10);
+	--md-sys-color-primary-fixed: var(--md-ref-palette-primary90);
+	--md-sys-color-on-primary-fixed: var(--md-ref-palette-primary10);
+	--md-sys-color-primary-fixed-dim: var(--md-ref-palette-primary80);
+	--md-sys-color-on-primary-fixed-variant: var(--md-ref-palette-primary30);
+	--md-sys-color-inverse-primary: var(--md-ref-palette-primary80);
+
+	/* --- Secondary --- */
+	--md-sys-color-secondary: var(--md-ref-palette-secondary40);
+	--md-sys-color-on-secondary: var(--md-ref-palette-secondary100);
+	--md-sys-color-secondary-container: var(--md-ref-palette-secondary90);
+	--md-sys-color-on-secondary-container: var(--md-ref-palette-secondary10);
+	--md-sys-color-secondary-fixed: var(--md-ref-palette-secondary90);
+	--md-sys-color-on-secondary-fixed: var(--md-ref-palette-secondary10);
+	--md-sys-color-secondary-fixed-dim: var(--md-ref-palette-secondary80);
+	--md-sys-color-on-secondary-fixed-variant: var(--md-ref-palette-secondary30);
+
+	/* --- Tertiary --- */
+	--md-sys-color-tertiary: var(--md-ref-palette-tertiary40);
+	--md-sys-color-on-tertiary: var(--md-ref-palette-tertiary100);
+	--md-sys-color-tertiary-container: var(--md-ref-palette-tertiary90);
+	--md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary10);
+	--md-sys-color-tertiary-fixed: var(--md-ref-palette-tertiary90);
+	--md-sys-color-on-tertiary-fixed: var(--md-ref-palette-tertiary10);
+	--md-sys-color-tertiary-fixed-dim: var(--md-ref-palette-tertiary80);
+	--md-sys-color-on-tertiary-fixed-variant: var(--md-ref-palette-tertiary30);
+
+	/* --- Error --- */
+	--md-sys-color-error: var(--md-ref-palette-error40);
+	--md-sys-color-on-error: var(--md-ref-palette-error100);
+	--md-sys-color-error-container: var(--md-ref-palette-error90);
+	--md-sys-color-on-error-container: var(--md-ref-palette-error10);
+
+	/* --- Surface & Background --- */
+	--md-sys-color-background: var(--md-ref-palette-neutral99);
+	--md-sys-color-on-background: var(--md-ref-palette-neutral10);
+	--md-sys-color-surface: var(--md-ref-palette-neutral99);
+	--md-sys-color-on-surface: var(--md-ref-palette-neutral10);
+	--md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant90);
+	--md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant30);
+	--md-sys-color-surface-inverse: var(--md-ref-palette-neutral20);
+	--md-sys-color-on-surface-inverse: var(--md-ref-palette-neutral95);
+
+	/* Surface container tonal ramp (neutral99 → neutral90) */
+	--md-sys-color-surface-dim: var(--md-ref-palette-neutral87, #ded8e1);
+	--md-sys-color-surface-bright: var(--md-ref-palette-neutral98);
+	--md-sys-color-surface-container-lowest: var(--md-ref-palette-neutral100);
+	--md-sys-color-surface-container-low: var(--md-ref-palette-neutral96, #f7f2fa);
+	--md-sys-color-surface-container: var(--md-ref-palette-neutral94, #f3edf7);
+	--md-sys-color-surface-container-high: var(--md-ref-palette-neutral92, #ece6f0);
+	--md-sys-color-surface-container-highest: var(--md-ref-palette-neutral90);
+
+	/* --- Outline --- */
+	--md-sys-color-outline: var(--md-ref-palette-neutral-variant50);
+	--md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant80);
+
+	/* --- Scrim & Shadow --- */
+	--md-sys-color-scrim: var(--md-ref-palette-neutral0);
+	--md-sys-color-shadow: var(--md-ref-palette-neutral0);
+}
+
+/* =============================================================================
+   2. COLOR — DARK THEME
+   All role → tone mappings flip; surfaces go dark, accents go light.
+   This block is the SINGLE point of dark mode color resolution.
+   ============================================================================= */
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* --- Primary --- */
+		--md-sys-color-primary: var(--md-ref-palette-primary80);
+		--md-sys-color-on-primary: var(--md-ref-palette-primary20);
+		--md-sys-color-primary-container: var(--md-ref-palette-primary30);
+		--md-sys-color-on-primary-container: var(--md-ref-palette-primary90);
+		--md-sys-color-primary-fixed: var(--md-ref-palette-primary90);
+		--md-sys-color-on-primary-fixed: var(--md-ref-palette-primary10);
+		--md-sys-color-primary-fixed-dim: var(--md-ref-palette-primary80);
+		--md-sys-color-on-primary-fixed-variant: var(--md-ref-palette-primary30);
+		--md-sys-color-inverse-primary: var(--md-ref-palette-primary40);
+
+		/* --- Secondary --- */
+		--md-sys-color-secondary: var(--md-ref-palette-secondary80);
+		--md-sys-color-on-secondary: var(--md-ref-palette-secondary20);
+		--md-sys-color-secondary-container: var(--md-ref-palette-secondary30);
+		--md-sys-color-on-secondary-container: var(--md-ref-palette-secondary90);
+		--md-sys-color-secondary-fixed: var(--md-ref-palette-secondary90);
+		--md-sys-color-on-secondary-fixed: var(--md-ref-palette-secondary10);
+		--md-sys-color-secondary-fixed-dim: var(--md-ref-palette-secondary80);
+		--md-sys-color-on-secondary-fixed-variant: var(--md-ref-palette-secondary30);
+
+		/* --- Tertiary --- */
+		--md-sys-color-tertiary: var(--md-ref-palette-tertiary80);
+		--md-sys-color-on-tertiary: var(--md-ref-palette-tertiary20);
+		--md-sys-color-tertiary-container: var(--md-ref-palette-tertiary30);
+		--md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary90);
+		--md-sys-color-tertiary-fixed: var(--md-ref-palette-tertiary90);
+		--md-sys-color-on-tertiary-fixed: var(--md-ref-palette-tertiary10);
+		--md-sys-color-tertiary-fixed-dim: var(--md-ref-palette-tertiary80);
+		--md-sys-color-on-tertiary-fixed-variant: var(--md-ref-palette-tertiary30);
+
+		/* --- Error --- */
+		--md-sys-color-error: var(--md-ref-palette-error80);
+		--md-sys-color-on-error: var(--md-ref-palette-error20);
+		--md-sys-color-error-container: var(--md-ref-palette-error30);
+		--md-sys-color-on-error-container: var(--md-ref-palette-error90);
+
+		/* --- Surface & Background --- */
+		--md-sys-color-background: var(--md-ref-palette-neutral10);
+		--md-sys-color-on-background: var(--md-ref-palette-neutral90);
+		--md-sys-color-surface: var(--md-ref-palette-neutral10);
+		--md-sys-color-on-surface: var(--md-ref-palette-neutral90);
+		--md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant30);
+		--md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant80);
+		--md-sys-color-surface-inverse: var(--md-ref-palette-neutral90);
+		--md-sys-color-on-surface-inverse: var(--md-ref-palette-neutral20);
+
+		/* Surface container tonal ramp */
+		--md-sys-color-surface-dim: var(--md-ref-palette-neutral10);
+		--md-sys-color-surface-bright: var(--md-ref-palette-neutral35, #36343b);
+		--md-sys-color-surface-container-lowest: var(--md-ref-palette-neutral4, #0f0d13);
+		--md-sys-color-surface-container-low: var(--md-ref-palette-neutral10);
+		--md-sys-color-surface-container: var(--md-ref-palette-neutral12, #211f26);
+		--md-sys-color-surface-container-high: var(--md-ref-palette-neutral17, #2b2930);
+		--md-sys-color-surface-container-highest: var(--md-ref-palette-neutral22, #36343b);
+
+		/* --- Outline --- */
+		--md-sys-color-outline: var(--md-ref-palette-neutral-variant60);
+		--md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant30);
+
+		/* --- Scrim & Shadow (unchanged) --- */
+		--md-sys-color-scrim: var(--md-ref-palette-neutral0);
+		--md-sys-color-shadow: var(--md-ref-palette-neutral0);
+	}
+}
+
+/* =============================================================================
+   3. TYPESCALE SYSTEM TOKENS
+   
+   Each role × size has four properties: font, size, line-height, weight.
+   Font values point back to --md-ref-typeface-* reference tokens.
+   Pixel values are from the M3 type scale specification.
+   ============================================================================= */
+:root {
+	/* --- Display --- */
+	--md-sys-typescale-display-large-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-display-large-size: 3.5625rem; /* 57px */
+	--md-sys-typescale-display-large-line-height: 4rem; /* 64px */
+	--md-sys-typescale-display-large-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-display-large-tracking: -0.015625rem; /* -0.25px */
+
+	--md-sys-typescale-display-medium-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-display-medium-size: 2.8125rem; /* 45px */
+	--md-sys-typescale-display-medium-line-height: 3.25rem; /* 52px */
+	--md-sys-typescale-display-medium-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-display-medium-tracking: 0rem;
+
+	--md-sys-typescale-display-small-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-display-small-size: 2.25rem; /* 36px */
+	--md-sys-typescale-display-small-line-height: 2.75rem; /* 44px */
+	--md-sys-typescale-display-small-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-display-small-tracking: 0rem;
+
+	/* --- Headline --- */
+	--md-sys-typescale-headline-large-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-headline-large-size: 2rem; /* 32px */
+	--md-sys-typescale-headline-large-line-height: 2.5rem; /* 40px */
+	--md-sys-typescale-headline-large-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-headline-large-tracking: 0rem;
+
+	--md-sys-typescale-headline-medium-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-headline-medium-size: 1.75rem; /* 28px */
+	--md-sys-typescale-headline-medium-line-height: 2.25rem; /* 36px */
+	--md-sys-typescale-headline-medium-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-headline-medium-tracking: 0rem;
+
+	--md-sys-typescale-headline-small-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-headline-small-size: 1.5rem; /* 24px */
+	--md-sys-typescale-headline-small-line-height: 2rem; /* 32px */
+	--md-sys-typescale-headline-small-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-headline-small-tracking: 0rem;
+
+	/* --- Title --- */
+	--md-sys-typescale-title-large-font: var(--md-ref-typeface-brand);
+	--md-sys-typescale-title-large-size: 1.375rem; /* 22px */
+	--md-sys-typescale-title-large-line-height: 1.75rem; /* 28px */
+	--md-sys-typescale-title-large-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-title-large-tracking: 0rem;
+
+	--md-sys-typescale-title-medium-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-title-medium-size: 1rem; /* 16px */
+	--md-sys-typescale-title-medium-line-height: 1.5rem; /* 24px */
+	--md-sys-typescale-title-medium-weight: var(--md-ref-typeface-weight-medium);
+	--md-sys-typescale-title-medium-tracking: 0.009375rem; /* 0.15px */
+
+	--md-sys-typescale-title-small-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-title-small-size: 0.875rem; /* 14px */
+	--md-sys-typescale-title-small-line-height: 1.25rem; /* 20px */
+	--md-sys-typescale-title-small-weight: var(--md-ref-typeface-weight-medium);
+	--md-sys-typescale-title-small-tracking: 0.00625rem; /* 0.1px */
+
+	/* --- Body --- */
+	--md-sys-typescale-body-large-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-body-large-size: 1rem; /* 16px */
+	--md-sys-typescale-body-large-line-height: 1.5rem; /* 24px */
+	--md-sys-typescale-body-large-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-body-large-tracking: 0.03125rem; /* 0.5px */
+
+	--md-sys-typescale-body-medium-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-body-medium-size: 0.875rem; /* 14px */
+	--md-sys-typescale-body-medium-line-height: 1.25rem; /* 20px */
+	--md-sys-typescale-body-medium-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-body-medium-tracking: 0.015625rem; /* 0.25px */
+
+	--md-sys-typescale-body-small-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-body-small-size: 0.75rem; /* 12px */
+	--md-sys-typescale-body-small-line-height: 1rem; /* 16px */
+	--md-sys-typescale-body-small-weight: var(--md-ref-typeface-weight-regular);
+	--md-sys-typescale-body-small-tracking: 0.025rem; /* 0.4px */
+
+	/* --- Label --- */
+	--md-sys-typescale-label-large-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-label-large-size: 0.875rem; /* 14px */
+	--md-sys-typescale-label-large-line-height: 1.25rem; /* 20px */
+	--md-sys-typescale-label-large-weight: var(--md-ref-typeface-weight-medium);
+	--md-sys-typescale-label-large-tracking: 0.00625rem; /* 0.1px */
+
+	--md-sys-typescale-label-medium-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-label-medium-size: 0.75rem; /* 12px */
+	--md-sys-typescale-label-medium-line-height: 1rem; /* 16px */
+	--md-sys-typescale-label-medium-weight: var(--md-ref-typeface-weight-medium);
+	--md-sys-typescale-label-medium-tracking: 0.03125rem; /* 0.5px */
+
+	--md-sys-typescale-label-small-font: var(--md-ref-typeface-plain);
+	--md-sys-typescale-label-small-size: 0.6875rem; /* 11px */
+	--md-sys-typescale-label-small-line-height: 1rem; /* 16px */
+	--md-sys-typescale-label-small-weight: var(--md-ref-typeface-weight-medium);
+	--md-sys-typescale-label-small-tracking: 0.03125rem; /* 0.5px */
+
+	/* =============================================================================
+     4. SHAPE SYSTEM TOKENS
+     Corner radius values for the M3 shape scale.
+     Components reference these; they never hardcode px values.
+     ============================================================================= */
+
+	--md-sys-shape-corner-none: 0px;
+	--md-sys-shape-corner-extra-small: 4px;
+	--md-sys-shape-corner-small: 8px;
+	--md-sys-shape-corner-medium: 12px;
+	--md-sys-shape-corner-large: 16px;
+	--md-sys-shape-corner-extra-large: 28px;
+	--md-sys-shape-corner-full: 9999px; /* pill / stadium */
+
+	/* =============================================================================
+     5. STATE LAYER SYSTEM TOKENS
+     
+     M3 uses semi-transparent overlays (not color shifts) for interaction states.
+     The overlay color comes from the content color of the surface (on-* roles).
+     These opacity values are composited over the container color using a
+     <span class="md-state-layer"> child element with:
+       background-color: currentColor; (inherits the on-* text color)
+       opacity: var(--md-sys-state-*-opacity);
+     ============================================================================= */
+
+	--md-sys-state-hover-opacity: 0.08;
+	--md-sys-state-focus-opacity: 0.12;
+	--md-sys-state-pressed-opacity: 0.12;
+	--md-sys-state-dragged-opacity: 0.16;
+
+	/* Disabled state — not an overlay, but an opacity applied to the entire element */
+	--md-sys-state-disabled-container-opacity: 0.12;
+	--md-sys-state-disabled-content-opacity: 0.38;
+
+	/* =============================================================================
+     6. ELEVATION SYSTEM TOKENS
+     
+     M3 elevation uses BOTH tonal color (primary tint into surface) AND shadow.
+     
+     Tonal levels: percentage of primary color mixed into the surface color.
+     Used via: color-mix(in srgb, var(--md-sys-color-primary) <X>%, var(--md-sys-color-surface))
+     
+     Shadow levels: box-shadow values per M3 specification.
+     ============================================================================= */
+
+	/* Tonal elevation — primary tint % per level */
+	--md-sys-elevation-level0-tint: 0%;
+	--md-sys-elevation-level1-tint: 5%;
+	--md-sys-elevation-level2-tint: 8%;
+	--md-sys-elevation-level3-tint: 11%;
+	--md-sys-elevation-level4-tint: 12%;
+	--md-sys-elevation-level5-tint: 14%;
+
+	/* Shadow elevation — dp values per M3 specification */
+	--md-sys-elevation-level0-shadow: none;
+	--md-sys-elevation-level1-shadow:
+		0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+	--md-sys-elevation-level2-shadow:
+		0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+	--md-sys-elevation-level3-shadow:
+		0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+	--md-sys-elevation-level4-shadow:
+		0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+	--md-sys-elevation-level5-shadow:
+		0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+
+	/* =============================================================================
+     7. MOTION SYSTEM TOKENS
+     
+     Two sub-systems, both representable in CSS:
+     
+     A) Easing — cubic-bezier() values for standard curves;
+                 linear() for the emphasized path curve (two-segment, faithful).
+     B) Duration — named scale of 16 slots (short1→extra-long4) in ms.
+     
+     Components reference --md-sys-motion-* only; they never read
+     --md-ref-motion-* directly.
+     
+     Reduced motion is resolved here via a single @media block below.
+     The --md-sys-motion-duration-scale multiplier enables a zero-cost
+     global speed knob for development/testing without touching component CSS.
+     ============================================================================= */
+
+	/* --- Duration scale multiplier (1 = normal, 0 = instant, >1 = slow-mo) --- */
+	--md-sys-motion-duration-scale: 1;
+
+	/* --- Easing: standard family (utility-focused, on-screen movement) --- */
+	--md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+	--md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+	--md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+	/* --- Easing: emphasized family (expressive, M3-branded transitions) ---
+     The emphasized curve is a two-segment path that cubic-bezier cannot
+     express faithfully. We use linear() which samples the exact path:
+       M 0,0  C 0.05,0  0.133,0.06  0.1667,0.4
+              C 0.2083,0.82  0.25,1  1,1
+     The 30 samples below are spaced at 1/30 intervals across t=[0..1].      */
+	--md-sys-motion-easing-emphasized: linear(
+		0,
+		0.002,
+		0.01 3.6%,
+		0.034,
+		0.074 9.1%,
+		0.128 11.4%,
+		0.194 13.4%,
+		0.271 15%,
+		0.344 16.1%,
+		0.544,
+		0.66 20.6%,
+		0.717 22.4%,
+		0.769 24.6%,
+		0.808 26.8%,
+		0.845 29.2%,
+		0.883 31.3%,
+		0.916 33.3%,
+		0.942 35.5%,
+		0.963 38.1%,
+		0.979 40.7%,
+		0.991 43.9%,
+		0.998 50.1%,
+		1 56.5%,
+		1 100%
+	);
+	--md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+	--md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+	/* --- Easing: linear (non-stylized, opacity/color changes) --- */
+	--md-sys-motion-easing-linear: cubic-bezier(0, 0, 1, 1);
+
+	/* --- Duration slots (16 total) ---
+     Usage: calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-*))
+     The scale multiplier means a single token change zeros all motion for
+     reduced-motion, or slows everything down for debugging.               */
+	--md-sys-motion-duration-short1: 50ms;
+	--md-sys-motion-duration-short2: 100ms;
+	--md-sys-motion-duration-short3: 150ms;
+	--md-sys-motion-duration-short4: 200ms;
+	--md-sys-motion-duration-medium1: 250ms;
+	--md-sys-motion-duration-medium2: 300ms;
+	--md-sys-motion-duration-medium3: 350ms;
+	--md-sys-motion-duration-medium4: 400ms;
+	--md-sys-motion-duration-long1: 450ms;
+	--md-sys-motion-duration-long2: 500ms;
+	--md-sys-motion-duration-long3: 550ms;
+	--md-sys-motion-duration-long4: 600ms;
+	--md-sys-motion-duration-extra-long1: 700ms;
+	--md-sys-motion-duration-extra-long2: 800ms;
+	--md-sys-motion-duration-extra-long3: 900ms;
+	--md-sys-motion-duration-extra-long4: 1000ms;
+}
+
+/* =============================================================================
+   7a. REDUCED MOTION OVERRIDE
+   
+   Setting the scale to 0 collapses every duration token to 0ms in a single
+   block. Easing tokens are kept intact — they have no effect at 0 duration
+   and preserving them avoids jarring jumps in browsers that still render
+   a single frame even at 0ms.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--md-sys-motion-duration-scale: 0;
+	}
+}

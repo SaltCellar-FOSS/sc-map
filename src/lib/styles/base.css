@@ -1,0 +1,116 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — BASE STYLES
+   
+   Minimal opinionated reset + document defaults wired to system tokens.
+   No component styles here. No utility classes here.
+   ============================================================================= */
+
+/* --- Box model --- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* --- Document root --- */
+html {
+	/* Use 16px base so our rem values match spec pixel values exactly */
+	font-size: 16px;
+	/* Smooth font rendering */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+/* --- Body defaults — use M3 surface + body-medium as baseline --- */
+body {
+	margin: 0;
+	background-color: var(--md-sys-color-background);
+	color: var(--md-sys-color-on-background);
+	font-family: var(--md-sys-typescale-body-large-font);
+	font-size: var(--md-sys-typescale-body-large-size);
+	font-weight: var(--md-sys-typescale-body-large-weight);
+	line-height: var(--md-sys-typescale-body-large-line-height);
+	letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+
+/* --- Remove default margin from headings and block elements --- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+figure,
+fieldset,
+dl,
+dd,
+ol,
+ul {
+	margin: 0;
+	padding: 0;
+}
+
+/* --- Lists --- */
+ol,
+ul {
+	list-style: none;
+}
+
+/* --- Links — inherit color and remove underline by default --- */
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* --- Images and media --- */
+img,
+video,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+/* --- Form elements inherit typography --- */
+input,
+button,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+/* --- Buttons — strip browser defaults --- */
+button {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+/* --- Focus visible outline — use primary for accessibility --- */
+:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: 2px;
+	border-radius: var(--md-sys-shape-corner-extra-small);
+}
+
+/* --- Remove focus ring for mouse/touch (keep for keyboard) --- */
+:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/* --- Interactive element base cursor --- */
+[role='button'],
+[role='link'],
+label[for] {
+	cursor: pointer;
+}
+
+/* --- Disabled state cursor --- */
+[disabled],
+[aria-disabled='true'] {
+	cursor: not-allowed;
+}
