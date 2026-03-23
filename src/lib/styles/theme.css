@@ -24,5 +24,5 @@
 @import './typography.css';
 @import './motion.css';
 
-/* Component token layers (Layer 3) */
-@import './tokens/components/button.css';
+/* Component styles — each self-contained via its own internal @import */
+@import '../components/ui/button/button.css';
