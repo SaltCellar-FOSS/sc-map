@@ -6,10 +6,7 @@
 </script>
 
 <div class="map-root">
-	<PlaceMap
-		categories={CATEGORIES}
-		places={data.places}
-	/>
+	<PlaceMap categories={CATEGORIES} places={data.places} />
 </div>
 
 <style>

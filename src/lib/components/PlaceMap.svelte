@@ -11,7 +11,7 @@
 	let {
 		categories,
 		places,
-		onaddtolist,
+		onaddtolist
 	}: {
 		categories: Record<Place['type'], CategoryConfig>;
 		places: Place[];
@@ -87,7 +87,9 @@
 		});
 		iw.addListener('domready', () => {
 			document
-				.querySelector<HTMLButtonElement>(`[data-place-id="${ctx.selectedLocation!.google_place_id}"]`)
+				.querySelector<HTMLButtonElement>(
+					`[data-place-id="${ctx.selectedLocation!.google_place_id}"]`
+				)
 				?.addEventListener('click', () => onaddtolist?.(ctx.selectedLocation!.google_place_id));
 		});
 		iw.addListener('closeclick', () => {
