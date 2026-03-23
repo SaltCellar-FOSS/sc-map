@@ -1,0 +1,79 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: SIDE SHEET COMPONENT TOKENS
+
+   Imported by components/SideSheet/side-sheet.css — not directly by theme.css.
+
+   Spec measurements:
+     Standard side sheet:  co-exists with main content, no scrim, right-anchored
+     Modal side sheet:     blocks main content with scrim, right-anchored
+     Width:                256dp minimum, content-driven (max ~400dp typical)
+     Full height:          matches viewport height
+     Container color:      surface-container-low
+     Shape:                large (16px) on the inner corners only
+                           (top-start + bottom-start for right-anchored sheet)
+     Header height:        56px — aligns with top app bar row height
+     Header padding:       16px leading, 4px between icon and title, 24px trailing
+     Header title:         title-large, on-surface
+     Header close icon:    24px, on-surface-variant
+     Divider:              1px outline-variant
+     Content padding:      24px horizontal, 16px vertical
+     Modal elevation:      level1 (matches M3 modal surface resting elevation)
+     Standard elevation:   level0 (coplanar, no shadow)
+     Scrim:                scrim color at 32% opacity
+     Enter animation:      shared-axis-X (slide in from right)
+     Exit animation:       shared-axis-X (slide out to right)
+     Duration:             medium3 (350ms)
+   ============================================================================= */
+
+:root {
+	/* --- Container --- */
+	--md-comp-side-sheet-container-color: var(--md-sys-color-surface-container-low);
+	--md-comp-side-sheet-container-width: 256px;
+
+	/* Inner corners (top-start + bottom-start for a right-anchored sheet) */
+	--md-comp-side-sheet-shape-start-start: var(--md-sys-shape-corner-large);
+	--md-comp-side-sheet-shape-start-end: var(--md-sys-shape-corner-none);
+	--md-comp-side-sheet-shape-end-start: var(--md-sys-shape-corner-large);
+	--md-comp-side-sheet-shape-end-end: var(--md-sys-shape-corner-none);
+
+	/* --- Header --- */
+	--md-comp-side-sheet-header-height: 56px;
+	--md-comp-side-sheet-header-padding-inline: 16px;
+
+	--md-comp-side-sheet-header-title-color: var(--md-sys-color-on-surface);
+	--md-comp-side-sheet-header-title-font: var(--md-sys-typescale-title-large-font);
+	--md-comp-side-sheet-header-title-size: var(--md-sys-typescale-title-large-size);
+	--md-comp-side-sheet-header-title-weight: var(--md-sys-typescale-title-large-weight);
+	--md-comp-side-sheet-header-title-tracking: var(--md-sys-typescale-title-large-tracking);
+
+	--md-comp-side-sheet-header-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-side-sheet-header-icon-size: 24px;
+
+	/* --- Divider --- */
+	--md-comp-side-sheet-divider-color: var(--md-sys-color-outline-variant);
+
+	/* --- Content --- */
+	--md-comp-side-sheet-content-padding-inline: 24px;
+	--md-comp-side-sheet-content-padding-block: 16px;
+	--md-comp-side-sheet-content-color: var(--md-sys-color-on-surface-variant);
+
+	/* --- Elevation --- */
+	--md-comp-side-sheet-modal-shadow: var(--md-sys-elevation-shadow-level1);
+	--md-comp-side-sheet-standard-shadow: var(--md-sys-elevation-shadow-level0);
+
+	/* --- Scrim (modal only) --- */
+	--md-comp-side-sheet-scrim-color: var(--md-sys-color-scrim);
+	--md-comp-side-sheet-scrim-opacity: 0.32;
+
+	/* --- State layer (close button) --- */
+	--md-comp-side-sheet-icon-btn-hover-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-side-sheet-icon-btn-hover-opacity: var(--md-sys-state-hover-opacity);
+	--md-comp-side-sheet-icon-btn-focus-opacity: var(--md-sys-state-focus-opacity);
+	--md-comp-side-sheet-icon-btn-press-opacity: var(--md-sys-state-pressed-opacity);
+
+	/* --- Motion --- */
+	--md-comp-side-sheet-enter-duration: var(--md-sys-motion-duration-medium3);
+	--md-comp-side-sheet-exit-duration: var(--md-sys-motion-duration-medium3);
+	--md-comp-side-sheet-enter-easing: var(--md-sys-motion-easing-emphasized-decelerate);
+	--md-comp-side-sheet-exit-easing: var(--md-sys-motion-easing-emphasized-accelerate);
+}

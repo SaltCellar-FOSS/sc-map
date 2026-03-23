@@ -1,0 +1,337 @@
+@import '../../../styles/tokens/components/side-sheet.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — SIDE SHEET COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Structure:
+     .md-side-sheet-root          — layout wrapper (positions scrim + sheet)
+     .md-side-sheet-scrim         — modal backdrop (modal variant only)
+     .md-side-sheet               — the sheet surface
+       .md-side-sheet--standard   — coplanar with content, no scrim
+       .md-side-sheet--modal      — elevated, with scrim
+       .md-side-sheet--open       — visible / entering
+       .md-side-sheet--closing    — exit animation in progress
+     .md-side-sheet__header       — 56px title + close button row
+       .md-side-sheet__close      — close icon button
+       .md-side-sheet__title      — title-large text
+     .md-side-sheet__divider      — 1px outline-variant separator
+     .md-side-sheet__content      — scrollable body region
+   ============================================================================= */
+
+/* =============================================================================
+   KEYFRAMES
+   ============================================================================= */
+
+@keyframes md-side-sheet-enter {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes md-side-sheet-exit {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes md-side-sheet-scrim-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: var(--md-comp-side-sheet-scrim-opacity);
+	}
+}
+
+@keyframes md-side-sheet-scrim-exit {
+	from {
+		opacity: var(--md-comp-side-sheet-scrim-opacity);
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+/* =============================================================================
+   ROOT WRAPPER
+   Used to position scrim + sheet together without disrupting surrounding layout.
+   For modal sheets the wrapper becomes a fixed inset-0 overlay.
+   ============================================================================= */
+
+.md-side-sheet-root {
+	display: contents; /* standard: invisible in layout */
+}
+
+.md-side-sheet-root--modal {
+	display: block;
+	position: fixed;
+	inset: 0;
+	z-index: 400;
+	pointer-events: none; /* only children capture events */
+
+	/* Hidden until open / closing */
+	visibility: hidden;
+}
+
+.md-side-sheet-root--modal.md-side-sheet-root--open,
+.md-side-sheet-root--modal.md-side-sheet-root--closing {
+	visibility: visible;
+	pointer-events: auto;
+}
+
+/* =============================================================================
+   SCRIM  (modal only)
+   ============================================================================= */
+
+.md-side-sheet-scrim {
+	display: none;
+}
+
+.md-side-sheet-root--modal .md-side-sheet-scrim {
+	display: block;
+	position: absolute;
+	inset: 0;
+	background-color: var(--md-comp-side-sheet-scrim-color);
+	opacity: 0;
+}
+
+.md-side-sheet-root--modal.md-side-sheet-root--open .md-side-sheet-scrim {
+	opacity: var(--md-comp-side-sheet-scrim-opacity);
+	animation: md-side-sheet-scrim-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-enter-duration))
+		var(--md-comp-side-sheet-enter-easing) forwards;
+}
+
+.md-side-sheet-root--modal.md-side-sheet-root--closing .md-side-sheet-scrim {
+	animation: md-side-sheet-scrim-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-exit-duration))
+		var(--md-comp-side-sheet-exit-easing) forwards;
+}
+
+/* =============================================================================
+   SHEET SURFACE
+   ============================================================================= */
+
+.md-side-sheet {
+	/* Geometry */
+	position: fixed;
+	inset-block: 0;
+	inset-inline-end: 0;
+	width: var(--md-comp-side-sheet-container-width);
+	max-width: 100vw;
+
+	/* Shape — only inner (start) corners are rounded for right-anchored sheet */
+	border-start-start-radius: var(--md-comp-side-sheet-shape-start-start);
+	border-start-end-radius: var(--md-comp-side-sheet-shape-start-end);
+	border-end-start-radius: var(--md-comp-side-sheet-shape-end-start);
+	border-end-end-radius: var(--md-comp-side-sheet-shape-end-end);
+
+	/* Color */
+	background-color: var(--md-comp-side-sheet-container-color);
+	color: var(--md-comp-side-sheet-content-color);
+
+	/* Layout */
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+	/* Hidden by default */
+	transform: translateX(100%);
+	visibility: hidden;
+
+	/* Stacking */
+	z-index: 1;
+}
+
+/* Standard: co-planar, no shadow */
+.md-side-sheet--standard {
+	box-shadow: var(--md-comp-side-sheet-standard-shadow);
+}
+
+/* Modal: elevated above content */
+.md-side-sheet--modal {
+	box-shadow: var(--md-comp-side-sheet-modal-shadow);
+}
+
+/* --- Open state --- */
+.md-side-sheet-root--open .md-side-sheet,
+.md-side-sheet-root--closing .md-side-sheet {
+	visibility: visible;
+}
+
+.md-side-sheet-root--open .md-side-sheet {
+	transform: translateX(0);
+	animation: md-side-sheet-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-enter-duration))
+		var(--md-comp-side-sheet-enter-easing) forwards;
+}
+
+/* --- Closing state (exit animation) --- */
+.md-side-sheet-root--closing .md-side-sheet {
+	animation: md-side-sheet-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-exit-duration))
+		var(--md-comp-side-sheet-exit-easing) forwards;
+}
+
+/* Standard sheet: no fixed positioning — sits in document flow */
+.md-side-sheet--standard {
+	position: relative;
+	inset: unset;
+	height: 100%;
+	transform: none;
+	visibility: visible;
+	flex-shrink: 0;
+}
+
+/* Standard open/close: slide in/out */
+.md-side-sheet-root--open .md-side-sheet--standard {
+	animation: md-side-sheet-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-enter-duration))
+		var(--md-comp-side-sheet-enter-easing) forwards;
+}
+
+.md-side-sheet-root--closing .md-side-sheet--standard {
+	animation: md-side-sheet-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-exit-duration))
+		var(--md-comp-side-sheet-exit-easing) forwards;
+}
+
+/* =============================================================================
+   HEADER
+   ============================================================================= */
+
+.md-side-sheet__header {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-height: var(--md-comp-side-sheet-header-height);
+	padding-inline: var(--md-comp-side-sheet-header-padding-inline);
+	flex-shrink: 0;
+}
+
+/* =============================================================================
+   CLOSE BUTTON (icon button)
+   ============================================================================= */
+
+.md-side-sheet__close {
+	/* Reset */
+	appearance: none;
+	border: none;
+	background: transparent;
+	padding: 0;
+	cursor: pointer;
+
+	/* Size — 40px touch target */
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: var(--md-sys-shape-corner-full);
+	flex-shrink: 0;
+	color: var(--md-comp-side-sheet-header-icon-color);
+
+	/* State layer */
+	overflow: hidden;
+}
+
+.md-side-sheet__close::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: currentColor;
+	opacity: 0;
+	transition: opacity 100ms var(--md-sys-motion-easing-standard);
+}
+
+.md-side-sheet__close:hover::before {
+	opacity: var(--md-comp-side-sheet-icon-btn-hover-opacity);
+}
+
+.md-side-sheet__close:focus-visible::before {
+	opacity: var(--md-comp-side-sheet-icon-btn-focus-opacity);
+}
+
+.md-side-sheet__close:active::before {
+	opacity: var(--md-comp-side-sheet-icon-btn-press-opacity);
+}
+
+.md-side-sheet__close:focus-visible {
+	outline: none;
+}
+
+.md-side-sheet__close-icon {
+	width: var(--md-comp-side-sheet-header-icon-size);
+	height: var(--md-comp-side-sheet-header-icon-size);
+	fill: currentColor;
+	pointer-events: none;
+	flex-shrink: 0;
+	position: relative; /* sits above the ::before state layer */
+}
+
+/* =============================================================================
+   TITLE
+   ============================================================================= */
+
+.md-side-sheet__title {
+	flex: 1;
+	color: var(--md-comp-side-sheet-header-title-color);
+	font-family: var(--md-comp-side-sheet-header-title-font);
+	font-size: var(--md-comp-side-sheet-header-title-size);
+	font-weight: var(--md-comp-side-sheet-header-title-weight);
+	letter-spacing: var(--md-comp-side-sheet-header-title-tracking);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	/* Title comes after the close button per M3 spec */
+	order: 2;
+}
+
+/* Close button is always at the leading edge */
+.md-side-sheet__close {
+	order: 1;
+}
+
+/* Optional trailing actions slot */
+.md-side-sheet__header-actions {
+	order: 3;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-inline-start: auto;
+}
+
+/* =============================================================================
+   DIVIDER
+   ============================================================================= */
+
+.md-side-sheet__divider {
+	border: none;
+	border-top: 1px solid var(--md-comp-side-sheet-divider-color);
+	margin: 0;
+	flex-shrink: 0;
+}
+
+/* =============================================================================
+   CONTENT (scrollable body)
+   ============================================================================= */
+
+.md-side-sheet__content {
+	flex: 1;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding-inline: var(--md-comp-side-sheet-content-padding-inline);
+	padding-block: var(--md-comp-side-sheet-content-padding-block);
+}
