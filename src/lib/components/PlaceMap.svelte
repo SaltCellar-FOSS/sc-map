@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
-	import type { Place } from '$lib/dao/places/types';
+	import type { SavedPlace } from '$lib/dao/saved-places/types';
 	import PlaceMarker from './PlaceMarker.svelte';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { type CategoryConfig } from './types';
@@ -13,8 +13,8 @@
 		places,
 		onaddtolist
 	}: {
-		categories: Record<Place['type'], CategoryConfig>;
-		places: Place[];
+		categories: Record<SavedPlace['type'], CategoryConfig>;
+		places: SavedPlace[];
 		onaddtolist?: (placeId: string) => void;
 	} = $props();
 

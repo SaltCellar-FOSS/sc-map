@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
         CHECK (discord_id IS NOT NULL OR google_id IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS places (
+CREATE TABLE IF NOT EXISTS saved_places (
     id                 BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name               TEXT NOT NULL,
     lat                FLOAT8 NOT NULL,
@@ -27,16 +27,16 @@ CREATE TABLE IF NOT EXISTS places (
     submitted_by       BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT places_type_check
+    CONSTRAINT saved_places_type_check
         CHECK (type IN ('RESTAURANT', 'BAR', 'BAKERY'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_places_name ON places(name);
+CREATE INDEX IF NOT EXISTS idx_saved_places_name ON saved_places(name);
 
 CREATE TABLE IF NOT EXISTS visits (
     id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    place_id   BIGINT NOT NULL REFERENCES places(id) ON DELETE RESTRICT,
+    place_id   BIGINT NOT NULL REFERENCES saved_places(id) ON DELETE RESTRICT,
     summary    TEXT NOT NULL,
     rating     SMALLINT,
     visited_at DATE NOT NULL,

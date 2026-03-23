@@ -1,22 +1,22 @@
 import { sql } from '$lib/db';
 import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
-import type { PlaceInsert } from './types';
+import type { SavedPlaceInsert } from './types';
 import {
-	PlacesDao,
+	SavedPlacesDao,
 	DuplicateGooglePlaceIdError,
 	InvalidPlaceTypeError,
 	UserNotFoundError,
-	PlaceNotFoundError
+	SavedPlaceNotFoundError
 } from '.';
 import { UsersDao } from '$lib/dao/users';
 
 describe('Integration', () => {
-	let dao: PlacesDao;
+	let dao: SavedPlacesDao;
 	let usersDao: UsersDao;
 	let testUserId: bigint;
 
 	beforeEach(async () => {
-		dao = new PlacesDao(sql);
+		dao = new SavedPlacesDao(sql);
 		usersDao = new UsersDao(sql);
 
 		const user = await usersDao.insertUser({
@@ -31,11 +31,11 @@ describe('Integration', () => {
 	});
 
 	afterEach(async () => {
-		await sql`DELETE FROM places`;
+		await sql`DELETE FROM saved_places`;
 		await sql`DELETE FROM users`;
 	});
 
-	describe('PlacesDao', () => {
+	describe('SavedPlacesDao', () => {
 		const getBaseInsert = () =>
 			({
 				name: 'Test Restaurant',
@@ -45,12 +45,12 @@ describe('Integration', () => {
 				google_place_id: 'test_google_place_id',
 				type: 'RESTAURANT',
 				submitted_by: testUserId
-			}) as PlaceInsert;
+			}) as SavedPlaceInsert;
 
-		describe('insertPlace', () => {
+		describe('insertSavedPlace', () => {
 			describe('success', () => {
-				test('inserts a place with all fields', async () => {
-					const place = await dao.insertPlace(getBaseInsert());
+				test('inserts a saved place with all fields', async () => {
+					const place = await dao.insertSavedPlace(getBaseInsert());
 					expect(place.id).toBeDefined();
 					expect(place.name).toBe('Test Restaurant');
 					expect(place.lat).toBe(40.7128);
@@ -60,8 +60,8 @@ describe('Integration', () => {
 					expect(place.submitted_by).toBe(testUserId);
 				});
 
-				test('inserts a place with BAR type', async () => {
-					const place = await dao.insertPlace({
+				test('inserts a saved place with BAR type', async () => {
+					const place = await dao.insertSavedPlace({
 						...getBaseInsert(),
 						google_place_id: 'bar_place_id',
 						type: 'BAR'
@@ -69,8 +69,8 @@ describe('Integration', () => {
 					expect(place.type).toBe('BAR');
 				});
 
-				test('inserts a place with BAKERY type', async () => {
-					const place = await dao.insertPlace({
+				test('inserts a saved place with BAKERY type', async () => {
+					const place = await dao.insertSavedPlace({
 						...getBaseInsert(),
 						google_place_id: 'bakery_place_id',
 						type: 'BAKERY'
@@ -81,57 +81,57 @@ describe('Integration', () => {
 
 			describe('constraints', () => {
 				test('throws DuplicateGooglePlaceIdError on duplicate google_place_id', async () => {
-					await dao.insertPlace(getBaseInsert());
+					await dao.insertSavedPlace(getBaseInsert());
 					expect(
-						dao.insertPlace({ ...getBaseInsert(), name: 'Different Name' })
+						dao.insertSavedPlace({ ...getBaseInsert(), name: 'Different Name' })
 					).rejects.toBeInstanceOf(DuplicateGooglePlaceIdError);
 				});
 
 				test('throws UserNotFoundError when submitted_by references non-existent user', async () => {
 					expect(
-						dao.insertPlace({ ...getBaseInsert(), submitted_by: 999999n })
+						dao.insertSavedPlace({ ...getBaseInsert(), submitted_by: 999999n })
 					).rejects.toBeInstanceOf(UserNotFoundError);
 				});
 
 				test('throws InvalidPlaceTypeError for invalid type', async () => {
 					expect(
-						dao.insertPlace({ ...getBaseInsert(), type: 'INVALID_TYPE' as 'RESTAURANT' })
+						dao.insertSavedPlace({ ...getBaseInsert(), type: 'INVALID_TYPE' as 'RESTAURANT' })
 					).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 				});
 			});
 		});
 
-		describe('retrievePlace', () => {
-			test('retrieves an existing place', async () => {
-				const inserted = await dao.insertPlace(getBaseInsert());
-				const retrieved = await dao.retrievePlace(inserted.id);
+		describe('retrieveSavedPlace', () => {
+			test('retrieves an existing saved place', async () => {
+				const inserted = await dao.insertSavedPlace(getBaseInsert());
+				const retrieved = await dao.retrieveSavedPlace(inserted.id);
 				expect(retrieved.id).toBe(inserted.id);
 				expect(retrieved.name).toBe('Test Restaurant');
 			});
 
-			test('throws PlaceNotFoundError for non-existent place', async () => {
-				expect(dao.retrievePlace(999999n)).rejects.toBeInstanceOf(PlaceNotFoundError);
+			test('throws SavedPlaceNotFoundError for non-existent place', async () => {
+				expect(dao.retrieveSavedPlace(999999n)).rejects.toBeInstanceOf(SavedPlaceNotFoundError);
 			});
 		});
 
-		describe('listPlaces', () => {
-			test('lists all places', async () => {
-				await dao.insertPlace(getBaseInsert());
-				await dao.insertPlace({
+		describe('listSavedPlaces', () => {
+			test('lists all saved places', async () => {
+				await dao.insertSavedPlace(getBaseInsert());
+				await dao.insertSavedPlace({
 					...getBaseInsert(),
 					google_place_id: 'second_place_id',
 					name: 'Second Place'
 				});
-				const places = await dao.listPlaces();
+				const places = await dao.listSavedPlaces();
 				expect(places.length).toBe(2);
 			});
 		});
 
-		describe('updatePlace', () => {
+		describe('updateSavedPlace', () => {
 			describe('success', () => {
-				test('updates place fields', async () => {
-					const place = await dao.insertPlace(getBaseInsert());
-					const updated = await dao.updatePlace(place.id, {
+				test('updates saved place fields', async () => {
+					const place = await dao.insertSavedPlace(getBaseInsert());
+					const updated = await dao.updateSavedPlace(place.id, {
 						name: 'Updated Name',
 						lat: 41.0
 					});
@@ -141,78 +141,78 @@ describe('Integration', () => {
 			});
 
 			describe('constraints', () => {
-				test('throws PlaceNotFoundError when updating non-existent place', async () => {
-					expect(dao.updatePlace(999999n, { name: 'Ghost Place' })).rejects.toBeInstanceOf(
-						PlaceNotFoundError
+				test('throws SavedPlaceNotFoundError when updating non-existent place', async () => {
+					expect(dao.updateSavedPlace(999999n, { name: 'Ghost Place' })).rejects.toBeInstanceOf(
+						SavedPlaceNotFoundError
 					);
 				});
 
 				test('throws UserNotFoundError when updating submitted_by to non-existent user', async () => {
-					const place = await dao.insertPlace(getBaseInsert());
-					expect(dao.updatePlace(place.id, { submitted_by: 999999n })).rejects.toBeInstanceOf(
+					const place = await dao.insertSavedPlace(getBaseInsert());
+					expect(dao.updateSavedPlace(place.id, { submitted_by: 999999n })).rejects.toBeInstanceOf(
 						UserNotFoundError
 					);
 				});
 
 				test('throws InvalidPlaceTypeError for invalid type', async () => {
-					const place = await dao.insertPlace(getBaseInsert());
+					const place = await dao.insertSavedPlace(getBaseInsert());
 					expect(
-						dao.updatePlace(place.id, { type: 'INVALID_TYPE' as 'RESTAURANT' })
+						dao.updateSavedPlace(place.id, { type: 'INVALID_TYPE' as 'RESTAURANT' })
 					).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 				});
 			});
 		});
 
-		describe('deletePlace', () => {
+		describe('deleteSavedPlace', () => {
 			describe('success', () => {
-				test('deletes a place', async () => {
-					const place = await dao.insertPlace(getBaseInsert());
-					const deleted = await dao.deletePlace(place.id);
+				test('deletes a saved place', async () => {
+					const place = await dao.insertSavedPlace(getBaseInsert());
+					const deleted = await dao.deleteSavedPlace(place.id);
 					expect(deleted.id).toBe(place.id);
 					expect(deleted.name).toBe('Test Restaurant');
 				});
 			});
 
 			describe('constraints', () => {
-				test('throws PlaceNotFoundError when deleting non-existent place', async () => {
-					expect(dao.deletePlace(999999n)).rejects.toBeInstanceOf(PlaceNotFoundError);
+				test('throws SavedPlaceNotFoundError when deleting non-existent place', async () => {
+					expect(dao.deleteSavedPlace(999999n)).rejects.toBeInstanceOf(SavedPlaceNotFoundError);
 				});
 			});
 		});
 
-		describe('searchPlaces', () => {
-			test('returns matching places by name', async () => {
-				await dao.insertPlace(getBaseInsert());
-				const places = await dao.searchPlaces('Test');
+		describe('searchSavedPlaces', () => {
+			test('returns matching saved places by name', async () => {
+				await dao.insertSavedPlace(getBaseInsert());
+				const places = await dao.searchSavedPlaces('Test');
 				expect(places.length).toBe(1);
 				expect(places[0].name).toBe('Test Restaurant');
 			});
 
-			test('returns multiple matching places', async () => {
-				await dao.insertPlace(getBaseInsert());
-				await dao.insertPlace({
+			test('returns multiple matching saved places', async () => {
+				await dao.insertSavedPlace(getBaseInsert());
+				await dao.insertSavedPlace({
 					...getBaseInsert(),
 					google_place_id: 'test_place_2',
 					name: 'Test Cafe'
 				});
-				const places = await dao.searchPlaces('Test');
+				const places = await dao.searchSavedPlaces('Test');
 				expect(places.length).toBe(2);
 			});
 
 			test('returns empty array when no matches', async () => {
-				await dao.insertPlace(getBaseInsert());
-				const places = await dao.searchPlaces('NonExistent');
+				await dao.insertSavedPlace(getBaseInsert());
+				const places = await dao.searchSavedPlaces('NonExistent');
 				expect(places).toEqual([]);
 			});
 
-			test('searches across all places', async () => {
-				await dao.insertPlace(getBaseInsert());
-				await dao.insertPlace({
+			test('searches across all saved places', async () => {
+				await dao.insertSavedPlace(getBaseInsert());
+				await dao.insertSavedPlace({
 					...getBaseInsert(),
 					google_place_id: 'pizza_place',
 					name: 'Pizza Palace'
 				});
-				const places = await dao.searchPlaces('Pizza');
+				const places = await dao.searchSavedPlaces('Pizza');
 				expect(places.length).toBe(1);
 				expect(places[0].name).toBe('Pizza Palace');
 			});

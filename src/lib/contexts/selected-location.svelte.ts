@@ -1,7 +1,7 @@
 import { getContext, setContext } from 'svelte';
-import type { Place } from '$lib/dao/places/types';
+import type { SavedPlace } from '$lib/dao/saved-places/types';
 
-export type SelectedLocation = Omit<Place, 'id' | 'created_at' | 'submitted_by' | 'type'>;
+export type SelectedLocation = Omit<SavedPlace, 'id' | 'created_at' | 'submitted_by' | 'type'>;
 
 const KEY = Symbol('selectedLocation');
 

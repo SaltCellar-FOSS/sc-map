@@ -1,11 +1,15 @@
-import { PlacesDao, DuplicateGooglePlaceIdError, InvalidPlaceTypeError } from '$lib/dao/places';
+import {
+	SavedPlacesDao,
+	DuplicateGooglePlaceIdError,
+	InvalidPlaceTypeError
+} from '$lib/dao/saved-places';
 import { sql } from '$lib/db';
 import { getGooglePlaceById, inferPlaceType } from '$lib/server/google-places';
 import { verifySessionCookie } from '$lib/server/cookie';
 import { jsonResponse, errorResponse } from '$lib/server/response';
 import type { RequestHandler } from './$types';
 
-const placesDao = new PlacesDao(sql);
+const placesDao = new SavedPlacesDao(sql);
 
 export const POST: RequestHandler = async ({ params, cookies }) => {
 	const sessionCookie = cookies.get('session');
@@ -22,7 +26,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		return errorResponse('Place type could not be mapped to RESTAURANT, BAR, or BAKERY', 422);
 
 	try {
-		const place = await placesDao.insertPlace({
+		const place = await placesDao.insertSavedPlace({
 			name: googlePlace.name,
 			lat: googlePlace.geometry.location.lat,
 			lng: googlePlace.geometry.location.lng,

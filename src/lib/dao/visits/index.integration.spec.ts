@@ -3,19 +3,19 @@ import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
 import type { VisitInsert } from './types';
 import { VisitsDao, InvalidRatingError, VisitNotFoundError } from '.';
 import { UsersDao } from '$lib/dao/users';
-import { PlacesDao } from '$lib/dao/places';
+import { SavedPlacesDao } from '$lib/dao/saved-places';
 
 describe('Integration', () => {
 	let visitsDao: VisitsDao;
 	let usersDao: UsersDao;
-	let placesDao: PlacesDao;
+	let placesDao: SavedPlacesDao;
 	let testUserId: bigint;
 	let testPlaceId: bigint;
 
 	beforeEach(async () => {
 		visitsDao = new VisitsDao(sql);
 		usersDao = new UsersDao(sql);
-		placesDao = new PlacesDao(sql);
+		placesDao = new SavedPlacesDao(sql);
 
 		const user = await usersDao.insertUser({
 			discord_id: 'discord_test_user',
@@ -27,7 +27,7 @@ describe('Integration', () => {
 		});
 		testUserId = user.id;
 
-		const place = await placesDao.insertPlace({
+		const place = await placesDao.insertSavedPlace({
 			name: 'Test Restaurant',
 			lat: 40.7128,
 			lng: -74.006,
@@ -41,7 +41,7 @@ describe('Integration', () => {
 
 	afterEach(async () => {
 		await sql`DELETE FROM visits`;
-		await sql`DELETE FROM places`;
+		await sql`DELETE FROM saved_places`;
 		await sql`DELETE FROM users`;
 	});
 
@@ -143,7 +143,7 @@ describe('Integration', () => {
 		describe('listVisitsByPlace', () => {
 			test('lists visits for a specific place', async () => {
 				await visitsDao.insertVisit(getBaseInsert());
-				const otherPlace = await placesDao.insertPlace({
+				const otherPlace = await placesDao.insertSavedPlace({
 					name: 'Other Place',
 					lat: 40.0,
 					lng: -73.0,

@@ -33,13 +33,13 @@ Define Zod schemas for the entity, then derive TypeScript types from them using 
 - Mock the database — do not use a real database connection.
 - Create two mock SQL factory functions: one returning rows (`createMockSQL`), one throwing Postgres errors (`createErrorSQL`). Each returns a function that satisfies the tagged template literal interface and passes through `sql(object)` interpolation calls unchanged.
 - Mock row fixtures should use native `bigint` values for bigint columns (e.g. `id: 1n`), matching what the SQL client returns with `bigint: true`.
-- Each test constructs its own `PlacesDao` instance with the appropriate mock — no shared state or `beforeEach` DB setup needed.
+- Each test constructs its own DAO instance with the appropriate mock — no shared state or `beforeEach` DB setup needed.
 
 ## index.integration.spec.ts
 
 - Test against a real database using `sql` from `$lib/db`.
 - Use `beforeEach` to create a fresh DAO instance and set up required test data (e.g., users, places).
-- Use `afterEach` to clean up all inserted data in the correct order to respect foreign key constraints (e.g., delete visits before places, delete places before users).
+- Use `afterEach` to clean up all inserted data in the correct order to respect foreign key constraints (e.g., delete visits before saved_places, delete saved_places before users).
 - The test file name must be `index.integration.spec.ts` to be recognized as an integration test.
 - Follow the structure: `describe('Integration', () => { ... })` with nested `describe` blocks for each method.
 - Test both success cases and constraint errors (duplicate, not found, invalid foreign key, etc.).

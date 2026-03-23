@@ -1,4 +1,4 @@
-import { PlacesDao } from '$lib/dao/places';
+import { SavedPlacesDao } from '$lib/dao/saved-places';
 import { sql } from '$lib/db';
 import { searchGooglePlaces, inferPlaceType } from '$lib/server/google-places';
 import { type SearchResult } from '$lib/schemas/search';
@@ -11,9 +11,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		return jsonResponse([]);
 	}
 
-	const placesDao = new PlacesDao(sql);
+	const placesDao = new SavedPlacesDao(sql);
 	const [dbResults, ...googleResultsByType] = await Promise.all([
-		placesDao.searchPlaces(q),
+		placesDao.searchSavedPlaces(q),
 		searchGooglePlaces(q, 'bar'),
 		searchGooglePlaces(q, 'restaurant'),
 		searchGooglePlaces(q, 'bakery')

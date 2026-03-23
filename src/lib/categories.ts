@@ -1,7 +1,7 @@
 import type { CategoryConfig } from '$lib/components/types';
-import type { Place } from '$lib/dao/places/types';
+import type { SavedPlace } from '$lib/dao/saved-places/types';
 
-export const CATEGORIES: Record<Place['type'], CategoryConfig> = {
+export const CATEGORIES: Record<SavedPlace['type'], CategoryConfig> = {
 	RESTAURANT: {
 		label: 'Restaurants',
 		color: '#E8472A',

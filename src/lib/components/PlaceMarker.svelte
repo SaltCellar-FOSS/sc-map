@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { importLibrary } from '@googlemaps/js-api-loader';
-	import { type Place } from '$lib/dao/places/types';
+	import { type SavedPlace } from '$lib/dao/saved-places/types';
 	import type { CategoryConfig } from './types';
 
 	let {
@@ -12,9 +12,9 @@
 		categoryConfig
 	}: {
 		map: google.maps.Map;
-		place: Place;
+		place: SavedPlace;
 		visible: boolean;
-		onclick: (place: Place) => void;
+		onclick: (place: SavedPlace) => void;
 		categoryConfig: CategoryConfig;
 	} = $props();
 
