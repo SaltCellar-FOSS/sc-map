@@ -5,7 +5,7 @@ export const BasePlaceSchema = SavedPlaceSchema.omit({
 	id: true,
 	submitted_by: true,
 	created_at: true,
-	type: true,
+	type: true
 });
 
 export const PlaceSchema = z.union([SavedPlaceSchema, BasePlaceSchema]);

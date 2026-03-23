@@ -7,6 +7,7 @@
 	import ListItem from '$lib/components/ui/list/ListItem.svelte';
 	import { type Place } from '$lib/schemas/search';
 	import { setSelectedPlaceContext } from '$lib/contexts/selected-location.svelte.js';
+	import CloseIcon from '$lib/icons/CloseIcon.svelte';
 
 	let ctx = setSelectedPlaceContext();
 
@@ -43,7 +44,23 @@
 				placeholder="Search places"
 				aria-label="Search places"
 				aria-expanded={open}
-			/>
+			>
+				{#snippet trailingIcons()}
+					{#if ctx.selectedPlace !== null}
+						<button
+							class="md-search-view__icon-btn"
+							aria-label="Clear"
+							type="button"
+							onclick={() => {
+								searchValue = '';
+								ctx.selectedPlace = null;
+							}}
+						>
+							<CloseIcon />
+						</button>
+					{/if}
+				{/snippet}
+			</SearchBar>
 		{/snippet}
 
 		{#snippet results({ close })}
