@@ -45,7 +45,7 @@
 		 *     {/each}
 		 *   {/snippet}
 		 */
-		results?: Snippet<[{ value: string }]>;
+		results?: Snippet<[{ value: string; close: () => void }]>;
 
 		/**
 		 * Optional trailing icons inside the panel header (e.g. a clear button).
@@ -292,7 +292,7 @@
 		<!-- Results -->
 		<div class="md-search-view__results" id="md-search-view-results" role="listbox" tabindex="-1">
 			{#if results}
-				{@render results({ value })}
+				{@render results({ value, close: closeView })}
 			{/if}
 		</div>
 	</div>

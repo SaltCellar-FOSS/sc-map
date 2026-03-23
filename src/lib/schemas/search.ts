@@ -1,16 +1,17 @@
 import { SavedPlaceSchema, type SavedPlace } from '$lib/dao/saved-places/types';
 import { z } from 'zod';
 
-export const BaseSearchResultSchema = SavedPlaceSchema.omit({
+export const BasePlaceSchema = SavedPlaceSchema.omit({
 	id: true,
 	submitted_by: true,
-	created_at: true
+	created_at: true,
+	type: true,
 });
 
-export const SearchResultSchema = z.union([SavedPlaceSchema, BaseSearchResultSchema]);
+export const PlaceSchema = z.union([SavedPlaceSchema, BasePlaceSchema]);
 
-export type SearchResult = z.infer<typeof SearchResultSchema>;
+export type Place = z.infer<typeof PlaceSchema>;
 
-export const isSavedPlace = (searchResult: SearchResult): searchResult is SavedPlace => {
+export const isSavedPlace = (searchResult: Place): searchResult is SavedPlace => {
 	return 'id' in searchResult;
 };

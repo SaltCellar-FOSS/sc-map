@@ -22,7 +22,7 @@
 	}
 
 	let {
-		as: Tag = 'ul',
+		as = 'ul',
 		noPadding = false,
 		role,
 		class: extraClass,
@@ -35,6 +35,6 @@
 	);
 </script>
 
-<svelte:element this={Tag} class={classes} {role} {...restProps}>
+<svelte:element this={as} class={classes} {role} {...restProps}>
 	{@render children()}
 </svelte:element>

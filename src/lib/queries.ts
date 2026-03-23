@@ -1,6 +1,6 @@
 import { mutationOptions } from '@tanstack/svelte-query';
 import { queryOptions } from '@tanstack/svelte-query';
-import { SearchResultSchema } from '$lib/schemas/search';
+import { PlaceSchema } from '$lib/schemas/search';
 
 export const addPlaceOptions = mutationOptions({
 	mutationFn: async (googlePlaceId: string) => {
@@ -15,7 +15,7 @@ export function searchPlacesOptions(query: string) {
 		queryKey: ['places', 'search', query],
 		queryFn: async () => {
 			const res = await fetch(`/places/search?q=${encodeURIComponent(query)}`);
-			return SearchResultSchema.array().parse(await res.json());
+			return PlaceSchema.array().parse(await res.json());
 		},
 		enabled: query.trim().length > 0
 	});

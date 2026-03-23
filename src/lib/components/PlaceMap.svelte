@@ -6,7 +6,7 @@
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { type CategoryConfig } from './types';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
-	import { getSelectedLocationContext } from '$lib/contexts/selected-location.svelte';
+	import { getSelectedPlaceContext } from '$lib/contexts/selected-location.svelte';
 
 	let {
 		categories,
@@ -18,7 +18,7 @@
 		onaddtolist?: (placeId: string) => void;
 	} = $props();
 
-	const ctx = getSelectedLocationContext();
+	const ctx = getSelectedPlaceContext();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass: typeof google.maps.InfoWindow | null = $state(null);
@@ -36,11 +36,11 @@
 	}
 
 	$effect(() => {
-		if (map === null || ctx.selectedLocation === null) {
+		if (map === null || ctx.selectedPlace === null) {
 			return;
 		}
 
-		map.panTo(ctx.selectedLocation);
+		map.panTo(ctx.selectedPlace);
 		map.setZoom(15);
 	});
 
@@ -49,14 +49,14 @@
 			map === null ||
 			InfoWindowClass === null ||
 			AdvancedMarkerClass === null ||
-			ctx.selectedLocation === null
+			ctx.selectedPlace === null
 		) {
 			clearSelectedPin();
 			return;
 		}
 
 		const isSavedPlace = places.some(
-			(p) => p.google_place_id === ctx.selectedLocation!.google_place_id
+			(p) => p.google_place_id === ctx.selectedPlace!.google_place_id
 		);
 		if (isSavedPlace) {
 			clearSelectedPin();
@@ -65,19 +65,19 @@
 
 		clearSelectedPin();
 		selectedPin = new AdvancedMarkerClass({
-			position: { lat: ctx.selectedLocation.lat, lng: ctx.selectedLocation.lng },
+			position: { lat: ctx.selectedPlace.lat, lng: ctx.selectedPlace.lng },
 			map,
-			title: ctx.selectedLocation.name
+			title: ctx.selectedPlace.name
 		});
 
 		const iw = new InfoWindowClass({
-			position: { lat: ctx.selectedLocation.lat, lng: ctx.selectedLocation.lng },
+			position: { lat: ctx.selectedPlace.lat, lng: ctx.selectedPlace.lng },
 			content: `
 				<div style="max-width: 200px; color: #000">
-					<strong>${ctx.selectedLocation.name}</strong><br />
-					${ctx.selectedLocation.formatted_address}<br />
+					<strong>${ctx.selectedPlace.name}</strong><br />
+					${ctx.selectedPlace.formatted_address}<br />
 					<button
-						data-place-id="${ctx.selectedLocation.google_place_id}"
+						data-place-id="${ctx.selectedPlace.google_place_id}"
 						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
 					>
 						Add to list
@@ -87,14 +87,12 @@
 		});
 		iw.addListener('domready', () => {
 			document
-				.querySelector<HTMLButtonElement>(
-					`[data-place-id="${ctx.selectedLocation!.google_place_id}"]`
-				)
-				?.addEventListener('click', () => onaddtolist?.(ctx.selectedLocation!.google_place_id));
+				.querySelector<HTMLButtonElement>(`[data-place-id="${ctx.selectedPlace!.google_place_id}"]`)
+				?.addEventListener('click', () => onaddtolist?.(ctx.selectedPlace!.google_place_id));
 		});
 		iw.addListener('closeclick', () => {
 			clearSelectedPin();
-			ctx.selectedLocation = null;
+			ctx.selectedPlace = null;
 		});
 		currentInfoWindow?.close();
 		currentInfoWindow = iw;
@@ -127,7 +125,7 @@
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
 				clearSelectedPin();
-				ctx.selectedLocation = null;
+				ctx.selectedPlace = null;
 				return;
 			}
 
@@ -138,7 +136,7 @@
 				fields: ['displayName', 'formattedAddress', 'location']
 			});
 
-			ctx.selectedLocation = {
+			ctx.selectedPlace = {
 				name: place.displayName ?? '',
 				lat: place.location?.lat() ?? 0,
 				lng: place.location?.lng() ?? 0,
@@ -157,7 +155,7 @@
 			{map}
 			{place}
 			visible={true}
-			onclick={(savedPlace) => (ctx.selectedLocation = savedPlace)}
+			onclick={(savedPlace) => (ctx.selectedPlace = savedPlace)}
 			categoryConfig={categories[place.type]}
 		/>
 	{/each}

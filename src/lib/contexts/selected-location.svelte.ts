@@ -1,22 +1,20 @@
 import { getContext, setContext } from 'svelte';
-import type { SavedPlace } from '$lib/dao/saved-places/types';
+import type { Place } from '$lib/schemas/search';
 
-export type SelectedLocation = Omit<SavedPlace, 'id' | 'created_at' | 'submitted_by' | 'type'>;
+const KEY = Symbol('selectedPlace');
 
-const KEY = Symbol('selectedLocation');
-
-export function setSelectedLocationContext() {
-	let selectedLocation = $state<SelectedLocation | null>(null);
+export function setSelectedPlaceContext() {
+	let selectedPlace = $state<Place | null>(null);
 	return setContext(KEY, {
-		get selectedLocation() {
-			return selectedLocation;
+		get selectedPlace() {
+			return selectedPlace;
 		},
-		set selectedLocation(v) {
-			selectedLocation = v;
+		set selectedPlace(v) {
+			selectedPlace = v;
 		}
 	});
 }
 
-export function getSelectedLocationContext() {
-	return getContext<ReturnType<typeof setSelectedLocationContext>>(KEY);
+export function getSelectedPlaceContext() {
+	return getContext<ReturnType<typeof setSelectedPlaceContext>>(KEY);
 }
