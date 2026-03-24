@@ -1,17 +1,17 @@
+import type { RequestHandler } from '@sveltejs/kit';
 import { SavedPlacesDao } from '$lib/dao/saved-places';
 import { sql } from '$lib/db';
 import { searchGooglePlaces, inferPlaceType } from '$lib/server/google-places';
-import { type Place } from '$lib/schemas/search';
 import { jsonResponse } from '$lib/server/response';
-import type { RequestHandler } from '@sveltejs/kit';
+import { type Place } from '$lib/schemas/search';
+
+const placesDao = new SavedPlacesDao(sql);
 
 export const GET: RequestHandler = async ({ url }) => {
 	const q = url.searchParams.get('q');
 	if (!q) {
 		return jsonResponse([]);
 	}
-
-	const placesDao = new SavedPlacesDao(sql);
 	const [dbResults, ...googleResultsByType] = await Promise.all([
 		placesDao.searchSavedPlaces(q),
 		searchGooglePlaces(q, 'bar'),

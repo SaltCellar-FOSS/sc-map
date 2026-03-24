@@ -19,7 +19,7 @@
 		| 'month'
 		| 'week';
 
-	interface Props {
+	type Props = {
 		/**
 		 * Visual variant:
 		 *   'filled'   — surface-container-highest background with bottom indicator
@@ -129,7 +129,7 @@
 
 		// Passthrough attrs onto the <input> / <textarea>
 		[key: string]: unknown;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

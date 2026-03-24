@@ -5,7 +5,7 @@
 	// Types
 	// ---------------------------------------------------------------------------
 
-	interface Props {
+	type Props = {
 		/**
 		 * Sheet variant:
 		 *   'standard' — co-exists with main content, no scrim. Use on tablet/desktop.
@@ -41,7 +41,7 @@
 
 		/** Additional classes merged onto the root wrapper element. */
 		class?: string;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

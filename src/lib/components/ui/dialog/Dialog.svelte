@@ -5,7 +5,7 @@
 	// Types
 	// ---------------------------------------------------------------------------
 
-	interface Props {
+	type Props = {
 		/**
 		 * Whether the dialog is open. Bind with bind:open for two-way control.
 		 */
@@ -64,7 +64,7 @@
 
 		/** Additional classes on the dialog surface element. */
 		class?: string;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

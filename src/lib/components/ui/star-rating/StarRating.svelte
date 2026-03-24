@@ -1,12 +1,12 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		/** Current rating value. Bind with bind:value. */
 		value?: number;
 		/** Total number of stars. Defaults to 5. */
 		count?: number;
 		/** Accessible label for the group. */
 		label?: string;
-	}
+	};
 
 	let { value = $bindable(0), count = 5, label = 'Rating' }: Props = $props();
 

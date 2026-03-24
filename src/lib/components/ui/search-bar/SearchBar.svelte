@@ -7,7 +7,7 @@
 	// Types
 	// ---------------------------------------------------------------------------
 
-	interface Props {
+	type Props = {
 		/**
 		 * The <input> value. Bind to this for a controlled input.
 		 * If omitted the input is uncontrolled.
@@ -60,7 +60,7 @@
 		// Passthrough — any HTMLInputAttributes (oninput, onsearch, onkeydown, etc.)
 		// are spread onto the <input> element, not the root container.
 		[key: string]: unknown;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

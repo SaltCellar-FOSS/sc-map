@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	interface Props {
+	type Props = {
 		/**
 		 * The HTML element to render as.
 		 * Use 'ul' or 'ol' for semantic lists, 'div' when semantics are
@@ -19,7 +19,7 @@
 		children: Snippet;
 
 		[key: string]: unknown;
-	}
+	};
 
 	let {
 		as = 'ul',

@@ -4,19 +4,15 @@
 	import { type SavedPlace } from '$lib/dao/saved-places/types';
 	import type { CategoryConfig } from './types';
 
-	let {
-		map,
-		place,
-		visible,
-		onclick,
-		categoryConfig
-	}: {
+	type Props = {
 		map: google.maps.Map;
 		place: SavedPlace;
 		visible: boolean;
 		onclick: (place: SavedPlace) => void;
 		categoryConfig: CategoryConfig;
-	} = $props();
+	};
+
+	const { map, place, visible, onclick, categoryConfig }: Props = $props();
 
 	let marker: google.maps.marker.AdvancedMarkerElement | null = $state(null);
 

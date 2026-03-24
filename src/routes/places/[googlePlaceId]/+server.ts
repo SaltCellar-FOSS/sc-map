@@ -1,16 +1,16 @@
+import z from 'zod';
+import type { RequestHandler } from './$types';
 import {
 	SavedPlacesDao,
 	DuplicateGooglePlaceIdError,
 	InvalidPlaceTypeError
 } from '$lib/dao/saved-places';
+import { SavedPlaceSchema } from '$lib/dao/saved-places/types';
 import { VisitsDao } from '$lib/dao/visits';
 import { sql } from '$lib/db';
 import { getGooglePlaceById, inferPlaceType } from '$lib/server/google-places';
 import { verifySessionCookie } from '$lib/server/cookie';
 import { jsonResponse, errorResponse } from '$lib/server/response';
-import type { RequestHandler } from './$types';
-import z from 'zod';
-import { SavedPlaceSchema } from '$lib/dao/saved-places/types';
 
 const placesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);

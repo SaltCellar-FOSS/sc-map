@@ -6,7 +6,7 @@
 	// Types
 	// ---------------------------------------------------------------------------
 
-	interface Props {
+	type Props = {
 		/**
 		 * The shared query value — single source of truth for both the
 		 * triggering bar (via the children snippet argument) and the
@@ -59,7 +59,7 @@
 
 		/** Start with the panel open (useful for Storybook / testing). */
 		initialOpen?: boolean;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

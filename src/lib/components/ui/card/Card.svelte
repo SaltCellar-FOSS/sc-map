@@ -10,7 +10,7 @@
 
 	export type CardVariant = 'elevated' | 'filled' | 'outlined';
 
-	interface Props {
+	type Props = {
 		/**
 		 * Visual variant.
 		 *   elevated  — surface-container-low + elevation-1 shadow
@@ -93,7 +93,7 @@
 
 		// Passthrough
 		[key: string]: unknown;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

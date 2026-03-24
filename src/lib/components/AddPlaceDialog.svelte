@@ -5,7 +5,7 @@
 	import StarRating from './ui/star-rating/StarRating.svelte';
 	import type { Place } from '$lib/schemas/search';
 
-	interface Props {
+	type Props = {
 		open?: boolean;
 		placeName: string;
 		googlePlaceId: string;
@@ -16,7 +16,7 @@
 			photos: File[];
 			googlePlaceId: Place['google_place_id'];
 		}) => void;
-	}
+	};
 
 	let { open = $bindable(false), placeName, googlePlaceId, onclose, onadd }: Props = $props();
 

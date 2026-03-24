@@ -11,7 +11,7 @@
 	export type ButtonVariant = 'elevated' | 'filled' | 'tonal' | 'outlined' | 'text';
 	type ButtonType = 'button' | 'submit' | 'reset';
 
-	interface Props {
+	type Props = {
 		/** Visual variant. Defaults to 'filled'. */
 		variant?: ButtonVariant;
 
@@ -58,7 +58,7 @@
 		// Passthrough — any unrecognised props (aria-*, data-*, form, name…)
 		// are spread onto the root element.
 		[key: string]: unknown;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props

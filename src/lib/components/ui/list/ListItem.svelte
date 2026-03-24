@@ -15,7 +15,7 @@
 	 */
 	type Lines = 'one' | 'two' | 'three' | 'auto';
 
-	interface Props {
+	type Props = {
 		/**
 		 * Number of text lines. 'auto' detects from snippet presence.
 		 * Explicit values are safer if you know what you're rendering.
@@ -63,7 +63,7 @@
 		trailing?: Snippet;
 
 		[key: string]: unknown;
-	}
+	};
 
 	// ---------------------------------------------------------------------------
 	// Props
