@@ -12,7 +12,7 @@ import {
 	GuildMemberFetchError,
 	GuildMemberNotFoundError
 } from '$lib/server/discord';
-import { createSessionCookie } from '$lib/server/cookie';
+import { createSessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { SESSION_COOKIE_MAX_AGE_SECONDS } from '$lib/server/constants';
 import { upsertDiscordUser } from '$lib/services/auth';
 
@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
 	const maxAge = SESSION_COOKIE_MAX_AGE_SECONDS;
 	const sessionToken = await createSessionCookie(user.id, maxAge);
-	cookies.set('session', sessionToken, {
+	cookies.set(SESSION_COOKIE_NAME, sessionToken, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',

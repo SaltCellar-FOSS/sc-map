@@ -20,6 +20,7 @@ mock.module('$lib/db', () => ({
 }));
 
 mock.module('$lib/server/cookie', () => ({
+	SESSION_COOKIE_NAME: 'session',
 	verifySessionCookie: mock(async () => verifyResult)
 }));
 

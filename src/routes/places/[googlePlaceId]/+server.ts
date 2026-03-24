@@ -9,7 +9,7 @@ import { SavedPlaceSchema } from '$lib/dao/saved-places/types';
 import { VisitsDao } from '$lib/dao/visits';
 import { sql } from '$lib/db';
 import { getGooglePlaceById, inferPlaceType } from '$lib/server/google-places';
-import { verifySessionCookie } from '$lib/server/cookie';
+import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { jsonResponse, errorResponse } from '$lib/server/response';
 
 const placesDao = new SavedPlacesDao(sql);
@@ -33,7 +33,7 @@ const CreatePlacePayloadSchema = z.object({
 export type CreatePlacePayload = z.infer<typeof CreatePlacePayloadSchema>;
 
 export const POST: RequestHandler = async ({ request, params, cookies }) => {
-	const sessionCookie = cookies.get('session');
+	const sessionCookie = cookies.get(SESSION_COOKIE_NAME);
 	const userId = sessionCookie ? await verifySessionCookie(sessionCookie) : null;
 	if (!userId) return errorResponse('Unauthorized', 401);
 
