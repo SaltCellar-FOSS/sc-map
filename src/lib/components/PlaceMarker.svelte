@@ -1,22 +1,18 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { importLibrary } from '@googlemaps/js-api-loader';
-	import { type Place } from '$lib/dao/places/types';
+	import { type SavedPlace } from '$lib/schemas/saved-place';
 	import type { CategoryConfig } from './types';
 
-	let {
-		map,
-		place,
-		visible,
-		onclick,
-		categoryConfig
-	}: {
+	type Props = {
 		map: google.maps.Map;
-		place: Place;
+		place: SavedPlace;
 		visible: boolean;
-		onclick: (place: Place) => void;
+		onclick: (place: SavedPlace) => void;
 		categoryConfig: CategoryConfig;
-	} = $props();
+	};
+
+	const { map, place, visible, onclick, categoryConfig }: Props = $props();
 
 	let marker: google.maps.marker.AdvancedMarkerElement | null = $state(null);
 

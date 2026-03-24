@@ -1,322 +1,202 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
+	import { ripple } from '$lib/attachments/ripple.js';
+	import type { Snippet } from 'svelte';
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
+
+	// ---------------------------------------------------------------------------
+	// Types
+	// ---------------------------------------------------------------------------
+
 	/**
-	 * Material 3 ListItem — Svelte-native, SSR-safe
-	 *
-	 * Props:
-	 *   headline      — primary text (required)
-	 *   supportingText — secondary line (triggers two-line layout)
-	 *   trailingSupportingText — e.g. timestamps, counts (right-aligned small text)
-	 *   lines         — 'one' | 'two' | 'three' (auto-inferred if omitted)
-	 *   interactive   — adds hover/press states + role="button" (default: false)
-	 *   selected      — highlight as selected (activated) item
-	 *   disabled
-	 *   href          — render as <a>
-	 *   onclick
-	 *
-	 * Snippets:
-	 *   leadingIcon   — 24px icon or avatar area (left)
-	 *   trailingIcon  — 24px icon area (right, e.g. chevron, checkbox)
+	 * Line count determines min-height and vertical padding.
+	 * 'auto' infers from slots: overline or supporting → two-line,
+	 *        overline + supporting together → three-line.
 	 */
+	type Lines = 'one' | 'two' | 'three' | 'auto';
 
-	import { createRipple } from '$lib/components/ui/ripple.svelte';
-
-	type Lines = 'one' | 'two' | 'three';
-
-	interface Props {
-		headline: string;
-		supportingText?: string;
-		trailingSupportingText?: string;
+	type Props = {
+		/**
+		 * Number of text lines. 'auto' detects from snippet presence.
+		 * Explicit values are safer if you know what you're rendering.
+		 */
 		lines?: Lines;
-		interactive?: boolean;
-		selected?: boolean;
+
+		/**
+		 * When href is set, renders as <a>. When type='button', renders <button>.
+		 * Otherwise renders as <li> (non-interactive).
+		 */
+		href?: string;
+		target?: HTMLAnchorAttributes['target'];
+		type?: 'button' | 'submit' | 'reset';
+
 		disabled?: boolean;
-		onclick?: (e: MouseEvent) => void;
-		leadingIcon?: import('svelte').Snippet;
-		trailingIcon?: import('svelte').Snippet;
 		class?: string;
-	}
+
+		// ---- Snippets ----
+
+		/** Primary text (required). body-large, on-surface. */
+		children: Snippet;
+
+		/**
+		 * Small text ABOVE the headline. label-small, on-surface-variant.
+		 * Presence of overline + supporting → three-line.
+		 */
+		overline?: Snippet;
+
+		/**
+		 * Secondary text BELOW the headline. body-medium, on-surface-variant.
+		 * Presence alone → two-line.
+		 */
+		supporting?: Snippet;
+
+		/**
+		 * Leading slot: icon (.md-list-item__icon), avatar (.md-list-item__avatar),
+		 * or image (.md-list-item__image).
+		 */
+		leading?: Snippet;
+
+		/**
+		 * Trailing slot: icon, trailing-text (.md-list-item__trailing-text),
+		 * or any control (switch, checkbox, icon button).
+		 */
+		trailing?: Snippet;
+
+		[key: string]: unknown;
+	};
+
+	// ---------------------------------------------------------------------------
+	// Props
+	// ---------------------------------------------------------------------------
 
 	let {
-		headline,
-		supportingText = '',
-		trailingSupportingText = '',
-		lines,
-		interactive = false,
-		selected = false,
+		lines = 'auto',
+		href,
+		target,
+		type,
 		disabled = false,
-		onclick,
-		leadingIcon,
-		trailingIcon,
-		class: extraClass = ''
+		class: extraClass,
+		children,
+		overline,
+		supporting,
+		leading,
+		trailing,
+		...restProps
 	}: Props = $props();
 
-	// Auto-infer line count from content when not explicit
-	const resolvedLines = $derived(lines ?? (supportingText ? 'two' : 'one'));
+	// ---------------------------------------------------------------------------
+	// Derived
+	// ---------------------------------------------------------------------------
 
-	const ripple = createRipple();
+	// Infer line count when 'auto': overline + supporting = three, supporting alone = two
+	const resolvedLines = $derived((): Lines => {
+		if (lines !== 'auto') return lines;
+		if (overline && supporting) return 'three';
+		if (supporting || overline) return 'two';
+		return 'one';
+	});
 
-	function handleClick(e: MouseEvent) {
-		if (disabled || !interactive) return;
-		ripple.addRipple(e);
-		onclick?.(e);
-	}
+	const isInteractive = $derived(!!(href || type || restProps.onclick));
+
+	const classes = $derived(
+		[
+			'md-list-item',
+			resolvedLines() !== 'one' && `md-list-item--${resolvedLines()}-line`,
+			isInteractive && 'md-list-item--interactive',
+			disabled && 'md-list-item--disabled',
+			extraClass
+		]
+			.filter(Boolean)
+			.join(' ')
+	);
+
+	const isNativeDisabled = $derived(!!(!href && disabled));
+	const ariaDisabled = $derived(href && disabled ? ('true' as const) : undefined);
 </script>
 
-{#snippet content()}
-	{#if leadingIcon}
-		<span class="li-leading" aria-hidden="true">
-			{@render leadingIcon()}
-		</span>
-	{/if}
+<!--
+  Renders as:
+    <a>       when href is set
+    <button>  when type is set (or onclick without href)
+    <li>      otherwise (non-interactive, default)
 
-	<span class="li-text">
-		<span class="li-headline">{headline}</span>
-		{#if supportingText}
-			<span class="li-supporting">{supportingText}</span>
-		{/if}
-	</span>
+  Usage examples:
 
-	{#if trailingSupportingText || trailingIcon}
-		<span class="li-trailing">
-			{#if trailingSupportingText}
-				<span class="li-trailing-text">{trailingSupportingText}</span>
-			{/if}
-			{#if trailingIcon}
-				<span class="li-trailing-icon" aria-hidden="true">
-					{@render trailingIcon()}
-				</span>
-			{/if}
-		</span>
-	{/if}
+    Non-interactive one-line:
+      <ListItem>
+        {#snippet leading()}<svg class="md-list-item__icon">…</svg>{/snippet}
+        Headline text
+      </ListItem>
 
-	{#if interactive}
-		<span class="li-state-layer" aria-hidden="true"></span>
-		<span class="li-ripple-container" aria-hidden="true">
-			{#each ripple.ripples as r (r.id)}
-				<span class="li-ripple" style="left:{r.x}px;top:{r.y}px;"></span>
-			{/each}
-		</span>
-	{/if}
-{/snippet}
+    Interactive two-line as button:
+      <ListItem type="button" onclick={handler}>
+        {#snippet leading()}<svg class="md-list-item__icon">…</svg>{/snippet}
+        Headline text
+        {#snippet supporting()}Secondary text{/snippet}
+        {#snippet trailing()}<span class="md-list-item__trailing-text">meta</span>{/snippet}
+      </ListItem>
 
-{#if interactive}
-	<div
-		class="li li--interactive li--{resolvedLines} {extraClass}"
-		class:li--selected={selected}
-		class:li--disabled={disabled}
-		role="button"
-		aria-disabled={disabled || undefined}
-		onclick={handleClick}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				handleClick(e as unknown as MouseEvent);
-			}
-		}}
+    Three-line as link:
+      <ListItem href="/detail">
+        Headline text
+        {#snippet overline()}CATEGORY{/snippet}
+        {#snippet supporting()}Supporting text that can wrap to two lines{/snippet}
+      </ListItem>
+
+    With avatar:
+      <ListItem>
+        {#snippet leading()}
+          <div class="md-list-item__avatar">AB</div>
+        {/snippet}
+        Alice Baker
+      </ListItem>
+-->
+
+{#if href}
+	<a
+		{href}
+		{target}
+		class={classes}
+		aria-disabled={ariaDisabled}
 		tabindex={disabled ? -1 : 0}
+		{@attach ripple({ disabled })}
+		{...restProps}
 	>
-		{@render content()}
-	</div>
+		<span class="md-list-item__state-layer" aria-hidden="true"></span>
+		{#if leading}<div class="md-list-item__leading">{@render leading()}</div>{/if}
+		<div class="md-list-item__content">
+			{#if overline}<div class="md-list-item__overline">{@render overline()}</div>{/if}
+			<div class="md-list-item__headline">{@render children()}</div>
+			{#if supporting}<div class="md-list-item__supporting">{@render supporting()}</div>{/if}
+		</div>
+		{#if trailing}<div class="md-list-item__trailing">{@render trailing()}</div>{/if}
+	</a>
+{:else if type || (restProps.onclick && !href)}
+	<button
+		{type}
+		disabled={isNativeDisabled}
+		class={classes}
+		{@attach ripple({ disabled })}
+		{...restProps}
+	>
+		<span class="md-list-item__state-layer" aria-hidden="true"></span>
+		{#if leading}<div class="md-list-item__leading">{@render leading()}</div>{/if}
+		<div class="md-list-item__content">
+			{#if overline}<div class="md-list-item__overline">{@render overline()}</div>{/if}
+			<div class="md-list-item__headline">{@render children()}</div>
+			{#if supporting}<div class="md-list-item__supporting">{@render supporting()}</div>{/if}
+		</div>
+		{#if trailing}<div class="md-list-item__trailing">{@render trailing()}</div>{/if}
+	</button>
 {:else}
-	<div
-		class="li li--{resolvedLines} {extraClass}"
-		class:li--selected={selected}
-		class:li--disabled={disabled}
-		aria-disabled={disabled || undefined}
-	>
-		{@render content()}
-	</div>
+	<li class={classes} {...restProps}>
+		<span class="md-list-item__state-layer" aria-hidden="true"></span>
+		{#if leading}<div class="md-list-item__leading">{@render leading()}</div>{/if}
+		<div class="md-list-item__content">
+			{#if overline}<div class="md-list-item__overline">{@render overline()}</div>{/if}
+			<div class="md-list-item__headline">{@render children()}</div>
+			{#if supporting}<div class="md-list-item__supporting">{@render supporting()}</div>{/if}
+		</div>
+		{#if trailing}<div class="md-list-item__trailing">{@render trailing()}</div>{/if}
+	</li>
 {/if}
-
-<style>
-	.li {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: var(--md-comp-list-item-gap);
-		padding: var(--md-comp-list-item-padding-v) var(--md-comp-list-item-padding-h);
-		min-height: var(--md-comp-list-item-height-one);
-		border-radius: var(--md-comp-list-item-border-radius);
-		background-color: transparent;
-		text-decoration: none;
-		color: inherit;
-		overflow: hidden;
-		box-sizing: border-box;
-		width: 100%;
-	}
-
-	.li--two {
-		min-height: var(--md-comp-list-item-height-two);
-		align-items: flex-start;
-		padding-top: var(--md-comp-list-item-padding-v);
-		padding-bottom: var(--md-comp-list-item-padding-v);
-	}
-	.li--three {
-		min-height: var(--md-comp-list-item-height-three);
-		align-items: flex-start;
-	}
-
-	/* Two/three-line: re-center leading icon */
-	.li--two .li-leading,
-	.li--three .li-leading {
-		margin-top: calc(
-			(var(--md-comp-list-item-height-one) - var(--md-comp-list-item-icon-size)) / 2 -
-				var(--md-comp-list-item-padding-v)
-		);
-	}
-
-	/* ---- Interactive ---- */
-	.li--interactive {
-		cursor: pointer;
-		user-select: none;
-		-webkit-tap-highlight-color: transparent;
-	}
-	.li--interactive:focus-visible {
-		outline: 2px solid var(--md-sys-color-primary);
-		outline-offset: -2px;
-	}
-
-	/* ---- Selected ---- */
-	.li--selected {
-		background-color: var(--md-sys-color-secondary-container);
-		color: var(--md-sys-color-on-secondary-container);
-	}
-	.li--selected .li-supporting {
-		color: var(--md-sys-color-on-secondary-container);
-	}
-	.li--selected .li-leading {
-		color: var(--md-sys-color-on-secondary-container);
-	}
-
-	/* ---- Disabled ---- */
-	.li--disabled {
-		pointer-events: none;
-		opacity: 0.38;
-	}
-
-	/* ---- Leading ---- */
-	.li-leading {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--md-comp-list-item-icon-size);
-		height: var(--md-comp-list-item-icon-size);
-		flex-shrink: 0;
-		color: var(--md-sys-color-on-surface-variant);
-	}
-
-	/* ---- Text block ---- */
-	.li-text {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.li-headline {
-		font-family: var(--md-sys-typescale-body-font);
-		font-size: var(--md-sys-typescale-body-large-size);
-		font-weight: 400;
-		color: var(--md-sys-color-on-surface);
-		line-height: 1.5;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.li--three .li-headline {
-		white-space: normal;
-	}
-
-	.li-supporting {
-		font-family: var(--md-sys-typescale-body-font);
-		font-size: var(--md-sys-typescale-body-medium-size);
-		color: var(--md-sys-color-on-surface-variant);
-		line-height: 1.4;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 1;
-		line-clamp: 1;
-		overflow: hidden;
-	}
-	.li--three .li-supporting {
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-	}
-
-	/* ---- Trailing ---- */
-	.li-trailing {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: var(--md-sys-spacing-xs);
-		flex-shrink: 0;
-	}
-
-	.li-trailing-text {
-		font-family: var(--md-sys-typescale-label-font);
-		font-size: var(--md-sys-typescale-label-medium-size);
-		color: var(--md-sys-color-on-surface-variant);
-		white-space: nowrap;
-	}
-
-	.li-trailing-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--md-comp-list-item-icon-size);
-		height: var(--md-comp-list-item-icon-size);
-		color: var(--md-sys-color-on-surface-variant);
-	}
-
-	/* ---- State layer ---- */
-	.li-state-layer {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		background-color: var(--md-sys-color-on-surface);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-	}
-	.li--selected .li-state-layer {
-		background-color: var(--md-sys-color-on-secondary-container);
-	}
-	.li--interactive:hover .li-state-layer {
-		opacity: 0.08;
-	}
-	.li--interactive:focus-visible .li-state-layer {
-		opacity: 0.12;
-	}
-	.li--interactive:active .li-state-layer {
-		opacity: 0.12;
-	}
-
-	/* ---- Ripple ---- */
-	.li-ripple-container {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		overflow: hidden;
-		pointer-events: none;
-	}
-	.li-ripple {
-		position: absolute;
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background-color: var(--md-sys-color-on-surface);
-		opacity: 0.18;
-		transform: translate(-50%, -50%) scale(0);
-		animation: li-ripple 600ms var(--md-sys-motion-easing-standard) forwards;
-		pointer-events: none;
-	}
-	@keyframes li-ripple {
-		to {
-			transform: translate(-50%, -50%) scale(40);
-			opacity: 0;
-		}
-	}
-</style>

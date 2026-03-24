@@ -1,0 +1,262 @@
+@import '../../../styles/tokens/components/bottom-sheet.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — BOTTOM SHEET COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Variants:
+     .md-bottom-sheet--standard   co-planar, no scrim, in-flow or fixed bottom
+     .md-bottom-sheet--modal      blocks content with scrim, fixed overlay
+
+   Structure (modal):
+     .md-bottom-sheet-root                  — fixed inset wrapper
+       .md-bottom-sheet-root--open          — visible
+       .md-bottom-sheet-root--closing       — exit animation
+     .md-bottom-sheet-scrim                 — tap-to-dismiss backdrop
+     .md-bottom-sheet                       — the surface
+       .md-bottom-sheet__drag-handle-wrap   — 48px touch target with pill inside
+       .md-bottom-sheet__drag-handle        — 32×4px pill
+       .md-bottom-sheet__header            — optional title row
+       .md-bottom-sheet__title             — title-large text
+       .md-bottom-sheet__divider           — 1px separator
+       .md-bottom-sheet__content           — scrollable body
+   ============================================================================= */
+
+/* =============================================================================
+   KEYFRAMES
+   ============================================================================= */
+
+@keyframes md-bottom-sheet-enter {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes md-bottom-sheet-exit {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(100%);
+	}
+}
+
+@keyframes md-bottom-sheet-scrim-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: var(--md-comp-bottom-sheet-scrim-opacity);
+	}
+}
+
+@keyframes md-bottom-sheet-scrim-exit {
+	from {
+		opacity: var(--md-comp-bottom-sheet-scrim-opacity);
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+/* =============================================================================
+   MODAL ROOT WRAPPER
+   ============================================================================= */
+
+.md-bottom-sheet-root {
+	display: contents; /* standard: invisible in layout */
+}
+
+.md-bottom-sheet-root--modal {
+	display: block;
+	position: fixed;
+	inset: 0;
+	z-index: 450;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.md-bottom-sheet-root--modal.md-bottom-sheet-root--open,
+.md-bottom-sheet-root--modal.md-bottom-sheet-root--closing {
+	visibility: visible;
+	pointer-events: auto;
+}
+
+/* =============================================================================
+   SCRIM (modal only)
+   ============================================================================= */
+
+.md-bottom-sheet-scrim {
+	display: none;
+}
+
+.md-bottom-sheet-root--modal .md-bottom-sheet-scrim {
+	display: block;
+	position: absolute;
+	inset: 0;
+	background-color: var(--md-comp-bottom-sheet-scrim-color);
+	opacity: 0;
+}
+
+.md-bottom-sheet-root--modal.md-bottom-sheet-root--open .md-bottom-sheet-scrim {
+	opacity: var(--md-comp-bottom-sheet-scrim-opacity);
+	animation: md-bottom-sheet-scrim-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-bottom-sheet-enter-duration))
+		var(--md-comp-bottom-sheet-enter-easing) forwards;
+}
+
+.md-bottom-sheet-root--modal.md-bottom-sheet-root--closing .md-bottom-sheet-scrim {
+	animation: md-bottom-sheet-scrim-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-bottom-sheet-exit-duration))
+		var(--md-comp-bottom-sheet-exit-easing) forwards;
+}
+
+/* =============================================================================
+   SHEET SURFACE
+   ============================================================================= */
+
+.md-bottom-sheet {
+	/* Geometry */
+	position: fixed;
+	inset-inline: 0;
+	bottom: 0;
+
+	/* Shape — top corners rounded only */
+	border-top-left-radius: var(--md-comp-bottom-sheet-shape-top-start);
+	border-top-right-radius: var(--md-comp-bottom-sheet-shape-top-end);
+	border-bottom-left-radius: var(--md-comp-bottom-sheet-shape-bottom-start);
+	border-bottom-right-radius: var(--md-comp-bottom-sheet-shape-bottom-end);
+
+	/* Color */
+	background-color: var(--md-comp-bottom-sheet-container-color);
+
+	/* Layout */
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	max-height: 90vh; /* sensible default; consumer can override */
+
+	/* Off-screen by default */
+	transform: translateY(100%);
+	visibility: hidden;
+
+	/* Stacking */
+	z-index: 1;
+}
+
+/* Standard: relative in flow, always visible */
+.md-bottom-sheet--standard {
+	position: relative;
+	bottom: unset;
+	transform: none;
+	visibility: visible;
+	box-shadow: var(--md-comp-bottom-sheet-standard-elevation);
+	flex-shrink: 0;
+}
+
+/* Modal elevation */
+.md-bottom-sheet--modal {
+	box-shadow: var(--md-comp-bottom-sheet-modal-elevation);
+}
+
+/* Open state */
+.md-bottom-sheet-root--open .md-bottom-sheet,
+.md-bottom-sheet-root--closing .md-bottom-sheet {
+	visibility: visible;
+}
+
+.md-bottom-sheet-root--open .md-bottom-sheet {
+	transform: translateY(0);
+	animation: md-bottom-sheet-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-bottom-sheet-enter-duration))
+		var(--md-comp-bottom-sheet-enter-easing) forwards;
+}
+
+.md-bottom-sheet-root--closing .md-bottom-sheet {
+	animation: md-bottom-sheet-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-bottom-sheet-exit-duration))
+		var(--md-comp-bottom-sheet-exit-easing) forwards;
+}
+
+/* =============================================================================
+   DRAG HANDLE
+   ============================================================================= */
+
+.md-bottom-sheet__drag-handle-wrap {
+	/* 48px accessible touch target, centred on the 4px pill */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding-block-start: var(--md-comp-bottom-sheet-drag-handle-top-padding);
+	padding-block-end: var(--md-comp-bottom-sheet-drag-handle-bottom-padding);
+	flex-shrink: 0;
+	cursor: grab;
+}
+
+.md-bottom-sheet__drag-handle-wrap:active {
+	cursor: grabbing;
+}
+
+.md-bottom-sheet__drag-handle {
+	width: var(--md-comp-bottom-sheet-drag-handle-width);
+	height: var(--md-comp-bottom-sheet-drag-handle-height);
+	border-radius: var(--md-comp-bottom-sheet-drag-handle-shape);
+	background-color: var(--md-comp-bottom-sheet-drag-handle-color);
+	opacity: var(--md-comp-bottom-sheet-drag-handle-opacity);
+	flex-shrink: 0;
+	pointer-events: none;
+}
+
+/* =============================================================================
+   HEADER (optional)
+   ============================================================================= */
+
+.md-bottom-sheet__header {
+	display: flex;
+	align-items: center;
+	min-height: var(--md-comp-bottom-sheet-header-height);
+	padding-inline: var(--md-comp-bottom-sheet-header-padding-inline);
+	flex-shrink: 0;
+}
+
+.md-bottom-sheet__title {
+	flex: 1;
+	color: var(--md-comp-bottom-sheet-header-title-color);
+	font-family: var(--md-comp-bottom-sheet-header-title-font);
+	font-size: var(--md-comp-bottom-sheet-header-title-size);
+	font-weight: var(--md-comp-bottom-sheet-header-title-weight);
+	letter-spacing: var(--md-comp-bottom-sheet-header-title-tracking);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* =============================================================================
+   DIVIDER
+   ============================================================================= */
+
+.md-bottom-sheet__divider {
+	border: none;
+	border-top: 1px solid var(--md-comp-bottom-sheet-divider-color);
+	margin: 0;
+	flex-shrink: 0;
+}
+
+/* =============================================================================
+   CONTENT
+   ============================================================================= */
+
+.md-bottom-sheet__content {
+	flex: 1;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding-inline: var(--md-comp-bottom-sheet-content-padding-inline);
+	padding-block: var(--md-comp-bottom-sheet-content-padding-block);
+	color: var(--md-comp-bottom-sheet-content-color);
+}

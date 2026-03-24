@@ -1,0 +1,142 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 1: REFERENCE TOKENS
+   Source: M3 baseline theme (source color #6750A4)
+   
+   These are raw tonal palette values. They are the ONLY place where literal
+   color hex codes appear. Nothing outside this file should use hex colors.
+   
+   Naming: --md-ref-palette-{key-color}{tone}
+   Tones:  0, 10, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100
+   ============================================================================= */
+
+:root {
+	/* ---------------------------------------------------------------------------
+     PRIMARY palette (violet)
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-primary0: #000000;
+	--md-ref-palette-primary10: #21005d;
+	--md-ref-palette-primary20: #381e72;
+	--md-ref-palette-primary25: #432b7e;
+	--md-ref-palette-primary30: #4f378b;
+	--md-ref-palette-primary35: #5b4397;
+	--md-ref-palette-primary40: #6750a4;
+	--md-ref-palette-primary50: #7f67be;
+	--md-ref-palette-primary60: #9a80d9;
+	--md-ref-palette-primary70: #b69df8;
+	--md-ref-palette-primary80: #d0bcff;
+	--md-ref-palette-primary90: #eaddff;
+	--md-ref-palette-primary95: #f6edff;
+	--md-ref-palette-primary98: #fef7ff;
+	--md-ref-palette-primary99: #fffbfe;
+	--md-ref-palette-primary100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     SECONDARY palette (mauve)
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-secondary0: #000000;
+	--md-ref-palette-secondary10: #1d192b;
+	--md-ref-palette-secondary20: #332d41;
+	--md-ref-palette-secondary25: #3e3a4c;
+	--md-ref-palette-secondary30: #4a4458;
+	--md-ref-palette-secondary35: #564f64;
+	--md-ref-palette-secondary40: #625b71;
+	--md-ref-palette-secondary50: #7a7289;
+	--md-ref-palette-secondary60: #958ba4;
+	--md-ref-palette-secondary70: #b0a7bf;
+	--md-ref-palette-secondary80: #ccc2dc;
+	--md-ref-palette-secondary90: #e8def8;
+	--md-ref-palette-secondary95: #f6edff;
+	--md-ref-palette-secondary98: #fef7ff;
+	--md-ref-palette-secondary99: #fffbfe;
+	--md-ref-palette-secondary100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     TERTIARY palette (rose)
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-tertiary0: #000000;
+	--md-ref-palette-tertiary10: #31111d;
+	--md-ref-palette-tertiary20: #492532;
+	--md-ref-palette-tertiary25: #55303d;
+	--md-ref-palette-tertiary30: #633b48;
+	--md-ref-palette-tertiary35: #704754;
+	--md-ref-palette-tertiary40: #7d5260;
+	--md-ref-palette-tertiary50: #986977;
+	--md-ref-palette-tertiary60: #b58392;
+	--md-ref-palette-tertiary70: #d29dac;
+	--md-ref-palette-tertiary80: #efb8c8;
+	--md-ref-palette-tertiary90: #ffd8e4;
+	--md-ref-palette-tertiary95: #ffecf1;
+	--md-ref-palette-tertiary98: #fff8f9;
+	--md-ref-palette-tertiary99: #fffbfa;
+	--md-ref-palette-tertiary100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     ERROR palette (red)
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-error0: #000000;
+	--md-ref-palette-error10: #410002;
+	--md-ref-palette-error20: #690005;
+	--md-ref-palette-error25: #7e0007;
+	--md-ref-palette-error30: #93000a;
+	--md-ref-palette-error35: #a80710;
+	--md-ref-palette-error40: #ba1a1a;
+	--md-ref-palette-error50: #de3730;
+	--md-ref-palette-error60: #ff5449;
+	--md-ref-palette-error70: #ff897d;
+	--md-ref-palette-error80: #ffb4ab;
+	--md-ref-palette-error90: #ffdad6;
+	--md-ref-palette-error95: #ffedea;
+	--md-ref-palette-error98: #fff8f7;
+	--md-ref-palette-error99: #fffbff;
+	--md-ref-palette-error100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     NEUTRAL palette (grey-violet) — used for surfaces and backgrounds
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-neutral0: #000000;
+	--md-ref-palette-neutral10: #1c1b1f;
+	--md-ref-palette-neutral20: #313033;
+	--md-ref-palette-neutral25: #3c3b3f;
+	--md-ref-palette-neutral30: #484649;
+	--md-ref-palette-neutral35: #534f52;
+	--md-ref-palette-neutral40: #605d62;
+	--md-ref-palette-neutral50: #787579;
+	--md-ref-palette-neutral60: #938f96;
+	--md-ref-palette-neutral70: #aeaaae;
+	--md-ref-palette-neutral80: #c9c5ca;
+	--md-ref-palette-neutral90: #e6e1e5;
+	--md-ref-palette-neutral95: #f4eff4;
+	--md-ref-palette-neutral98: #fef7ff;
+	--md-ref-palette-neutral99: #fffbfe;
+	--md-ref-palette-neutral100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     NEUTRAL VARIANT palette — used for surface variants and outlines
+     --------------------------------------------------------------------------- */
+	--md-ref-palette-neutral-variant0: #000000;
+	--md-ref-palette-neutral-variant10: #1d1a22;
+	--md-ref-palette-neutral-variant20: #322f37;
+	--md-ref-palette-neutral-variant25: #3d3a42;
+	--md-ref-palette-neutral-variant30: #49454f;
+	--md-ref-palette-neutral-variant35: #544f5a;
+	--md-ref-palette-neutral-variant40: #605d66;
+	--md-ref-palette-neutral-variant50: #79747e;
+	--md-ref-palette-neutral-variant60: #938f99;
+	--md-ref-palette-neutral-variant70: #aea9b4;
+	--md-ref-palette-neutral-variant80: #cac4d0;
+	--md-ref-palette-neutral-variant90: #e7e0ec;
+	--md-ref-palette-neutral-variant95: #f5eefa;
+	--md-ref-palette-neutral-variant98: #fef7ff;
+	--md-ref-palette-neutral-variant99: #fffbfe;
+	--md-ref-palette-neutral-variant100: #ffffff;
+
+	/* ---------------------------------------------------------------------------
+     TYPEFACE reference tokens
+     These point to font families. System tokens reference these.
+     --------------------------------------------------------------------------- */
+	--md-ref-typeface-brand: 'Roboto', sans-serif;
+	--md-ref-typeface-plain: 'Roboto', sans-serif;
+	--md-ref-typeface-weight-regular: 400;
+	--md-ref-typeface-weight-medium: 500;
+	--md-ref-typeface-weight-bold: 700;
+}

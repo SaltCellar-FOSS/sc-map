@@ -1,0 +1,74 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: SEARCH BAR COMPONENT TOKENS
+
+   Imported by components/ui/search-bar/search-bar.css — not directly by theme.css.
+
+   Spec references:
+     - Container: surface-container-high, full-pill shape, 56px height
+     - Leading icon: on-surface-variant, 24px, 16px leading padding
+     - Input / placeholder text: body-large, on-surface / on-surface-variant
+     - Trailing icon(s): on-surface-variant, 24px, 16px trailing padding
+     - Between leading icon and text: 16px gap
+     - Between text and trailing icons: 16px gap
+     - Elevation: level2 at rest (slight shadow lift above page content)
+     - State layer: on-surface at M3 state opacities
+     - Disabled: standard M3 disabled container (12%) / content (38%) opacities
+   ============================================================================= */
+
+:root {
+	/* --- Container --- */
+	--md-comp-search-bar-container-color: var(--md-sys-color-surface-container-high);
+	--md-comp-search-bar-container-shape: var(--md-sys-shape-corner-full);
+	--md-comp-search-bar-container-height: 56px;
+	--md-comp-search-bar-container-elevation: var(--md-sys-elevation-level2-shadow);
+
+	/* Hover lifts one more level */
+	--md-comp-search-bar-hover-container-elevation: var(--md-sys-elevation-level3-shadow);
+
+	/* --- Input text --- */
+	--md-comp-search-bar-input-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-input-font: var(--md-sys-typescale-body-large-font);
+	--md-comp-search-bar-input-size: var(--md-sys-typescale-body-large-size);
+	--md-comp-search-bar-input-weight: var(--md-sys-typescale-body-large-weight);
+	--md-comp-search-bar-input-line-height: var(--md-sys-typescale-body-large-line-height);
+	--md-comp-search-bar-input-tracking: var(--md-sys-typescale-body-large-tracking);
+
+	/* Caret (cursor) uses primary color per M3 text field spec */
+	--md-comp-search-bar-caret-color: var(--md-sys-color-primary);
+
+	/* --- Placeholder / supporting text --- */
+	--md-comp-search-bar-placeholder-color: var(--md-sys-color-on-surface-variant);
+
+	/* --- Leading icon --- */
+	--md-comp-search-bar-leading-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-search-bar-leading-icon-size: 24px;
+
+	/* --- Trailing icon(s) --- */
+	--md-comp-search-bar-trailing-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-search-bar-trailing-icon-size: 24px;
+
+	/* --- Spacing --- */
+	/* Horizontal padding from container edge to leading / trailing icon */
+	--md-comp-search-bar-leading-space: 16px;
+	--md-comp-search-bar-trailing-space: 16px;
+	/* Gap between adjacent icons in the trailing group */
+	--md-comp-search-bar-trailing-icon-gap: 8px;
+	/* Gap between leading icon and input, and between input and trailing area */
+	--md-comp-search-bar-icon-input-gap: 16px;
+
+	/* --- State layer --- */
+	--md-comp-search-bar-hover-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-hover-state-layer-opacity: var(--md-sys-state-hover-opacity);
+	--md-comp-search-bar-focus-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-focus-state-layer-opacity: var(--md-sys-state-focus-opacity);
+	--md-comp-search-bar-pressed-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-pressed-state-layer-opacity: var(--md-sys-state-pressed-opacity);
+
+	/* --- Disabled --- */
+	--md-comp-search-bar-disabled-container-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-disabled-container-opacity: var(--md-sys-state-disabled-container-opacity);
+	--md-comp-search-bar-disabled-input-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-disabled-input-opacity: var(--md-sys-state-disabled-content-opacity);
+	--md-comp-search-bar-disabled-icon-color: var(--md-sys-color-on-surface);
+	--md-comp-search-bar-disabled-icon-opacity: var(--md-sys-state-disabled-content-opacity);
+}

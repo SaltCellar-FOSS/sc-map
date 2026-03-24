@@ -1,0 +1,545 @@
+@import '../../../styles/tokens/components/text-field.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — TEXT FIELD COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Variants:
+     .md-tf--filled    surface-container-highest + bottom indicator line
+     .md-tf--outlined  transparent + full border outline
+
+   DOM structure (same for both variants):
+     .md-tf                            root wrapper (positions label, footer)
+       .md-tf__container               the 56px interactive area
+         .md-tf__leading-icon          optional 24px leading icon
+         .md-tf__field-wrap            flex column: label + input row
+           .md-tf__label               floating label <label>
+           .md-tf__input-row           horizontal: prefix + input + suffix
+             .md-tf__prefix            optional prefix text
+             input / textarea          native input — .md-tf__input
+             .md-tf__suffix            optional suffix text
+         .md-tf__trailing-icon         optional 24px trailing icon
+         .md-tf__indicator             filled only — bottom line pseudo
+         .md-tf__outline               outlined only — border SVG/border
+       .md-tf__footer                  supporting text + character counter row
+         .md-tf__supporting            helper / error text
+         .md-tf__counter               character count
+
+   The label floats via CSS: when input:focus or :not(:placeholder-shown),
+   the .md-tf--populated class is added by JS (or use the :has() approach).
+   We support both: :has(input:focus) and the .md-tf--populated class.
+
+   Note on the outlined label gap: This uses the fieldset/legend trick —
+   the outline is `border`, the label gap is created by an absolutely-positioned
+   `<fieldset>` + `<legend>` whose width tracks the floating label size.
+   ============================================================================= */
+
+/* =============================================================================
+   ROOT
+   ============================================================================= */
+
+.md-tf {
+	display: inline-flex;
+	flex-direction: column;
+	position: relative;
+	width: 100%;
+}
+
+/* =============================================================================
+   CONTAINER (the 56px interactive box)
+   ============================================================================= */
+
+.md-tf__container {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	min-height: var(--md-comp-filled-tf-container-height);
+	cursor: text;
+}
+
+/* =============================================================================
+   FILLED VARIANT — container styling
+   ============================================================================= */
+
+.md-tf--filled .md-tf__container {
+	background-color: var(--md-comp-filled-tf-container-color);
+	border-top-left-radius: var(--md-comp-filled-tf-container-shape-top-start);
+	border-top-right-radius: var(--md-comp-filled-tf-container-shape-top-end);
+	border-bottom-left-radius: var(--md-comp-filled-tf-container-shape-bot-start);
+	border-bottom-right-radius: var(--md-comp-filled-tf-container-shape-bot-end);
+}
+
+/* State layer on container hover */
+.md-tf--filled .md-tf__container::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: var(--md-sys-color-on-surface);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-tf--filled:not(.md-tf--disabled) .md-tf__container:hover::before {
+	opacity: var(--md-sys-state-hover-opacity);
+}
+
+/* Bottom indicator line */
+.md-tf--filled .md-tf__indicator {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: var(--md-comp-filled-tf-indicator-height);
+	background-color: var(--md-comp-filled-tf-indicator-color);
+	transition:
+		height calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard),
+		background-color
+			calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard);
+}
+
+/* Focus */
+.md-tf--filled:not(.md-tf--disabled):focus-within .md-tf__indicator {
+	height: var(--md-comp-filled-tf-focus-indicator-height);
+	background-color: var(--md-comp-filled-tf-focus-indicator-color);
+}
+
+/* Hover */
+.md-tf--filled:not(.md-tf--disabled) .md-tf__container:hover .md-tf__indicator {
+	background-color: var(--md-comp-filled-tf-hover-indicator-color);
+}
+
+/* Error */
+.md-tf--filled.md-tf--error .md-tf__indicator {
+	background-color: var(--md-comp-filled-tf-error-indicator-color);
+	height: var(--md-comp-filled-tf-focus-indicator-height);
+}
+
+.md-tf--filled.md-tf--error:focus-within .md-tf__indicator {
+	background-color: var(--md-comp-filled-tf-error-indicator-color);
+}
+
+/* Disabled */
+.md-tf--filled.md-tf--disabled .md-tf__container {
+	opacity: 1; /* apply per-element, not container */
+}
+
+.md-tf--filled.md-tf--disabled .md-tf__container::after {
+	/* The bg goes nearly transparent */
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: var(--md-comp-filled-tf-container-color);
+	opacity: var(--md-comp-filled-tf-disabled-container-opacity);
+	pointer-events: none;
+}
+
+.md-tf--filled.md-tf--disabled .md-tf__indicator {
+	background-color: var(--md-comp-filled-tf-disabled-indicator-color);
+	opacity: var(--md-comp-filled-tf-disabled-indicator-opacity);
+	height: var(--md-comp-filled-tf-indicator-height);
+}
+
+/* =============================================================================
+   OUTLINED VARIANT — container styling
+   ============================================================================= */
+
+.md-tf--outlined .md-tf__container {
+	background-color: transparent;
+	border-radius: var(--md-comp-outlined-tf-container-shape);
+}
+
+/* The outline is a <fieldset> with a notched <legend> for the label gap */
+.md-tf--outlined .md-tf__outline {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	border-radius: inherit;
+	border: var(--md-comp-outlined-tf-outline-width) solid var(--md-comp-outlined-tf-outline-color);
+	transition:
+		border-color calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard),
+		border-width calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard);
+}
+
+/* The notch (gap in the border for the floating label) */
+.md-tf--outlined .md-tf__outline-notch {
+	/* A segment of the top border replaced by padding around the label */
+	position: absolute;
+	top: -1px; /* align with the border */
+	left: calc(var(--md-comp-tf-padding-inline) - 4px);
+	display: flex;
+	align-items: center;
+	height: 0;
+	overflow: visible;
+	border-top: var(--md-comp-outlined-tf-outline-width) solid
+		var(--md-comp-outlined-tf-outline-color);
+	/* Width set by JS or via CSS variable tracking label width */
+	width: 0;
+	max-width: calc(100% - var(--md-comp-tf-padding-inline) * 2);
+	transition:
+		width calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-tf-label-duration))
+			var(--md-comp-tf-label-easing),
+		border-color calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard);
+}
+
+/* When populated/focused, clear the notch segment by making it transparent */
+.md-tf--outlined.md-tf--populated .md-tf__outline-notch,
+.md-tf--outlined:focus-within .md-tf__outline-notch {
+	border-top-color: transparent;
+	width: calc(var(--_label-float-width, 0px) + 8px);
+}
+
+/* Hover */
+.md-tf--outlined:not(.md-tf--disabled):not(:focus-within):not(.md-tf--error)
+	.md-tf__container:hover
+	.md-tf__outline {
+	border-color: var(--md-comp-outlined-tf-hover-outline-color);
+}
+
+.md-tf--outlined:not(.md-tf--disabled):not(:focus-within):not(.md-tf--error)
+	.md-tf__container:hover
+	.md-tf__outline-notch {
+	border-color: var(--md-comp-outlined-tf-hover-outline-color);
+}
+
+/* Focus */
+.md-tf--outlined:not(.md-tf--disabled):focus-within .md-tf__outline {
+	border-color: var(--md-comp-outlined-tf-focus-outline-color);
+	border-width: var(--md-comp-outlined-tf-focus-outline-width);
+}
+
+.md-tf--outlined:not(.md-tf--disabled):focus-within .md-tf__outline-notch {
+	border-color: transparent;
+	border-width: var(--md-comp-outlined-tf-focus-outline-width);
+}
+
+/* Error */
+.md-tf--outlined.md-tf--error .md-tf__outline {
+	border-color: var(--md-comp-outlined-tf-error-outline-color);
+	border-width: var(--md-comp-outlined-tf-focus-outline-width);
+}
+
+.md-tf--outlined.md-tf--error:focus-within .md-tf__outline {
+	border-color: var(--md-comp-outlined-tf-error-outline-color);
+}
+
+/* Disabled */
+.md-tf--outlined.md-tf--disabled .md-tf__outline {
+	border-color: var(--md-comp-outlined-tf-disabled-outline-color);
+	opacity: var(--md-comp-outlined-tf-disabled-outline-opacity);
+}
+
+/* =============================================================================
+   FIELD WRAP + INPUT ROW
+   ============================================================================= */
+
+.md-tf__field-wrap {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	position: relative;
+	min-width: 0;
+}
+
+.md-tf__input-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* =============================================================================
+   LABEL (floating)
+   ============================================================================= */
+
+.md-tf__label {
+	position: absolute;
+	left: 0;
+	/* Resting: vertically centred in the container */
+	top: 50%;
+	transform: translateY(-50%);
+
+	color: var(--md-comp-tf-label-color);
+	font-family: var(--md-comp-tf-label-resting-font);
+	font-size: var(--md-comp-tf-label-resting-size);
+	font-weight: var(--md-comp-tf-label-resting-weight);
+	letter-spacing: var(--md-comp-tf-label-resting-tracking);
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	pointer-events: none;
+	transform-origin: left top;
+
+	transition:
+		transform calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-tf-label-duration))
+			var(--md-comp-tf-label-easing),
+		font-size calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-tf-label-duration))
+			var(--md-comp-tf-label-easing),
+		color calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard);
+}
+
+/* ---- FILLED: floating position ---- */
+.md-tf--filled .md-tf__label {
+	left: 0; /* aligns with the input, padding handled by field-wrap */
+}
+
+.md-tf--filled.md-tf--populated .md-tf__label,
+.md-tf--filled:focus-within .md-tf__label {
+	/* Float to top, shrink to body-small */
+	top: var(--md-comp-tf-filled-label-top);
+	transform: translateY(0)
+		scale(calc(var(--md-sys-typescale-body-small-size) / var(--md-sys-typescale-body-large-size)));
+}
+
+/* ---- OUTLINED: floating position ---- */
+.md-tf--outlined .md-tf__label {
+	left: 0;
+}
+
+.md-tf--outlined.md-tf--populated .md-tf__label,
+.md-tf--outlined:focus-within .md-tf__label {
+	/* Float to the outline border line */
+	top: 0;
+	transform: translateY(-50%)
+		scale(calc(var(--md-sys-typescale-body-small-size) / var(--md-sys-typescale-body-large-size)));
+}
+
+/* Focus color */
+.md-tf:not(.md-tf--disabled):focus-within .md-tf__label {
+	color: var(--md-comp-tf-label-focus-color);
+}
+
+/* Error color */
+.md-tf.md-tf--error .md-tf__label {
+	color: var(--md-comp-tf-label-error-color);
+}
+
+/* Disabled */
+.md-tf.md-tf--disabled .md-tf__label {
+	color: var(--md-comp-tf-label-disabled-color);
+	opacity: var(--md-sys-state-disabled-content-opacity);
+}
+
+/* Required asterisk */
+.md-tf__label--required::after {
+	content: '\00a0*';
+}
+
+/* =============================================================================
+   NATIVE INPUT / TEXTAREA
+   ============================================================================= */
+
+.md-tf__input {
+	/* Reset */
+	appearance: none;
+	background: transparent;
+	border: none;
+	outline: none;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	min-width: 0;
+
+	/* Typography */
+	color: var(--md-comp-tf-input-color);
+	font-family: var(--md-comp-tf-input-font);
+	font-size: var(--md-comp-tf-input-size);
+	font-weight: var(--md-comp-tf-input-weight);
+	letter-spacing: var(--md-comp-tf-input-tracking);
+	line-height: var(--md-sys-typescale-body-large-line-height);
+
+	/* Caret */
+	caret-color: var(--md-comp-tf-caret-color);
+}
+
+.md-tf--error .md-tf__input {
+	caret-color: var(--md-comp-tf-error-caret-color);
+}
+
+.md-tf--disabled .md-tf__input {
+	color: var(--md-comp-tf-input-disabled-color);
+	opacity: var(--md-sys-state-disabled-content-opacity);
+	cursor: not-allowed;
+}
+
+/* Placeholder: only show when floating (i.e., focused or populated) */
+.md-tf__input::placeholder {
+	color: var(--md-sys-color-on-surface-variant);
+	opacity: 0;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short3))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-tf--populated .md-tf__input::placeholder,
+.md-tf .md-tf__input:focus::placeholder,
+.md-tf--no-label .md-tf__input::placeholder {
+	opacity: 1;
+}
+
+/* Textarea */
+textarea.md-tf__input {
+	resize: vertical;
+	min-height: 40px;
+	overflow-y: auto;
+}
+
+/* =============================================================================
+   FILLED: PADDING INSIDE FIELD-WRAP
+   When label floats: top padding to push input down, leaving room for label
+   ============================================================================= */
+
+.md-tf--filled .md-tf__field-wrap {
+	padding-inline: var(--md-comp-tf-padding-inline);
+	/* Enough top space for the floating label */
+	padding-top: calc(
+		var(--md-comp-tf-filled-label-top) + var(--md-sys-typescale-body-small-size) + 4px
+	);
+	padding-bottom: var(--md-comp-tf-filled-padding-top);
+}
+
+/* When no label is present, use symmetric padding */
+.md-tf--filled.md-tf--no-label .md-tf__field-wrap {
+	padding-top: var(--md-comp-tf-filled-padding-top);
+}
+
+/* =============================================================================
+   OUTLINED: PADDING INSIDE FIELD-WRAP
+   ============================================================================= */
+
+.md-tf--outlined .md-tf__field-wrap {
+	padding-inline: calc(var(--md-comp-tf-padding-inline) - var(--md-comp-outlined-tf-outline-width));
+	padding-block: calc(
+		var(--md-comp-tf-outlined-padding-block) - var(--md-comp-outlined-tf-outline-width)
+	);
+	/* Adjust for focus (thicker border) */
+}
+
+/* =============================================================================
+   ICONS
+   ============================================================================= */
+
+.md-tf__leading-icon,
+.md-tf__trailing-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: calc(var(--md-comp-tf-icon-size) + var(--md-comp-tf-icon-inline-padding) * 2);
+	align-self: center;
+	color: var(--md-comp-tf-leading-icon-color);
+}
+
+.md-tf__trailing-icon {
+	color: var(--md-comp-tf-trailing-icon-color);
+}
+
+.md-tf--error .md-tf__trailing-icon {
+	color: var(--md-comp-tf-error-trailing-icon-color);
+}
+
+.md-tf--disabled .md-tf__leading-icon,
+.md-tf--disabled .md-tf__trailing-icon {
+	opacity: var(--md-sys-state-disabled-content-opacity);
+}
+
+.md-tf__leading-icon svg,
+.md-tf__leading-icon img,
+.md-tf__trailing-icon svg,
+.md-tf__trailing-icon img {
+	width: var(--md-comp-tf-icon-size);
+	height: var(--md-comp-tf-icon-size);
+	fill: currentColor;
+	display: block;
+}
+
+/* Reduce inline padding when icon is present */
+.md-tf--has-leading .md-tf__field-wrap {
+	padding-inline-start: 0;
+}
+
+.md-tf--has-trailing .md-tf__field-wrap {
+	padding-inline-end: 0;
+}
+
+/* =============================================================================
+   PREFIX / SUFFIX
+   ============================================================================= */
+
+.md-tf__prefix,
+.md-tf__suffix {
+	color: var(--md-comp-tf-prefix-color);
+	font-family: var(--md-comp-tf-input-font);
+	font-size: var(--md-comp-tf-input-size);
+	font-weight: var(--md-comp-tf-input-weight);
+	letter-spacing: var(--md-comp-tf-input-tracking);
+	white-space: nowrap;
+	flex-shrink: 0;
+	align-self: center;
+	/* Hidden until field is populated/focused */
+	opacity: 0;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short3))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-tf--populated .md-tf__prefix,
+.md-tf--populated .md-tf__suffix,
+.md-tf:focus-within .md-tf__prefix,
+.md-tf:focus-within .md-tf__suffix {
+	opacity: 1;
+}
+
+.md-tf__suffix {
+	color: var(--md-comp-tf-suffix-color);
+}
+
+/* =============================================================================
+   FOOTER (supporting text + counter row)
+   ============================================================================= */
+
+.md-tf__footer {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding-inline: var(--md-comp-tf-supporting-inline-padding);
+	padding-block-start: var(--md-comp-tf-supporting-top-gap);
+}
+
+.md-tf__supporting,
+.md-tf__counter {
+	color: var(--md-comp-tf-supporting-color);
+	font-family: var(--md-comp-tf-supporting-font);
+	font-size: var(--md-comp-tf-supporting-size);
+	font-weight: var(--md-comp-tf-supporting-weight);
+	letter-spacing: var(--md-comp-tf-supporting-tracking);
+	line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.md-tf__counter {
+	flex-shrink: 0;
+	margin-inline-start: auto;
+}
+
+.md-tf--error .md-tf__supporting {
+	color: var(--md-comp-tf-supporting-error-color);
+}
+
+.md-tf--disabled .md-tf__supporting,
+.md-tf--disabled .md-tf__counter {
+	color: var(--md-comp-tf-supporting-disabled-color);
+	opacity: var(--md-sys-state-disabled-content-opacity);
+}

@@ -1,4 +1,4 @@
 BEGIN;
-DROP INDEX IF EXISTS idx_places_name;
-CREATE INDEX idx_places_name ON places (name);
+DROP INDEX IF EXISTS idx_saved_places_name;
+CREATE INDEX idx_saved_places_name ON saved_places (name);
 COMMIT;

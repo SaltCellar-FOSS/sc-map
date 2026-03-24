@@ -70,9 +70,10 @@ export async function searchGooglePlaces(
 		return [];
 	}
 
-	const body: Record<string, unknown> = { textQuery: query };
+	const body: Record<string, unknown> = { textQuery: query, pageSize: 5 };
 	if (includedType) {
 		body.includedType = includedType;
+		body.strictTypeFiltering = true;
 	}
 
 	const response = await fetch('https://places.googleapis.com/v1/places:searchText', {

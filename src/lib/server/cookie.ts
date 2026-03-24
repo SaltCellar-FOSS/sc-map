@@ -1,6 +1,8 @@
 import { env } from '$env/dynamic/private';
 const { SESSION_SECRET } = env;
 
+export const SESSION_COOKIE_NAME = 'session';
+
 export async function createSessionCookie(userId: bigint, maxAge: number): Promise<string> {
 	const expiresAt = Math.floor(Date.now() / 1000) + maxAge;
 	const payload = `${userId}:${expiresAt}`;

@@ -1,0 +1,267 @@
+@import '../../../styles/tokens/components/dialog.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — DIALOG COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Structure:
+     .md-dialog-backdrop          — fixed inset scrim + centering container
+     .md-dialog                   — the dialog surface
+       .md-dialog--open           — visible / entering
+       .md-dialog--closing        — exit animation in progress
+       .md-dialog--icon           — has leading icon (affects headline alignment)
+       .md-dialog--alert          — role="alertdialog"
+     .md-dialog__icon             — optional icon above headline (centered)
+     .md-dialog__headline         — headline-small title text
+     .md-dialog__body             — scrollable body region (body-medium)
+     .md-dialog__body--scrolled-top    — top divider visible
+     .md-dialog__body--scrolled-bottom — bottom divider visible
+     .md-dialog__actions          — trailing row of buttons
+
+   The native <dialog> element is NOT used so we get full animation control and
+   broader browser compat parity with the rest of the system. The backdrop and
+   focus-trap are managed in JS (SideSheet pattern).
+   ============================================================================= */
+
+/* =============================================================================
+   KEYFRAMES
+   ============================================================================= */
+
+@keyframes md-dialog-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes md-dialog-exit {
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+}
+
+@keyframes md-dialog-scrim-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: var(--md-comp-dialog-scrim-opacity);
+	}
+}
+
+@keyframes md-dialog-scrim-exit {
+	from {
+		opacity: var(--md-comp-dialog-scrim-opacity);
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+/* =============================================================================
+   BACKDROP  (fixed overlay — centers the dialog + renders scrim)
+   ============================================================================= */
+
+.md-dialog-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 500;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+
+	/* Hidden until open */
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* Scrim lives on ::before so its opacity never affects the dialog card */
+.md-dialog-backdrop::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-color: var(--md-comp-dialog-scrim-color);
+	opacity: 0;
+}
+
+.md-dialog-backdrop--open,
+.md-dialog-backdrop--closing {
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.md-dialog-backdrop--open::before {
+	animation: md-dialog-scrim-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-dialog-enter-duration))
+		var(--md-comp-dialog-enter-easing) forwards;
+}
+
+.md-dialog-backdrop--closing::before {
+	animation: md-dialog-scrim-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-dialog-exit-duration))
+		var(--md-comp-dialog-exit-easing) forwards;
+}
+
+/* =============================================================================
+   DIALOG SURFACE
+   ============================================================================= */
+
+.md-dialog {
+	/* Layout */
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+	/* Size */
+	width: 100%;
+	min-width: var(--md-comp-dialog-container-min-width);
+	max-width: var(--md-comp-dialog-container-max-width);
+
+	/* Shape */
+	border-radius: var(--md-comp-dialog-container-shape);
+
+	/* Color & elevation */
+	background-color: var(--md-comp-dialog-container-color);
+	box-shadow: var(--md-comp-dialog-container-elevation);
+
+	/* Hidden by default */
+	opacity: 0;
+	transform: scale(0.92);
+	visibility: hidden;
+}
+
+.md-dialog-backdrop--open .md-dialog,
+.md-dialog-backdrop--closing .md-dialog {
+	visibility: visible;
+}
+
+.md-dialog-backdrop--open .md-dialog {
+	opacity: 1;
+	transform: scale(1);
+	animation: md-dialog-enter
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-dialog-enter-duration))
+		var(--md-comp-dialog-enter-easing) forwards;
+}
+
+.md-dialog-backdrop--closing .md-dialog {
+	animation: md-dialog-exit
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-dialog-exit-duration))
+		var(--md-comp-dialog-exit-easing) forwards;
+}
+
+/* =============================================================================
+   ICON  (optional, centered above headline)
+   ============================================================================= */
+
+.md-dialog__icon {
+	display: flex;
+	justify-content: center;
+	padding-inline: var(--md-comp-dialog-container-padding);
+	padding-block-start: var(--md-comp-dialog-container-padding);
+	padding-block-end: 0;
+	color: var(--md-comp-dialog-icon-color);
+	flex-shrink: 0;
+}
+
+.md-dialog__icon svg,
+.md-dialog__icon img {
+	width: var(--md-comp-dialog-icon-size);
+	height: var(--md-comp-dialog-icon-size);
+	display: block;
+	fill: currentColor;
+}
+
+/* =============================================================================
+   HEADLINE
+   ============================================================================= */
+
+.md-dialog__headline {
+	/* Base padding — adjusted depending on siblings */
+	padding-inline: var(--md-comp-dialog-container-padding);
+	padding-block-start: var(--md-comp-dialog-container-padding);
+	padding-block-end: 0;
+	flex-shrink: 0;
+
+	color: var(--md-comp-dialog-headline-color);
+	font-family: var(--md-comp-dialog-headline-font);
+	font-size: var(--md-comp-dialog-headline-size);
+	font-weight: var(--md-comp-dialog-headline-weight);
+	letter-spacing: var(--md-comp-dialog-headline-tracking);
+	margin: 0;
+}
+
+/* When icon is present, center the headline and reduce gap */
+.md-dialog--icon .md-dialog__headline {
+	text-align: center;
+	padding-block-start: var(--md-comp-dialog-icon-headline-gap);
+}
+
+/* When there's no icon, the standard 24px top padding applies (already set) */
+
+/* =============================================================================
+   BODY (scrollable supporting text region)
+   ============================================================================= */
+
+.md-dialog__body {
+	flex: 1;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding-inline: var(--md-comp-dialog-container-padding);
+	padding-block-start: var(--md-comp-dialog-headline-body-gap);
+	padding-block-end: var(--md-comp-dialog-container-padding);
+
+	color: var(--md-comp-dialog-body-color);
+	font-family: var(--md-comp-dialog-body-font);
+	font-size: var(--md-comp-dialog-body-size);
+	font-weight: var(--md-comp-dialog-body-weight);
+	letter-spacing: var(--md-comp-dialog-body-tracking);
+}
+
+/* When no headline precedes body, body gets full 24px top padding */
+.md-dialog__body:first-child {
+	padding-block-start: var(--md-comp-dialog-container-padding);
+}
+
+/* Scroll dividers — shown by JS when body overflows */
+.md-dialog__body--scrolled-top {
+	border-top: 1px solid var(--md-comp-dialog-divider-color);
+	padding-block-start: calc(var(--md-comp-dialog-headline-body-gap) - 1px);
+}
+
+.md-dialog__body--scrolled-bottom {
+	border-bottom: 1px solid var(--md-comp-dialog-divider-color);
+	padding-block-end: calc(var(--md-comp-dialog-container-padding) - 1px);
+}
+
+/* =============================================================================
+   ACTIONS
+   ============================================================================= */
+
+.md-dialog__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: var(--md-comp-dialog-actions-button-gap);
+	padding: var(--md-comp-dialog-actions-padding);
+	flex-shrink: 0;
+}
+
+/* Stacked layout (for long button labels) */
+.md-dialog__actions--stacked {
+	flex-direction: column;
+	align-items: flex-end;
+}

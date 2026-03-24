@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { UserInsert } from '$lib/dao/users/types';
+import type { UserInsert } from '$lib/server/dao/users/types';
 import { TIMEOUT_MS } from './constants';
 
 const TokenResponseSchema = z.object({

@@ -1,0 +1,87 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: BOTTOM SHEET COMPONENT TOKENS
+
+   Imported by components/BottomSheet/bottom-sheet.css — not by theme.css.
+
+   M3 Bottom Sheet spec:
+     Standard:   co-exists with content, no scrim, elevated above
+     Modal:      blocks content with scrim, dismissed by scrim tap or swipe
+
+   Container:
+     Color:      surface-container-low
+     Shape:      extra-large (28px) on top corners only; bottom corners = 0
+     Width:      full viewport width
+     Max-height: up to viewport height (default none — content-driven)
+
+   Drag handle:
+     Color:      on-surface-variant
+     Opacity:    0.4
+     Size:       32px × 4px, 2px radius
+     Touch area: 48px tall centred on the 4px pill
+     Top padding above handle: 22px (so 48px touch area, handle centred at 24px)
+
+   Header (optional):
+     Title:      title-large, on-surface
+     Height:     56px — standard top-app-bar row height
+
+   Content:
+     Padding:    16px horizontal, 16px top if no header
+
+   Scrim (modal only):
+     Color:      scrim at 32% opacity
+
+   Animation:
+     Enter: slide up from bottom — long1 (450ms) emphasized-decelerate
+     Exit:  slide down to bottom — medium2 (300ms) emphasized-accelerate
+   ============================================================================= */
+
+:root {
+	/* --- Container --- */
+	--md-comp-bottom-sheet-container-color: var(--md-sys-color-surface-container-low);
+
+	/* Top corners rounded, bottom corners flush with screen edge */
+	--md-comp-bottom-sheet-shape-top-start: var(--md-sys-shape-corner-extra-large);
+	--md-comp-bottom-sheet-shape-top-end: var(--md-sys-shape-corner-extra-large);
+	--md-comp-bottom-sheet-shape-bottom-start: var(--md-sys-shape-corner-none);
+	--md-comp-bottom-sheet-shape-bottom-end: var(--md-sys-shape-corner-none);
+
+	--md-comp-bottom-sheet-standard-elevation: var(--md-sys-elevation-level1-shadow);
+	--md-comp-bottom-sheet-modal-elevation: var(--md-sys-elevation-level1-shadow);
+
+	/* --- Drag handle pill --- */
+	--md-comp-bottom-sheet-drag-handle-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-bottom-sheet-drag-handle-opacity: 0.4;
+	--md-comp-bottom-sheet-drag-handle-width: 32px;
+	--md-comp-bottom-sheet-drag-handle-height: 4px;
+	--md-comp-bottom-sheet-drag-handle-shape: var(--md-sys-shape-corner-full);
+	/* Padding above the visible handle pill (touch area = 48px total) */
+	--md-comp-bottom-sheet-drag-handle-top-padding: 22px;
+	--md-comp-bottom-sheet-drag-handle-bottom-padding: 22px;
+
+	/* --- Content --- */
+	--md-comp-bottom-sheet-content-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-bottom-sheet-content-padding-inline: 16px;
+	--md-comp-bottom-sheet-content-padding-block: 16px;
+
+	/* --- Header (optional title bar) --- */
+	--md-comp-bottom-sheet-header-height: 56px;
+	--md-comp-bottom-sheet-header-title-color: var(--md-sys-color-on-surface);
+	--md-comp-bottom-sheet-header-title-font: var(--md-sys-typescale-title-large-font);
+	--md-comp-bottom-sheet-header-title-size: var(--md-sys-typescale-title-large-size);
+	--md-comp-bottom-sheet-header-title-weight: var(--md-sys-typescale-title-large-weight);
+	--md-comp-bottom-sheet-header-title-tracking: var(--md-sys-typescale-title-large-tracking);
+	--md-comp-bottom-sheet-header-padding-inline: 16px;
+
+	/* --- Divider (between header and content) --- */
+	--md-comp-bottom-sheet-divider-color: var(--md-sys-color-outline-variant);
+
+	/* --- Scrim (modal only) --- */
+	--md-comp-bottom-sheet-scrim-color: var(--md-sys-color-scrim);
+	--md-comp-bottom-sheet-scrim-opacity: 0.32;
+
+	/* --- Motion --- */
+	--md-comp-bottom-sheet-enter-duration: var(--md-sys-motion-duration-long1);
+	--md-comp-bottom-sheet-exit-duration: var(--md-sys-motion-duration-medium2);
+	--md-comp-bottom-sheet-enter-easing: var(--md-sys-motion-easing-emphasized-decelerate);
+	--md-comp-bottom-sheet-exit-easing: var(--md-sys-motion-easing-emphasized-accelerate);
+}

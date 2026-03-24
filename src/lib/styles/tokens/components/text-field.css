@@ -1,0 +1,167 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: TEXT FIELD COMPONENT TOKENS
+
+   Imported by components/TextField/text-field.css — not directly by theme.css.
+
+   Two variants: filled and outlined. Both are 56px tall with a floating label.
+
+   FILLED:
+     Container:     surface-container-highest, top corners extra-small (4px),
+                    bottom corners none — bottom indicator line only
+     Indicator:     1px on-surface-variant at rest, 2px primary on focus,
+                    2px error on error
+     Label resting: center-anchored (transforms up on focus/filled)
+     Padding:       16px horizontal, 8px top / 8px bottom (when floating)
+
+   OUTLINED:
+     Container:     transparent, extra-small (4px) all corners, 1px outline
+     Outline:       1px outline at rest, 2px primary on focus, 2px error on error
+     Label:         sits on the outline border when floating (gap in the border)
+     Padding:       16px horizontal, 16px top and bottom
+
+   SHARED ANATOMY:
+     Label:         body-large resting → body-small floating; on-surface-variant
+     Input text:    body-large, on-surface
+     Supporting:    body-small below field: on-surface-variant normally, error on error
+     Counter:       body-small, trailing-aligned, on-surface-variant
+     Icons:         24px, on-surface-variant (leading) / on-surface-variant (trailing)
+     Caret:         primary color
+     Prefix/suffix: body-large, on-surface-variant
+
+   STATES: enabled, hovered, focused, error, error-focused, disabled
+
+   Label float animation uses CSS transform + transition (no JS).
+   The label floats when :focus or when the input has a value (:not(:placeholder-shown)).
+   ============================================================================= */
+
+:root {
+	/* =========================================================================
+     FILLED TEXT FIELD
+     ========================================================================= */
+
+	/* Container */
+	--md-comp-filled-tf-container-color: var(--md-sys-color-surface-container-highest);
+	--md-comp-filled-tf-container-shape-top-start: var(--md-sys-shape-corner-extra-small);
+	--md-comp-filled-tf-container-shape-top-end: var(--md-sys-shape-corner-extra-small);
+	--md-comp-filled-tf-container-shape-bot-start: var(--md-sys-shape-corner-none);
+	--md-comp-filled-tf-container-shape-bot-end: var(--md-sys-shape-corner-none);
+	--md-comp-filled-tf-container-height: 56px;
+
+	/* Indicator (bottom line) */
+	--md-comp-filled-tf-indicator-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-filled-tf-indicator-height: 1px;
+	--md-comp-filled-tf-focus-indicator-color: var(--md-sys-color-primary);
+	--md-comp-filled-tf-focus-indicator-height: 2px;
+	--md-comp-filled-tf-error-indicator-color: var(--md-sys-color-error);
+	--md-comp-filled-tf-hover-indicator-color: var(--md-sys-color-on-surface);
+
+	/* Disabled */
+	--md-comp-filled-tf-disabled-container-opacity: 0.04; /* barely-there bg */
+	--md-comp-filled-tf-disabled-content-opacity: var(--md-sys-state-disabled-content-opacity);
+	--md-comp-filled-tf-disabled-indicator-color: var(--md-sys-color-on-surface);
+	--md-comp-filled-tf-disabled-indicator-opacity: var(--md-sys-state-disabled-content-opacity);
+
+	/* =========================================================================
+     OUTLINED TEXT FIELD
+     ========================================================================= */
+
+	/* Container */
+	--md-comp-outlined-tf-container-shape: var(--md-sys-shape-corner-extra-small);
+	--md-comp-outlined-tf-container-height: 56px;
+
+	/* Outline */
+	--md-comp-outlined-tf-outline-color: var(--md-sys-color-outline);
+	--md-comp-outlined-tf-outline-width: 1px;
+	--md-comp-outlined-tf-focus-outline-color: var(--md-sys-color-primary);
+	--md-comp-outlined-tf-focus-outline-width: 2px;
+	--md-comp-outlined-tf-error-outline-color: var(--md-sys-color-error);
+	--md-comp-outlined-tf-hover-outline-color: var(--md-sys-color-on-surface);
+
+	/* Disabled */
+	--md-comp-outlined-tf-disabled-outline-color: var(--md-sys-color-on-surface);
+	--md-comp-outlined-tf-disabled-outline-opacity: var(--md-sys-state-disabled-content-opacity);
+	--md-comp-outlined-tf-disabled-content-opacity: var(--md-sys-state-disabled-content-opacity);
+
+	/* =========================================================================
+     SHARED — LABEL
+     Body-large at rest, body-small when floating
+     ========================================================================= */
+
+	--md-comp-tf-label-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-tf-label-focus-color: var(--md-sys-color-primary);
+	--md-comp-tf-label-error-color: var(--md-sys-color-error);
+	--md-comp-tf-label-disabled-color: var(--md-sys-color-on-surface);
+
+	/* Resting (body-large) */
+	--md-comp-tf-label-resting-font: var(--md-sys-typescale-body-large-font);
+	--md-comp-tf-label-resting-size: var(--md-sys-typescale-body-large-size);
+	--md-comp-tf-label-resting-weight: var(--md-sys-typescale-body-large-weight);
+	--md-comp-tf-label-resting-tracking: var(--md-sys-typescale-body-large-tracking);
+
+	/* Floating (body-small) */
+	--md-comp-tf-label-floating-font: var(--md-sys-typescale-body-small-font);
+	--md-comp-tf-label-floating-size: var(--md-sys-typescale-body-small-size);
+	--md-comp-tf-label-floating-weight: var(--md-sys-typescale-body-small-weight);
+	--md-comp-tf-label-floating-tracking: var(--md-sys-typescale-body-small-tracking);
+
+	/* =========================================================================
+     SHARED — INPUT TEXT
+     ========================================================================= */
+
+	--md-comp-tf-input-color: var(--md-sys-color-on-surface);
+	--md-comp-tf-input-font: var(--md-sys-typescale-body-large-font);
+	--md-comp-tf-input-size: var(--md-sys-typescale-body-large-size);
+	--md-comp-tf-input-weight: var(--md-sys-typescale-body-large-weight);
+	--md-comp-tf-input-tracking: var(--md-sys-typescale-body-large-tracking);
+	--md-comp-tf-input-disabled-color: var(--md-sys-color-on-surface);
+	--md-comp-tf-caret-color: var(--md-sys-color-primary);
+	--md-comp-tf-error-caret-color: var(--md-sys-color-error);
+
+	/* =========================================================================
+     SHARED — SUPPORTING TEXT + COUNTER
+     ========================================================================= */
+
+	--md-comp-tf-supporting-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-tf-supporting-error-color: var(--md-sys-color-error);
+	--md-comp-tf-supporting-disabled-color: var(--md-sys-color-on-surface);
+	--md-comp-tf-supporting-font: var(--md-sys-typescale-body-small-font);
+	--md-comp-tf-supporting-size: var(--md-sys-typescale-body-small-size);
+	--md-comp-tf-supporting-weight: var(--md-sys-typescale-body-small-weight);
+	--md-comp-tf-supporting-tracking: var(--md-sys-typescale-body-small-tracking);
+	--md-comp-tf-supporting-top-gap: 4px;
+	--md-comp-tf-supporting-inline-padding: 16px;
+
+	/* =========================================================================
+     SHARED — ICONS
+     ========================================================================= */
+
+	--md-comp-tf-leading-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-tf-trailing-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-tf-error-trailing-icon-color: var(--md-sys-color-error);
+	--md-comp-tf-icon-size: 24px;
+	--md-comp-tf-icon-inline-padding: 12px; /* padding between icon and field edge */
+
+	/* =========================================================================
+     SHARED — PREFIX / SUFFIX
+     ========================================================================= */
+
+	--md-comp-tf-prefix-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-tf-suffix-color: var(--md-sys-color-on-surface-variant);
+
+	/* =========================================================================
+     SHARED — PADDING
+     ========================================================================= */
+
+	--md-comp-tf-padding-inline: 16px;
+	--md-comp-tf-filled-padding-top: 8px; /* above input when label is floating */
+	--md-comp-tf-filled-label-top: 8px; /* floating label top from container edge */
+	--md-comp-tf-outlined-padding-block: 16px; /* top/bottom padding for outlined */
+
+	/* =========================================================================
+     SHARED — MOTION
+     Label float transition
+     ========================================================================= */
+
+	--md-comp-tf-label-duration: var(--md-sys-motion-duration-short3);
+	--md-comp-tf-label-easing: var(--md-sys-motion-easing-standard);
+}

@@ -42,7 +42,7 @@
 	},
 	"dependencies": {
 		"@googlemaps/js-api-loader": "^2.0.2",
-		"@tanstack/svelte-query": "^6.1.1",
+		"@storybook/addon-svelte-csf": "^5.0.12",
 		"zod": "^4.3.6"
 	}
 }

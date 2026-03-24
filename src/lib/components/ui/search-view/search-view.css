@@ -1,0 +1,294 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — SEARCH VIEW COMPONENT CSS (DOCKED)
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Anatomy:
+     .md-search-view                     root positioning context
+     ├── .md-search-view__bar            slot wrapper for the triggering SearchBar
+     └── .md-search-view__panel          the expanding docked panel
+         ├── .md-search-view__header     back button + input + trailing icons
+         │   ├── .md-search-view__back   back arrow button (48×48 touch target)
+         │   ├── .md-search-view__input  the live <input>
+         │   └── .md-search-view__trailing  optional trailing icon(s)
+         ├── .md-search-view__divider    1px horizontal rule
+         └── .md-search-view__results    consumer-provided scrollable content
+
+   Open/closed state is driven by the presence of .md-search-view--open on root.
+   The panel animates in with shared-axis-Y (fade + slide up from below).
+   ============================================================================= */
+
+@import '../../../styles/tokens/components/search-view.css';
+
+/* =============================================================================
+   ROOT — positioning context
+   ============================================================================= */
+
+.md-search-view {
+	position: relative;
+	width: 100%;
+}
+
+/* =============================================================================
+   BAR SLOT — wrapper around the consumer's SearchBar
+   The bar remains visible at all times; clicking it triggers open.
+   ============================================================================= */
+
+.md-search-view__bar {
+	position: relative;
+	z-index: 1; /* sits above the panel so shadows read correctly */
+	width: 100%;
+}
+
+/* =============================================================================
+   PANEL — the docked expanding surface
+   ============================================================================= */
+
+.md-search-view__panel {
+	position: absolute;
+	top: 100%; /* flush below the bar slot */
+	inset-inline: 0;
+	z-index: 0;
+
+	display: flex;
+	flex-direction: column;
+
+	background-color: var(--md-comp-search-view-container-color);
+	border-radius: var(--md-comp-search-view-container-shape);
+	box-shadow: var(--md-comp-search-view-container-elevation);
+
+	/* Hidden by default — overridden by --open modifier */
+	visibility: hidden;
+	pointer-events: none;
+
+	/* Shared-axis Y: slides up from 8px below, fades in */
+	animation-fill-mode: both;
+}
+
+/* Open state — hide the trigger bar, show the panel in its place */
+.md-search-view--open .md-search-view__bar,
+.md-search-view--closing .md-search-view__bar {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.md-search-view--open .md-search-view__panel,
+.md-search-view--closing .md-search-view__panel {
+	top: 0;
+}
+
+/* Open state — panel visible and interactive */
+.md-search-view--open .md-search-view__panel {
+	visibility: visible;
+	pointer-events: auto;
+	animation-name: md-shared-axis-y-enter;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+}
+
+/* Closing animation — reverse direction */
+.md-search-view--closing .md-search-view__panel {
+	visibility: visible;
+	pointer-events: none;
+	animation-name: md-shared-axis-y-exit;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+}
+
+/* =============================================================================
+   HEADER — back button + input + trailing icons
+   Mirrors the Search Bar's internal layout so the two rows align.
+   ============================================================================= */
+
+.md-search-view__header {
+	display: flex;
+	align-items: center;
+	height: var(--md-comp-search-view-header-height);
+	padding-inline-start: var(--md-comp-search-view-leading-space);
+	padding-inline-end: var(--md-comp-search-view-trailing-space);
+	gap: var(--md-comp-search-view-icon-input-gap);
+	flex-shrink: 0;
+}
+
+/* --- Back button --- */
+
+.md-search-view__back {
+	/* Reset */
+	appearance: none;
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+
+	/* 48px touch target, icon centred */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 48px;
+	min-height: 48px;
+	flex-shrink: 0;
+
+	/* Pull flush to leading edge */
+	margin-inline-start: -12px;
+
+	color: var(--md-comp-search-view-back-icon-color);
+	border-radius: 50%;
+
+	transition: background-color
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-search-view__back:hover {
+	background-color: color-mix(
+		in srgb,
+		var(--md-comp-search-view-back-icon-color) calc(var(--md-sys-state-hover-opacity) * 100%),
+		transparent
+	);
+}
+
+.md-search-view__back:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: -3px;
+}
+
+/* The SVG inside the back button */
+.md-search-view__back-icon {
+	width: var(--md-comp-search-view-back-icon-size);
+	height: var(--md-comp-search-view-back-icon-size);
+	fill: currentColor;
+	display: block;
+	flex-shrink: 0;
+}
+
+/* --- Live input --- */
+
+.md-search-view__input {
+	flex: 1 1 0;
+	min-width: 0;
+	position: relative;
+	z-index: 1;
+
+	/* Strip native styles */
+	appearance: none;
+	background: none;
+	border: none;
+	outline: none;
+	padding: 0;
+	margin: 0;
+
+	/* Typography */
+	font-family: var(--md-comp-search-view-input-font);
+	font-size: var(--md-comp-search-view-input-size);
+	font-weight: var(--md-comp-search-view-input-weight);
+	line-height: var(--md-comp-search-view-input-line-height);
+	letter-spacing: var(--md-comp-search-view-input-tracking);
+	color: var(--md-comp-search-view-input-color);
+	caret-color: var(--md-comp-search-view-input-caret-color);
+	cursor: text;
+}
+
+.md-search-view__input::placeholder {
+	color: var(--md-comp-search-view-placeholder-color);
+	opacity: 1;
+}
+
+.md-search-view__input::-webkit-search-cancel-button,
+.md-search-view__input::-webkit-search-decoration {
+	appearance: none;
+}
+
+.md-search-view__input:focus {
+	outline: none;
+}
+
+/* --- Trailing icons in the header --- */
+
+.md-search-view__trailing {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: var(--md-comp-search-view-trailing-icon-gap);
+	margin-inline-end: -12px;
+}
+
+.md-search-view__trailing-icon {
+	width: var(--md-comp-search-view-trailing-icon-size);
+	height: var(--md-comp-search-view-trailing-icon-size);
+	color: var(--md-comp-search-view-trailing-icon-color);
+	fill: currentColor;
+	display: block;
+	flex-shrink: 0;
+}
+
+/* Icon button wrapper in trailing slot */
+.md-search-view__icon-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 48px;
+	min-height: 48px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	border-radius: 50%;
+	color: var(--md-comp-search-view-trailing-icon-color);
+	transition: background-color
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-search-view__icon-btn:hover {
+	background-color: color-mix(
+		in srgb,
+		var(--md-comp-search-view-trailing-icon-color) calc(var(--md-sys-state-hover-opacity) * 100%),
+		transparent
+	);
+}
+
+.md-search-view__icon-btn:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: -3px;
+}
+
+/* =============================================================================
+   DIVIDER
+   ============================================================================= */
+
+.md-search-view__divider {
+	display: block;
+	flex-shrink: 0;
+	width: 100%;
+	height: var(--md-comp-search-view-divider-height);
+	background-color: var(--md-comp-search-view-divider-color);
+	border: none;
+	margin: 0;
+}
+
+/* =============================================================================
+   RESULTS REGION — consumer-provided scrollable content
+   ============================================================================= */
+
+.md-search-view__results {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	background-color: var(--md-comp-search-view-results-color);
+	border-radius: 0 0 var(--md-comp-search-view-container-shape)
+		var(--md-comp-search-view-container-shape);
+
+	/* Smooth momentum scrolling on iOS */
+	-webkit-overflow-scrolling: touch;
+
+	/* Visible focus ring when the region itself receives keyboard focus */
+	&:focus-visible {
+		outline: none; /* results are a scroll container; let children handle focus */
+	}
+}

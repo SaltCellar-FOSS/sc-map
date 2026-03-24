@@ -1,121 +1,152 @@
 <script lang="ts">
-	import FilterChips from '$lib/components/FilterChips.svelte';
-	import PlaceMap from '$lib/components/PlaceMap.svelte';
-	import SearchBar from '$lib/components/search/SearchBar.svelte';
-	import AvatarButton from '$lib/components/AvatarButton.svelte';
-	import Drawer from '$lib/components/ui/drawer/Drawer.svelte';
 	import { CATEGORIES } from '$lib/categories';
-	import type { Place } from '$lib/dao/places/types.js';
-	import type { SelectedLocation } from '$lib/components/types.js';
-	import Modal from '$lib/components/ui/modal/Modal.svelte';
+	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
+	import PlaceMap from '$lib/components/PlaceMap.svelte';
+	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
+	import SearchResults from '$lib/components/SearchResults.svelte';
+	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
+	import SearchView from '$lib/components/ui/search-view/SearchView.svelte';
+	import { isSavedPlace, type Place } from '$lib/schemas/place';
+	import type { PageProps } from './$types';
+	import { getVisitsForPlace } from './visits.remote';
+	import { searchPlaces } from './search.remote';
 
-	let { data } = $props();
+	let { data }: PageProps = $props();
 
-	let activeFilter = $state<Place['type'] | null>(null);
-	let selectedLocation = $state<SelectedLocation | null>(null);
-	let drawerOpen = $state(false);
-	let modalOpen = $state(false);
+	let selectedPlace = $state<Place | null>(null);
+	let dialogOpen = $state(false);
+	let sheetOpen = $state(false);
+	let searchQuery = $state('');
+	let showInfoWindow = $state<((place: Place) => void) | null>(null);
+	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
 
-	let filteredPlaces = $derived(
-		activeFilter ? data.places.filter((place) => place.type === activeFilter) : data.places
-	);
+	const searchIconPath =
+		'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z';
 
-	$effect(() => {
-		if (selectedLocation === null) {
-			drawerOpen = false;
-			return;
+	function handlePlaceSelect(place: Place, close: () => void) {
+		selectedPlace = place;
+		close();
+		if (isSavedPlace(place)) {
+			visitsResult = getVisitsForPlace(place.id);
+			sheetOpen = true;
+		} else {
+			showInfoWindow?.(place);
 		}
+	}
 
-		if ('id' in selectedLocation) {
-			drawerOpen = true;
+	function handleOnAddVisit() {
+		dialogOpen = true;
+	}
+
+	async function handleVisitAdded() {
+		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			await getVisitsForPlace(selectedPlace.id).refresh();
+			visitsResult = getVisitsForPlace(selectedPlace.id);
 		}
-	});
+	}
 </script>
 
 <div class="map-root">
 	<PlaceMap
+		savedPlaces={data.savedPlaces}
 		categories={CATEGORIES}
-		places={filteredPlaces}
-		bind:selectedLocation
-		onaddtolist={() => (modalOpen = true)}
+		{selectedPlace}
+		bind:showInfoWindow
+		onsaveplace={() => {
+			dialogOpen = true;
+		}}
+		onplacechange={(place) => {
+			selectedPlace = place;
+
+			if (place === null || !isSavedPlace(place)) {
+				return;
+			}
+
+			visitsResult = getVisitsForPlace(place.id);
+			sheetOpen = true;
+		}}
 	/>
 </div>
 
-<Drawer
-	bind:open={drawerOpen}
-	onclose={() => (selectedLocation = null)}
-	class="place-drawer"
-	variant="modal"
->
-	{#snippet header()}
-		<span>{selectedLocation?.name ?? ''}</span>
-	{/snippet}
-	{#if selectedLocation !== null}
-		<div class="place-details">
-			<p class="place-type">
-				{data.places.find((p) => p.google_place_id === selectedLocation!.google_place_id)?.type ??
-					'Place'}
-			</p>
-			<p class="place-address">{selectedLocation.formatted_address}</p>
-		</div>
-	{/if}
-</Drawer>
 <div class="controls">
-	<SearchBar placeholder="Search for something yummy" bind:selectedLocation />
-	<FilterChips
-		filters={CATEGORIES}
-		{activeFilter}
-		onchange={(newFilter) => (activeFilter = newFilter)}
-	/>
+	<SearchView bind:value={searchQuery} placeholder="Search places" class="search-view">
+		{#snippet children({ open, value })}
+			<SearchBar
+				{value}
+				placeholder="Search places"
+				aria-label="Search places"
+				aria-expanded={open}
+			>
+				{#snippet leadingIcon()}
+					<svg
+						class="md-search-bar__icon"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+						fill="currentColor"
+					>
+						<path d={searchIconPath} />
+					</svg>
+				{/snippet}
+			</SearchBar>
+		{/snippet}
+
+		{#snippet results({ value, close })}
+			{#await searchPlaces(value)}
+				<SearchResults places={[]} onlistitemclick={(place) => handlePlaceSelect(place, close)} />
+			{:then places}
+				<SearchResults {places} onlistitemclick={(place) => handlePlaceSelect(place, close)} />
+			{/await}
+		{/snippet}
+	</SearchView>
 </div>
-<AvatarButton alt="User profile" src={data.user?.avatar_url ?? undefined} />
-<Modal bind:open={modalOpen}>TODO</Modal>
+
+{#if selectedPlace}
+	<AddVisitDialog
+		bind:open={dialogOpen}
+		placeName={selectedPlace.name}
+		googlePlaceId={selectedPlace.google_place_id}
+		onsuccess={handleVisitAdded}
+	/>
+{/if}
+
+{#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
+	{#await visitsResult}
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			visits={[]}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
+	{:then visits}
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			{visits}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
+	{/await}
+{/if}
 
 <style>
-	:global(.place-drawer) {
-		--md-comp-drawer-width: 396px;
-	}
-
-	.controls {
-		position: fixed;
-		display: flex;
-		flex-direction: row;
-		top: 10px;
-		left: 10px;
-		z-index: 300;
-		gap: var(--space-2);
-	}
-
-	@media (max-width: 600px) {
-		.controls {
-			flex-direction: column;
-			gap: var(--space-2);
-		}
-	}
-
-	.place-details {
-		padding: var(--space-6);
-	}
-
-	.place-type {
-		font-size: var(--text-md);
-		font-weight: 500;
-		color: var(--color-primary);
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		margin: 0 0 var(--space-2) 0;
-	}
-
-	.place-address {
-		font-size: var(--text-md);
-		color: var(--color-on-surface-variant);
-		margin: 0;
-		line-height: 1.5;
-	}
-
 	.map-root {
 		position: absolute;
 		width: 100vw;
 		height: 100vh;
+	}
+
+	.controls {
+		position: absolute;
+		width: 100vw;
+		height: 100vh;
+		padding-left: 1rem;
+		padding-right: 1rem;
+		padding-top: 2rem;
+		box-sizing: border-box;
+		pointer-events: none;
+	}
+
+	.controls :global(.search-view) {
+		padding-top: 2rem;
+		pointer-events: auto;
 	}
 </style>

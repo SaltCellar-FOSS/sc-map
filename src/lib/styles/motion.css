@@ -1,0 +1,457 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — MOTION UTILITIES
+   
+   Provides:
+     1. @keyframes for the four M3 transition patterns
+     2. Transition utility classes (.md-motion-*)
+     3. How to use duration tokens correctly with the scale multiplier
+   
+   All durations MUST be written as:
+     calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-*))
+   
+   This makes prefers-reduced-motion automatic — the scale collapses to 0
+   in system.css, so no component needs its own reduced-motion override.
+   
+   The four M3 transition patterns (CSS-representable):
+     1. Fade          — elements appearing/disappearing in-place (dialogs, menus)
+     2. Fade Through  — swap between unrelated surfaces (nav tab changes)
+     3. Shared Axis   — spatially related views along X, Y, or Z axis
+     4. Enter / Exit  — directional slide + fade for screen-edge transitions
+   ============================================================================= */
+
+/* =============================================================================
+   1. KEYFRAMES
+   ============================================================================= */
+
+/* --- Fade (in / out) ---
+   Used by: dialogs, menus, snackbars, tooltips, FABs.
+   Spec: enter 150ms linear, exit 75ms linear.                             */
+
+@keyframes md-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes md-fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+/* --- Fade Through (in / out) ---
+   Used by: navigation destination switches, account switchers, refreshes.
+   Incoming fades in while also scaling up from 92% (subtle growth).
+   Outgoing fades out while scaling down to 92%.                           */
+
+@keyframes md-fade-through-in {
+	from {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes md-fade-through-out {
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+}
+
+/* --- Shared Axis: X (enter from right / exit to left, forward direction) ---
+   Used by: horizontal step flows, back/forward navigation, carousels.
+   Slide distance is 30px — small enough to be subtle, clear enough to
+   communicate direction.                                                   */
+
+@keyframes md-shared-axis-x-enter {
+	from {
+		opacity: 0;
+		transform: translateX(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes md-shared-axis-x-exit {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateX(-30px);
+	}
+}
+
+/* --- Shared Axis: Y (enter from bottom / exit to top, forward direction) ---
+   Used by: vertical steppers, expanding panels, bottom-sheet sequences.   */
+
+@keyframes md-shared-axis-y-enter {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes md-shared-axis-y-exit {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-30px);
+	}
+}
+
+/* --- Shared Axis: Z (enter scaled up from 80% / exit scaled down) ---
+   Used by: parent→child navigation, drill-down transitions.               */
+
+@keyframes md-shared-axis-z-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes md-shared-axis-z-exit {
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(1.1);
+	}
+}
+
+/* --- Enter from edge (directional) ---
+   Used by: navigation drawers, bottom sheets, side panels entering screen. */
+
+@keyframes md-enter-from-bottom {
+	from {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes md-exit-to-bottom {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+}
+
+@keyframes md-enter-from-left {
+	from {
+		opacity: 0;
+		transform: translateX(-100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes md-exit-to-left {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes md-enter-from-right {
+	from {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes md-exit-to-right {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+}
+
+/* --- Scale in (for FAB, chips, badges appearing) --- */
+
+@keyframes md-scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes md-scale-out {
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0);
+	}
+}
+
+/* =============================================================================
+   2. ANIMATION UTILITY CLASSES
+   
+   Apply as a single class. Duration and easing are wired to system tokens.
+   The calc() wrapper on duration is what makes prefers-reduced-motion work.
+   
+   Usage:
+     <div class="md-motion-fade-in">…</div>
+     <div class="md-motion-shared-axis-x-enter">…</div>
+   ============================================================================= */
+
+/* --- Fade --- */
+.md-motion-fade-in {
+	animation-name: md-fade-in;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short3)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-fade-out {
+	animation-name: md-fade-out;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Fade Through --- */
+.md-motion-fade-through-in {
+	animation-name: md-fade-through-in;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-fade-through-out {
+	animation-name: md-fade-through-out;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Shared Axis X --- */
+.md-motion-shared-axis-x-enter {
+	animation-name: md-shared-axis-x-enter;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-shared-axis-x-exit {
+	animation-name: md-shared-axis-x-exit;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Shared Axis Y --- */
+.md-motion-shared-axis-y-enter {
+	animation-name: md-shared-axis-y-enter;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-shared-axis-y-exit {
+	animation-name: md-shared-axis-y-exit;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Shared Axis Z --- */
+.md-motion-shared-axis-z-enter {
+	animation-name: md-shared-axis-z-enter;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-shared-axis-z-exit {
+	animation-name: md-shared-axis-z-exit;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Enter / exit from screen edges --- */
+.md-motion-enter-bottom {
+	animation-name: md-enter-from-bottom;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-long1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-exit-bottom {
+	animation-name: md-exit-to-bottom;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-enter-left {
+	animation-name: md-enter-from-left;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-long1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-exit-left {
+	animation-name: md-exit-to-left;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-enter-right {
+	animation-name: md-enter-from-right;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-long1)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-exit-right {
+	animation-name: md-exit-to-right;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* --- Scale --- */
+.md-motion-scale-in {
+	animation-name: md-scale-in;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-decelerate);
+	animation-fill-mode: both;
+}
+
+.md-motion-scale-out {
+	animation-name: md-scale-out;
+	animation-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4)
+	);
+	animation-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
+	animation-fill-mode: both;
+}
+
+/* =============================================================================
+   3. TRANSITION UTILITY CLASSES
+   
+   For state transitions (hover, focus, open/close) rather than entry/exit
+   animations. Components use these on their root elements.
+   
+   Usage:
+     <button class="md-transition-standard">…</button>
+   ============================================================================= */
+
+/* Standard — for elements staying on screen (color, shape, size changes) */
+.md-transition-standard {
+	transition-timing-function: var(--md-sys-motion-easing-standard);
+	transition-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+}
+
+/* Emphasized — for prominent M3-branded state changes */
+.md-transition-emphasized {
+	transition-timing-function: var(--md-sys-motion-easing-emphasized);
+	transition-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-medium2)
+	);
+}
+
+/* Short — for quick feedback (ripple, checkbox, switch thumb) */
+.md-transition-short {
+	transition-timing-function: var(--md-sys-motion-easing-standard);
+	transition-duration: calc(
+		var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4)
+	);
+}

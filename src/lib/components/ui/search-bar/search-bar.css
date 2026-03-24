@@ -1,0 +1,296 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — SEARCH BAR COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Anatomy:
+     .md-search-bar                    root — the pill container
+     ├── .md-search-bar__state-layer   interaction overlay (hover/focus/active)
+     ├── .md-search-bar__leading       leading icon slot (optional)
+     ├── .md-search-bar__input         the <input type="search"> or <input>
+     └── .md-search-bar__trailing      trailing icon(s) slot (optional)
+
+   The component is purely presentational. All event handling (oninput,
+   onsearch, onclick, etc.) is wired by the consumer or the Svelte component.
+
+   Two usage modes:
+     1. Interactive input  — contains a real <input>, has :focus-within styles
+     2. Decorative trigger — no <input>, clicking the whole bar opens a view;
+                             use role="button" on the root in this case
+
+   Rules:
+     - Only --md-comp-search-bar-* tokens referenced. Never --md-sys-* directly.
+     - State layer is a real child element so it clips correctly to the pill.
+     - Icons in the trailing slot are sized and colored via CSS; the slot accepts
+       any SVG or icon component with class="md-search-bar__icon".
+   ============================================================================= */
+
+/* Layer 3 token definitions */
+@import '../../../styles/tokens/components/search-bar.css';
+
+/* =============================================================================
+   ROOT CONTAINER
+   ============================================================================= */
+
+.md-search-bar {
+	/* Positioning context for state layer */
+	position: relative;
+	overflow: hidden;
+
+	/* Layout */
+	display: flex;
+	align-items: center;
+	width: 100%;
+
+	/* Shape & dimensions */
+	height: var(--md-comp-search-bar-container-height);
+	border-radius: var(--md-comp-search-bar-container-shape);
+
+	/* Colour & elevation */
+	background-color: var(--md-comp-search-bar-container-color);
+	box-shadow: var(--md-comp-search-bar-container-elevation);
+
+	/* Spacing */
+	padding-inline-start: var(--md-comp-search-bar-leading-space);
+	padding-inline-end: var(--md-comp-search-bar-trailing-space);
+	gap: var(--md-comp-search-bar-icon-input-gap);
+
+	/* Prevent text selection on click when used as a trigger */
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+
+	/* Shadow transition */
+	transition: box-shadow
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+/* Hover — lift one elevation level */
+.md-search-bar:hover {
+	box-shadow: var(--md-comp-search-bar-hover-container-elevation);
+}
+
+/* When the bar contains a focused input, also lift */
+.md-search-bar:has(.md-search-bar__input:focus) {
+	box-shadow: var(--md-comp-search-bar-hover-container-elevation);
+}
+
+/* =============================================================================
+   STATE LAYER
+   ============================================================================= */
+
+.md-search-bar__state-layer {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: var(--md-comp-search-bar-hover-state-layer-color);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-search-bar:hover .md-search-bar__state-layer {
+	opacity: var(--md-comp-search-bar-hover-state-layer-opacity);
+}
+
+/* Focus state — triggered when the inner input is focused */
+.md-search-bar:has(.md-search-bar__input:focus) .md-search-bar__state-layer {
+	opacity: var(--md-comp-search-bar-focus-state-layer-opacity);
+}
+
+/* Active / pressed */
+.md-search-bar:active .md-search-bar__state-layer {
+	opacity: var(--md-comp-search-bar-pressed-state-layer-opacity);
+}
+
+/* =============================================================================
+   LEADING ICON SLOT
+   ============================================================================= */
+
+.md-search-bar__leading {
+	/* Sits above the state layer */
+	position: relative;
+	z-index: 1;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+
+	/* Touch target */
+	min-width: 48px;
+	min-height: 48px;
+
+	/* Pull back to align icon optically within the pill */
+	margin-inline-start: -12px;
+}
+
+/* Any SVG or icon element passed into the leading slot */
+.md-search-bar__leading .md-search-bar__icon {
+	width: var(--md-comp-search-bar-leading-icon-size);
+	height: var(--md-comp-search-bar-leading-icon-size);
+	color: var(--md-comp-search-bar-leading-icon-color);
+	fill: currentColor;
+	display: block;
+	flex-shrink: 0;
+}
+
+/* =============================================================================
+   INPUT FIELD
+   ============================================================================= */
+
+.md-search-bar__input {
+	/* Sits above the state layer */
+	position: relative;
+	z-index: 1;
+
+	/* Fill remaining space */
+	flex: 1 1 0;
+	min-width: 0; /* allow shrinking below content size */
+
+	/* Strip native input styles */
+	appearance: none;
+	background: none;
+	border: none;
+	outline: none;
+	padding: 0;
+	margin: 0;
+
+	/* Typography — body-large per M3 spec */
+	font-family: var(--md-comp-search-bar-input-font);
+	font-size: var(--md-comp-search-bar-input-size);
+	font-weight: var(--md-comp-search-bar-input-weight);
+	line-height: var(--md-comp-search-bar-input-line-height);
+	letter-spacing: var(--md-comp-search-bar-input-tracking);
+	color: var(--md-comp-search-bar-input-color);
+
+	/* Caret color */
+	caret-color: var(--md-comp-search-bar-caret-color);
+
+	/* Cursor */
+	cursor: text;
+}
+
+/* Placeholder text */
+.md-search-bar__input::placeholder {
+	color: var(--md-comp-search-bar-placeholder-color);
+	opacity: 1; /* Firefox reduces opacity by default */
+}
+
+/* Remove the native 'x' clear button in WebKit/Blink — we provide our own */
+.md-search-bar__input::-webkit-search-cancel-button,
+.md-search-bar__input::-webkit-search-decoration {
+	appearance: none;
+}
+
+/* Focus ring — suppressed on the input; focus is communicated by
+   the state layer and elevation change on the container instead */
+.md-search-bar__input:focus {
+	outline: none;
+}
+
+/* =============================================================================
+   TRAILING ICON(S) SLOT
+   ============================================================================= */
+
+.md-search-bar__trailing {
+	/* Sits above the state layer */
+	position: relative;
+	z-index: 1;
+
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: var(--md-comp-search-bar-trailing-icon-gap);
+
+	/* Pull back to align icons optically within the pill */
+	margin-inline-end: -12px;
+}
+
+/* Any icon button or icon passed into the trailing slot */
+.md-search-bar__trailing .md-search-bar__icon {
+	width: var(--md-comp-search-bar-trailing-icon-size);
+	height: var(--md-comp-search-bar-trailing-icon-size);
+	color: var(--md-comp-search-bar-trailing-icon-color);
+	fill: currentColor;
+	display: block;
+	flex-shrink: 0;
+}
+
+/* Icon button wrapper inside the trailing slot — ensures 48px touch target */
+.md-search-bar__icon-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 48px;
+	min-height: 48px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	border-radius: 50%;
+	color: var(--md-comp-search-bar-trailing-icon-color);
+
+	/* Subtle focus ring for keyboard nav on icon buttons inside the bar */
+	transition: background-color
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-search-bar__icon-btn:hover {
+	background-color: color-mix(
+		in srgb,
+		var(--md-comp-search-bar-hover-state-layer-color)
+			calc(var(--md-comp-search-bar-hover-state-layer-opacity) * 100%),
+		transparent
+	);
+}
+
+.md-search-bar__icon-btn:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: -3px;
+}
+
+/* =============================================================================
+   DISABLED STATE
+   ============================================================================= */
+
+.md-search-bar--disabled,
+.md-search-bar:has(.md-search-bar__input:disabled) {
+	background-color: var(--md-comp-search-bar-disabled-container-color);
+	opacity: var(--md-comp-search-bar-disabled-container-opacity);
+	box-shadow: none;
+	pointer-events: none;
+	cursor: not-allowed;
+}
+
+.md-search-bar--disabled .md-search-bar__input,
+.md-search-bar__input:disabled {
+	color: var(--md-comp-search-bar-disabled-input-color);
+	opacity: var(--md-comp-search-bar-disabled-input-opacity);
+	cursor: not-allowed;
+}
+
+.md-search-bar--disabled .md-search-bar__icon {
+	color: var(--md-comp-search-bar-disabled-icon-color);
+	opacity: var(--md-comp-search-bar-disabled-icon-opacity);
+}
+
+/* =============================================================================
+   KEYBOARD FOCUS — CONTAINER LEVEL
+   When the bar itself receives focus (e.g. role="button" trigger mode),
+   show a visible focus ring outside the pill.
+   ============================================================================= */
+
+.md-search-bar:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: 2px;
+}
+
+/* Suppress the container ring when the internal input is what's focused */
+.md-search-bar:has(.md-search-bar__input:focus):focus-visible {
+	outline: none;
+}

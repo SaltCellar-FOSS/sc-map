@@ -1,285 +1,169 @@
 <script lang="ts">
-	/**
-	 * Material 3 Button — Svelte-native, SSR-safe
-	 *
-	 * Props:
-	 *   variant  — 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal'
-	 *   disabled — boolean
-	 *   type     — HTMLButtonElement type
-	 *   href     — renders an <a> tag when provided
-	 *   onclick  — event handler
-	 */
+	/* eslint-disable svelte/no-navigation-without-resolve */
+	import { ripple } from '$lib/attachments/ripple.js';
+	import type { Snippet } from 'svelte';
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
 
-	import { createRipple } from '$lib/components/ui/ripple.svelte';
+	// ---------------------------------------------------------------------------
+	// Types
+	// ---------------------------------------------------------------------------
 
-	type Variant = 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
+	export type ButtonVariant = 'elevated' | 'filled' | 'tonal' | 'outlined' | 'text';
+	type ButtonType = 'button' | 'submit' | 'reset';
 
-	interface Props {
-		variant?: Variant;
+	type Props = {
+		/** Visual variant. Defaults to 'filled'. */
+		variant?: ButtonVariant;
+
+		/**
+		 * When provided, renders an <a> tag instead of <button>.
+		 * disabled and type props are ignored when href is set.
+		 */
+		href?: string;
+
+		/** Where to open the linked URL. Only applies when href is set. */
+		target?: HTMLAnchorAttributes['target'];
+
+		/** Native button type. Ignored when href is set. */
+		type?: ButtonType;
+
+		/** Disables the button. Ignored when href is set. */
 		disabled?: boolean;
-		type?: 'button' | 'submit' | 'reset';
-		onclick?: (e: MouseEvent) => void;
-		children?: import('svelte').Snippet;
-		leadingIcon?: import('svelte').Snippet;
-		trailingIcon?: import('svelte').Snippet;
+
+		/**
+		 * Soft-disabled: visually and aria-disabled but still keyboard-focusable.
+		 * Useful in toolbars per ARIA guidelines on focusable disabled controls.
+		 */
+		softDisabled?: boolean;
+
+		/** Additional classes merged onto the root element. */
 		class?: string;
-	}
+
+		/** Label content (required). */
+		children: Snippet;
+
+		/**
+		 * Optional leading icon snippet.
+		 * The root element of the snippet must carry class="md-btn__icon"
+		 * so that sizing and colour tokens apply correctly.
+		 */
+		icon?: Snippet;
+
+		/**
+		 * Optional trailing icon snippet.
+		 * Root element must carry class="md-btn__icon md-btn__icon--trailing".
+		 */
+		trailingIcon?: Snippet;
+
+		// Passthrough — any unrecognised props (aria-*, data-*, form, name…)
+		// are spread onto the root element.
+		[key: string]: unknown;
+	};
+
+	// ---------------------------------------------------------------------------
+	// Props
+	// ---------------------------------------------------------------------------
 
 	let {
 		variant = 'filled',
-		disabled = false,
+		href,
+		target,
 		type = 'button',
-		onclick,
+		disabled = false,
+		softDisabled = false,
+		class: extraClass,
 		children,
-		leadingIcon,
+		icon,
 		trailingIcon,
-		class: extraClass = ''
+		...restProps
 	}: Props = $props();
 
-	const ripple = createRipple();
+	// ---------------------------------------------------------------------------
+	// Derived state
+	// ---------------------------------------------------------------------------
 
-	function handleClick(e: MouseEvent) {
-		if (disabled) return;
-		ripple.addRipple(e);
-		onclick?.(e);
-	}
+	const classes = $derived(['md-btn', `md-btn--${variant}`, extraClass].filter(Boolean).join(' '));
+
+	// Native disabled only applies to <button>; links use aria-disabled only.
+	const isNativeDisabled = $derived(!href && (disabled || softDisabled));
+
+	// aria-disabled on <a> covers both disabled states.
+	// On <button> it covers softDisabled only (native `disabled` covers the rest).
+	const ariaDisabled = $derived(
+		(href && (disabled || softDisabled)) || (!href && softDisabled) ? ('true' as const) : undefined
+	);
+
+	// ripple() is a factory — passing `disabled` as a plain value is fine here
+	// because $derived re-evaluates the whole expression when it changes, which
+	// causes {@attach ripple(...)} to destroy the old attachment and create a
+	// fresh one. No update() hook needed.
+	const rippleDisabled = $derived(disabled || softDisabled);
 </script>
 
-{#snippet buttonContent()}
-	{#if leadingIcon}
-		<span class="btn-icon btn-icon--leading" aria-hidden="true">
-			{@render leadingIcon()}
-		</span>
-	{/if}
+<!--
+  Renders as <a> when href is set, <button> otherwise.
 
-	<span class="btn-label">
-		{#if children}{@render children()}{/if}
-	</span>
+  Slot usage:
 
-	{#if trailingIcon}
-		<span class="btn-icon btn-icon--trailing" aria-hidden="true">
-			{@render trailingIcon()}
-		</span>
-	{/if}
+    Label only:
+      <Button variant="filled">Save</Button>
 
-	<!-- State layer (hover/focus/pressed) -->
-	<span class="btn-state-layer" aria-hidden="true"></span>
+    With leading icon:
+      <Button variant="filled">
+        {#snippet icon()}
+          <svg class="md-btn__icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M17 3H5a2 2 0 0 0-2 2v14l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+          </svg>
+        {/snippet}
+        Save
+      </Button>
 
-	<!-- Ripple container -->
-	<span class="btn-ripple-container" aria-hidden="true">
-		{#each ripple.ripples as r (r.id)}
-			<span class="btn-ripple" style="left:{r.x}px; top:{r.y}px;"></span>
-		{/each}
-	</span>
-{/snippet}
+    With trailing icon:
+      <Button variant="text">
+        Open
+        {#snippet trailingIcon()}
+          <svg class="md-btn__icon md-btn__icon--trailing" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z"/>
+            <path d="M14 3v2h3.59L8.76 13.83l1.41 1.41L19 6.41V10h2V3h-7z"/>
+          </svg>
+        {/snippet}
+      </Button>
 
-<button
-	{type}
-	{disabled}
-	class="btn btn--{variant} {extraClass}"
-	onclick={handleClick}
-	aria-disabled={disabled}
->
-	{@render buttonContent()}
-</button>
+    As a link:
+      <Button variant="outlined" href="/dashboard">Dashboard</Button>
 
-<style>
-	/* ---- Base ---- */
-	.btn {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--md-comp-button-gap);
-		overflow: hidden;
-		cursor: pointer;
-		border: none;
-		outline: none;
-		text-decoration: none;
-		padding: 0 var(--md-comp-button-padding-h);
-		height: var(--md-comp-button-height);
-		border-radius: var(--md-sys-shape-corner-full);
-		font-family: var(--md-sys-typescale-label-font);
-		font-size: var(--md-sys-typescale-label-large-size);
-		font-weight: 500;
-		letter-spacing: 0.00625em;
-		white-space: nowrap;
-		user-select: none;
-		transition:
-			box-shadow var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-standard),
-			background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-		-webkit-tap-highlight-color: transparent;
-	}
+    Soft-disabled (focusable):
+      <Button variant="text" softDisabled>Paste</Button>
+-->
 
-	.btn:focus-visible {
-		outline: 3px solid var(--md-sys-color-primary);
-		outline-offset: 2px;
-	}
-
-	/* With leading/trailing icon */
-	.btn:has(.btn-icon--leading) {
-		padding-left: var(--md-comp-button-padding-h-icon);
-	}
-	.btn:has(.btn-icon--trailing) {
-		padding-right: var(--md-comp-button-padding-h-icon);
-	}
-
-	/* ---- Variants ---- */
-
-	/* Filled */
-	.btn--filled {
-		background-color: var(--md-sys-color-primary);
-		color: var(--md-sys-color-on-primary);
-	}
-	.btn--filled:hover {
-		box-shadow: var(--md-sys-elevation-1);
-	}
-	.btn--filled:active {
-		box-shadow: none;
-	}
-	.btn--filled .btn-state-layer {
-		background-color: var(--md-sys-color-on-primary);
-	}
-
-	/* Tonal */
-	.btn--tonal {
-		background-color: var(--md-sys-color-secondary-container);
-		color: var(--md-sys-color-on-secondary-container);
-	}
-	.btn--tonal:hover {
-		box-shadow: var(--md-sys-elevation-1);
-	}
-	.btn--tonal .btn-state-layer {
-		background-color: var(--md-sys-color-on-secondary-container);
-	}
-
-	/* Outlined */
-	.btn--outlined {
-		background-color: transparent;
-		color: var(--md-sys-color-primary);
-		border: 1px solid var(--md-sys-color-outline);
-		padding: 0 calc(var(--md-comp-button-padding-h) - 1px); /* compensate for border */
-	}
-	.btn--outlined:has(.btn-icon--leading) {
-		padding-left: calc(var(--md-comp-button-padding-h-icon) - 1px);
-	}
-	.btn--outlined:has(.btn-icon--trailing) {
-		padding-right: calc(var(--md-comp-button-padding-h-icon) - 1px);
-	}
-	.btn--outlined:focus-visible {
-		border-color: var(--md-sys-color-primary);
-	}
-	.btn--outlined .btn-state-layer {
-		background-color: var(--md-sys-color-primary);
-	}
-
-	/* Text */
-	.btn--text {
-		background-color: transparent;
-		color: var(--md-sys-color-primary);
-		padding: 0 var(--md-sys-spacing-md);
-	}
-	.btn--text:has(.btn-icon--leading) {
-		padding-left: var(--md-sys-spacing-md);
-	}
-	.btn--text:has(.btn-icon--trailing) {
-		padding-right: var(--md-sys-spacing-md);
-	}
-	.btn--text .btn-state-layer {
-		background-color: var(--md-sys-color-primary);
-	}
-
-	/* Elevated */
-	.btn--elevated {
-		background-color: var(--md-sys-color-surface-container-low);
-		color: var(--md-sys-color-primary);
-		box-shadow: var(--md-sys-elevation-1);
-	}
-	.btn--elevated:hover {
-		box-shadow: var(--md-sys-elevation-2);
-	}
-	.btn--elevated:active {
-		box-shadow: var(--md-sys-elevation-1);
-	}
-	.btn--elevated .btn-state-layer {
-		background-color: var(--md-sys-color-primary);
-	}
-
-	/* ---- Disabled state ---- */
-	.btn:disabled,
-	.btn[aria-disabled='true'] {
-		pointer-events: none;
-		cursor: default;
-		box-shadow: none;
-		background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
-		color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
-		border-color: transparent;
-	}
-	.btn--outlined:disabled,
-	.btn--outlined[aria-disabled='true'] {
-		border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
-	}
-	.btn--text:disabled,
-	.btn--text[aria-disabled='true'],
-	.btn--elevated:disabled,
-	.btn--elevated[aria-disabled='true'] {
-		background-color: transparent;
-	}
-
-	/* ---- State layer (hover / focus) ---- */
-	.btn-state-layer {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-	}
-	.btn:hover .btn-state-layer {
-		opacity: 0.08;
-	}
-	.btn:focus-visible .btn-state-layer {
-		opacity: 0.12;
-	}
-	.btn:active .btn-state-layer {
-		opacity: 0.12;
-	}
-
-	/* ---- Ripple ---- */
-	.btn-ripple-container {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		overflow: hidden;
-		pointer-events: none;
-	}
-
-	.btn-ripple {
-		position: absolute;
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background-color: currentColor;
-		opacity: 0.24;
-		transform: translate(-50%, -50%) scale(0);
-		animation: ripple-expand 600ms var(--md-sys-motion-easing-standard) forwards;
-		pointer-events: none;
-	}
-
-	@keyframes ripple-expand {
-		to {
-			transform: translate(-50%, -50%) scale(30);
-			opacity: 0;
-		}
-	}
-
-	/* ---- Icons ---- */
-	.btn-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--md-comp-button-icon-size);
-		height: var(--md-comp-button-icon-size);
-		flex-shrink: 0;
-	}
-</style>
+{#if href}
+	<a
+		{href}
+		{target}
+		role="button"
+		class={classes}
+		aria-disabled={ariaDisabled}
+		tabindex={disabled ? -1 : undefined}
+		{@attach ripple({ disabled: rippleDisabled })}
+		{...restProps}
+	>
+		<span class="md-btn__state-layer" aria-hidden="true"></span>
+		{#if icon}{@render icon()}{/if}
+		<span class="md-btn__label">{@render children()}</span>
+		{#if trailingIcon}{@render trailingIcon()}{/if}
+	</a>
+{:else}
+	<button
+		{type}
+		disabled={isNativeDisabled}
+		aria-disabled={ariaDisabled}
+		class={classes}
+		{@attach ripple({ disabled: rippleDisabled })}
+		{...restProps}
+	>
+		<span class="md-btn__state-layer" aria-hidden="true"></span>
+		{#if icon}{@render icon()}{/if}
+		<span class="md-btn__label">{@render children()}</span>
+		{#if trailingIcon}{@render trailingIcon()}{/if}
+	</button>
+{/if}

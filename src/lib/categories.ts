@@ -1,16 +1,12 @@
 import type { CategoryConfig } from '$lib/components/types';
-import FilterBakeryIcon from '$lib/icons/FilterBakeryIcon.svelte';
-import FilterBarIcon from '$lib/icons/FilterBarIcon.svelte';
-import FilterRestaurantIcon from '$lib/icons/FilterRestaurantIcon.svelte';
-import type { Place } from '$lib/dao/places/types';
+import type { SavedPlace } from '$lib/schemas/saved-place';
 
-export const CATEGORIES: Record<Place['type'], CategoryConfig> = {
+export const CATEGORIES: Record<SavedPlace['type'], CategoryConfig> = {
 	RESTAURANT: {
 		label: 'Restaurants',
 		color: '#E8472A',
-		glyphText: '🍽️',
-		icon: FilterRestaurantIcon
+		glyphText: '🍽️'
 	},
-	BAR: { label: 'Bars', color: '#6B4FBB', glyphText: '🍸', icon: FilterBarIcon },
-	BAKERY: { label: 'Bakeries', color: '#F0A500', glyphText: '🥐', icon: FilterBakeryIcon }
+	BAR: { label: 'Bars', color: '#6B4FBB', glyphText: '🍸' },
+	BAKERY: { label: 'Bakeries', color: '#F0A500', glyphText: '🥐' }
 };

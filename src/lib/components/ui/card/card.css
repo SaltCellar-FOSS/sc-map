@@ -1,0 +1,353 @@
+@import '../../../styles/tokens/components/card.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — CARD COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Variants:
+     .md-card--elevated   surface-container-low + elevation-1
+     .md-card--filled     surface-container-highest + no shadow
+     .md-card--outlined   surface + 1px outline-variant border
+
+   Anatomy elements:
+     .md-card                 — root surface
+     .md-card__state-layer    — interaction overlay (child span)
+     .md-card__media          — full-width image/video region (top-clips to shape)
+     .md-card__header         — title + subhead row with optional thumbnail
+     .md-card__title          — title-large text
+     .md-card__subhead        — body-medium subhead
+     .md-card__thumbnail      — 40px leading avatar/icon in header
+     .md-card__body           — supporting text / main content region
+     .md-card__actions        — trailing row of buttons
+     .md-card__actions--full  — full-bleed row (no padding on sides)
+
+   Interactive cards:
+     Add role="button" / tabindex="0" or use an <a> / <button> wrapper.
+     The state layer activates on :hover, :focus-visible, :active.
+     Elevation rises on hover for elevated cards.
+   ============================================================================= */
+
+/* =============================================================================
+   BASE
+   ============================================================================= */
+
+.md-card {
+	/* Layout */
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+
+	/* Shape */
+	border-radius: var(--_shape);
+
+	/* Color */
+	background-color: var(--_container-color);
+	color: var(--md-comp-card-content-color);
+
+	/* Elevation */
+	box-shadow: var(--_elevation);
+
+	/* Transition */
+	transition: box-shadow
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+/* State layer */
+.md-card__state-layer {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: var(--_state-layer-color);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+	/* Above content: z-index only relevant when card is interactive */
+	z-index: 0;
+}
+
+/* Interactive states — only when card has pointer cursor or button role */
+.md-card[role='button'],
+.md-card[tabindex],
+a.md-card,
+button.md-card {
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	text-decoration: none;
+	border: none;
+	appearance: none;
+	text-align: inherit;
+	font: inherit;
+	width: 100%;
+	padding: 0;
+}
+
+.md-card[role='button']:hover .md-card__state-layer,
+.md-card[tabindex]:hover .md-card__state-layer,
+a.md-card:hover .md-card__state-layer,
+button.md-card:hover .md-card__state-layer {
+	opacity: var(--_hover-state-layer-opacity);
+}
+
+.md-card[role='button']:focus-visible .md-card__state-layer,
+.md-card[tabindex]:focus-visible .md-card__state-layer,
+a.md-card:focus-visible .md-card__state-layer,
+button.md-card:focus-visible .md-card__state-layer {
+	opacity: var(--_focus-state-layer-opacity);
+}
+
+.md-card[role='button']:active .md-card__state-layer,
+.md-card[tabindex]:active .md-card__state-layer,
+a.md-card:active .md-card__state-layer,
+button.md-card:active .md-card__state-layer {
+	opacity: var(--_pressed-state-layer-opacity);
+}
+
+.md-card[role='button']:focus-visible,
+.md-card[tabindex]:focus-visible,
+a.md-card:focus-visible,
+button.md-card:focus-visible {
+	outline: 3px solid var(--md-sys-color-secondary);
+	outline-offset: 2px;
+}
+
+/* Hover elevation (variant-specific values applied per variant) */
+.md-card[role='button']:hover,
+.md-card[tabindex]:hover,
+a.md-card:hover,
+button.md-card:hover {
+	box-shadow: var(--_hover-elevation);
+}
+
+/* =============================================================================
+   MEDIA REGION
+   Full-width, clips to top card shape. No padding.
+   ============================================================================= */
+
+.md-card__media {
+	display: block;
+	width: 100%;
+	overflow: hidden;
+	flex-shrink: 0;
+	position: relative;
+	z-index: 1; /* above state layer */
+}
+
+.md-card__media img,
+.md-card__media video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Fixed-height media variants */
+.md-card__media--16-9 {
+	padding-bottom: 56.25%; /* 16:9 aspect ratio */
+	height: 0;
+}
+
+.md-card__media--16-9 > * {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.md-card__media--square {
+	padding-bottom: 100%;
+	height: 0;
+}
+
+.md-card__media--square > * {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* =============================================================================
+   HEADER
+   16px top padding, 16px sides, optional thumbnail + title/subhead column.
+   ============================================================================= */
+
+.md-card__header {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	padding-inline: var(--md-comp-card-padding);
+	padding-block-start: var(--md-comp-card-header-padding-block);
+	padding-block-end: 4px; /* tight gap before body */
+	position: relative;
+	z-index: 1;
+}
+
+/* Thumbnail (avatar / icon in header) */
+.md-card__thumbnail {
+	width: 40px;
+	height: 40px;
+	border-radius: var(--md-sys-shape-corner-full);
+	overflow: hidden;
+	flex-shrink: 0;
+	background-color: var(--md-sys-color-primary-container);
+	color: var(--md-sys-color-on-primary-container);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.md-card__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* Text block inside header */
+.md-card__header-text {
+	flex: 1;
+	min-width: 0;
+}
+
+/* =============================================================================
+   TITLE + SUBHEAD
+   ============================================================================= */
+
+.md-card__title {
+	display: block;
+	color: var(--md-comp-card-content-color);
+	font-family: var(--md-comp-card-title-font);
+	font-size: var(--md-comp-card-title-size);
+	font-weight: var(--md-comp-card-title-weight);
+	letter-spacing: var(--md-comp-card-title-tracking);
+	margin: 0;
+}
+
+.md-card__subhead {
+	display: block;
+	color: var(--md-comp-card-subhead-color);
+	font-family: var(--md-comp-card-subhead-font);
+	font-size: var(--md-comp-card-subhead-size);
+	font-weight: var(--md-comp-card-subhead-weight);
+	letter-spacing: var(--md-comp-card-subhead-tracking);
+	margin: 0;
+	margin-block-start: 4px;
+}
+
+/* =============================================================================
+   BODY (supporting text / free content)
+   ============================================================================= */
+
+.md-card__body {
+	padding-inline: var(--md-comp-card-padding);
+	padding-block: var(--md-comp-card-padding);
+	color: var(--md-comp-card-supporting-text-color);
+	font-family: var(--md-comp-card-supporting-text-font);
+	font-size: var(--md-comp-card-supporting-text-size);
+	font-weight: var(--md-comp-card-supporting-text-weight);
+	letter-spacing: var(--md-comp-card-supporting-text-tracking);
+	flex: 1;
+	position: relative;
+	z-index: 1;
+}
+
+/* When a header immediately precedes body, reduce top padding slightly */
+.md-card__header + .md-card__body {
+	padding-block-start: 8px;
+}
+
+/* =============================================================================
+   ACTIONS
+   ============================================================================= */
+
+.md-card__actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding-inline: var(--md-comp-card-action-padding);
+	padding-block: var(--md-comp-card-action-padding);
+	position: relative;
+	z-index: 1;
+}
+
+/* Full-bleed variant: buttons flush to edges, separated by divider */
+.md-card__actions--full {
+	padding: 0;
+	border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* =============================================================================
+   VARIANT: ELEVATED
+   ============================================================================= */
+
+.md-card--elevated {
+	--_container-color: var(--md-comp-elevated-card-container-color);
+	--_shape: var(--md-comp-elevated-card-container-shape);
+	--_elevation: var(--md-comp-elevated-card-container-elevation);
+	--_hover-elevation: var(--md-comp-elevated-card-hover-elevation);
+	--_state-layer-color: var(--md-comp-elevated-card-hover-state-layer-color);
+	--_hover-state-layer-opacity: var(--md-comp-elevated-card-hover-state-layer-opacity);
+	--_focus-state-layer-opacity: var(--md-comp-elevated-card-focus-state-layer-opacity);
+	--_pressed-state-layer-opacity: var(--md-comp-elevated-card-pressed-state-layer-opacity);
+}
+
+.md-card--elevated[aria-disabled='true'],
+.md-card--elevated:disabled {
+	opacity: var(--md-comp-elevated-card-disabled-container-opacity);
+	box-shadow: var(--md-comp-elevated-card-disabled-elevation);
+	pointer-events: none;
+}
+
+/* =============================================================================
+   VARIANT: FILLED
+   ============================================================================= */
+
+.md-card--filled {
+	--_container-color: var(--md-comp-filled-card-container-color);
+	--_shape: var(--md-comp-filled-card-container-shape);
+	--_elevation: var(--md-comp-filled-card-container-elevation);
+	--_hover-elevation: var(--md-comp-filled-card-hover-elevation);
+	--_state-layer-color: var(--md-comp-filled-card-hover-state-layer-color);
+	--_hover-state-layer-opacity: var(--md-comp-filled-card-hover-state-layer-opacity);
+	--_focus-state-layer-opacity: var(--md-comp-filled-card-focus-state-layer-opacity);
+	--_pressed-state-layer-opacity: var(--md-comp-filled-card-pressed-state-layer-opacity);
+}
+
+.md-card--filled[aria-disabled='true'],
+.md-card--filled:disabled {
+	opacity: var(--md-comp-filled-card-disabled-container-opacity);
+	pointer-events: none;
+}
+
+/* =============================================================================
+   VARIANT: OUTLINED
+   ============================================================================= */
+
+.md-card--outlined {
+	--_container-color: var(--md-comp-outlined-card-container-color);
+	--_shape: var(--md-comp-outlined-card-container-shape);
+	--_elevation: var(--md-comp-outlined-card-container-elevation);
+	--_hover-elevation: var(--md-comp-outlined-card-hover-elevation);
+	--_state-layer-color: var(--md-comp-outlined-card-hover-state-layer-color);
+	--_hover-state-layer-opacity: var(--md-comp-outlined-card-hover-state-layer-opacity);
+	--_focus-state-layer-opacity: var(--md-comp-outlined-card-focus-state-layer-opacity);
+	--_pressed-state-layer-opacity: var(--md-comp-outlined-card-pressed-state-layer-opacity);
+
+	border: var(--md-comp-outlined-card-outline-width) solid
+		var(--md-comp-outlined-card-outline-color);
+}
+
+.md-card--outlined[aria-disabled='true'],
+.md-card--outlined:disabled {
+	opacity: var(--md-comp-outlined-card-disabled-container-opacity);
+	border-color: var(--md-comp-outlined-card-disabled-outline-color);
+	pointer-events: none;
+}

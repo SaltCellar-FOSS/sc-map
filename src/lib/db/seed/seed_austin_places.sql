@@ -17,7 +17,7 @@ ON CONFLICT (google_id) DO NOTHING;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- RESTAURANTS (30)
 -- ─────────────────────────────────────────────────────────────────────────────
-INSERT INTO places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
+INSERT INTO saved_places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
   ('Lutie''s Garden Restaurant', 30.3031, -97.7295, '4100 Red River St, Austin, TX 78751', 'ChIJ4UW6yjrLRIYRjmfEb0VoT_A', 'RESTAURANT', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('Birdie''s', 30.2721, -97.7062, '2944 E 12th St, Austin, TX 78702', 'ChIJt-mDBwi1RIYRGqaj9MS9Zjk', 'RESTAURANT', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('Dai Due', 30.2798, -97.7168, '2406 Manor Rd, Austin, TX 78722', 'ChIJsx9cWey1RIYRpeZVdPR4YtA', 'RESTAURANT', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
@@ -52,7 +52,7 @@ INSERT INTO places (name, lat, lng, formatted_address, google_place_id, type, su
 -- ─────────────────────────────────────────────────────────────────────────────
 -- BARS (30)
 -- ─────────────────────────────────────────────────────────────────────────────
-INSERT INTO places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
+INSERT INTO saved_places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
   ('Small Victory', 30.2677, -97.7423, '108 E 7th St, Austin, TX 78701', 'ChIJKakp4Am1RIYRB-4OSSKKrPo', 'BAR', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('Midnight Cowboy', 30.2668, -97.7422, '313 E 6th St, Austin, TX 78701', 'ChIJT_Gwpqe1RIYRIZAT_hZguaQ', 'BAR', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('Firehouse Lounge', 30.2692, -97.7400, '605 Brazos St, Austin, TX 78701', 'ChIJ7XFDZae1RIYROB6oLNdB2Bk', 'BAR', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
@@ -87,7 +87,7 @@ INSERT INTO places (name, lat, lng, formatted_address, google_place_id, type, su
 -- ─────────────────────────────────────────────────────────────────────────────
 -- BAKERIES (30)
 -- ─────────────────────────────────────────────────────────────────────────────
-INSERT INTO places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
+INSERT INTO saved_places (name, lat, lng, formatted_address, google_place_id, type, submitted_by) VALUES
   ('1886 Cafe & Bakery', 30.2691, -97.7402, '604 Brazos St, Austin, TX 78701', 'ChIJ4yWPfKe1RIYRaY1w7rNsFIc', 'BAKERY', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('Capital City Bakery', 30.2564, -97.7205, '2211 E Cesar Chavez St, Austin, TX 78702', 'ChIJbXOCWLW1RIYRX8Oc3uY-pO4', 'BAKERY', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),
   ('La Patisserie', 30.2448, -97.7577, '602 W Annie St, Austin, TX 78704', 'ChIJfRArluO0RIYRjZvXTXpJK80', 'BAKERY', (SELECT id FROM users WHERE google_id = 'seed_admin_google_id')),

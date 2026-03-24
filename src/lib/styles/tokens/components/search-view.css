@@ -1,0 +1,60 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: SEARCH VIEW COMPONENT TOKENS
+
+   Imported by components/ui/search-view/search-view.css — not directly by theme.css.
+
+   The docked Search View shares its surface color with the Search Bar
+   (surface-container-high) so the panel reads as a continuous extension of
+   the bar, not a separate floating surface.
+
+   Spec references:
+     - Container: surface-container-high, no border-radius on panel (full-width)
+     - Header height: matches Search Bar at 56px
+     - Header input: body-large, on-surface / on-surface-variant for placeholder
+     - Back button icon: on-surface-variant, 24px, 48px touch target
+     - Divider: 1px, outline-variant color
+     - Results region: surface-container-high background, scrollable
+     - Scrim: not used in docked variant
+   ============================================================================= */
+
+:root {
+	/* --- Panel container --- */
+	--md-comp-search-view-container-color: var(--md-sys-color-surface-container-high);
+	--md-comp-search-view-container-shape: var(--md-sys-shape-corner-extra-large);
+	/* Panel sits above page content but below modal surfaces */
+	--md-comp-search-view-container-elevation: var(--md-sys-elevation-level3-shadow);
+
+	/* --- Header (back + input + trailing) --- */
+	--md-comp-search-view-header-height: 56px;
+
+	/* Back button icon */
+	--md-comp-search-view-back-icon-color: var(--md-sys-color-on-surface);
+	--md-comp-search-view-back-icon-size: 24px;
+
+	/* Header input text */
+	--md-comp-search-view-input-color: var(--md-sys-color-on-surface);
+	--md-comp-search-view-input-font: var(--md-sys-typescale-body-large-font);
+	--md-comp-search-view-input-size: var(--md-sys-typescale-body-large-size);
+	--md-comp-search-view-input-weight: var(--md-sys-typescale-body-large-weight);
+	--md-comp-search-view-input-line-height: var(--md-sys-typescale-body-large-line-height);
+	--md-comp-search-view-input-tracking: var(--md-sys-typescale-body-large-tracking);
+	--md-comp-search-view-input-caret-color: var(--md-sys-color-primary);
+	--md-comp-search-view-placeholder-color: var(--md-sys-color-on-surface-variant);
+
+	/* Header trailing icons */
+	--md-comp-search-view-trailing-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-search-view-trailing-icon-size: 24px;
+
+	/* --- Divider --- */
+	--md-comp-search-view-divider-color: var(--md-sys-color-outline-variant);
+	--md-comp-search-view-divider-height: 1px;
+
+	/* --- Results region --- */
+	--md-comp-search-view-results-color: var(--md-sys-color-surface-container-high);
+
+	/* --- Spacing --- */
+	--md-comp-search-view-leading-space: 16px;
+	--md-comp-search-view-trailing-space: 16px;
+	--md-comp-search-view-icon-input-gap: 16px;
+	--md-comp-search-view-trailing-icon-gap: 8px;
+}

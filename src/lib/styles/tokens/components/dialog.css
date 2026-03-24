@@ -1,0 +1,67 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: DIALOG COMPONENT TOKENS
+
+   Imported by components/Dialog/dialog.css — not directly by theme.css.
+
+   M3 Dialog spec (basic dialog):
+     Container:    surface-container-high, extra-large shape (28px), elevation-3
+     Min-width:    280px
+     Max-width:    560px (with 56px side margins on 672px+ screens)
+     Padding:      24px all sides
+     Icon:         optional, centered, 24px, on-secondary-container tint
+     Headline:     headline-small, on-surface, 24px top / 16px bottom gap to body
+     Body:         body-medium, on-surface-variant, scrollable when needed
+     Actions:      8px padding, right-aligned row of text buttons, 8px gap
+     Scrim:        scrim at 32% opacity
+     Animation:    fade + scale (emphasized-decelerate enter, standard exit)
+     Duration:     medium3 enter (350ms), short4 exit (200ms)
+   ============================================================================= */
+
+:root {
+	/* --- Container --- */
+	--md-comp-dialog-container-color: var(--md-sys-color-surface-container-high);
+	--md-comp-dialog-container-shape: var(--md-sys-shape-corner-extra-large);
+	--md-comp-dialog-container-elevation: var(--md-sys-elevation-level3-shadow);
+	--md-comp-dialog-container-min-width: 280px;
+	--md-comp-dialog-container-max-width: 560px;
+	--md-comp-dialog-container-padding: 24px;
+
+	/* --- Icon (optional, centered above headline) --- */
+	--md-comp-dialog-icon-color: var(--md-sys-color-secondary);
+	--md-comp-dialog-icon-size: 24px;
+
+	/* --- Headline --- */
+	--md-comp-dialog-headline-color: var(--md-sys-color-on-surface);
+	--md-comp-dialog-headline-font: var(--md-sys-typescale-headline-small-font);
+	--md-comp-dialog-headline-size: var(--md-sys-typescale-headline-small-size);
+	--md-comp-dialog-headline-weight: var(--md-sys-typescale-headline-small-weight);
+	--md-comp-dialog-headline-tracking: var(--md-sys-typescale-headline-small-tracking);
+	/* gap between headline and body when both present */
+	--md-comp-dialog-headline-body-gap: 16px;
+	/* gap between icon and headline when icon present */
+	--md-comp-dialog-icon-headline-gap: 16px;
+
+	/* --- Body (supporting text) --- */
+	--md-comp-dialog-body-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-dialog-body-font: var(--md-sys-typescale-body-medium-font);
+	--md-comp-dialog-body-size: var(--md-sys-typescale-body-medium-size);
+	--md-comp-dialog-body-weight: var(--md-sys-typescale-body-medium-weight);
+	--md-comp-dialog-body-tracking: var(--md-sys-typescale-body-medium-tracking);
+
+	/* --- Actions --- */
+	--md-comp-dialog-actions-padding: 8px;
+	--md-comp-dialog-actions-button-gap: 8px;
+
+	/* --- Divider (visible when body scrolls) --- */
+	--md-comp-dialog-divider-color: var(--md-sys-color-outline-variant);
+
+	/* --- Scrim --- */
+	--md-comp-dialog-scrim-color: var(--md-sys-color-scrim);
+	--md-comp-dialog-scrim-opacity: 0.32;
+
+	/* --- Motion --- */
+	--md-comp-dialog-enter-duration: var(--md-sys-motion-duration-medium3);
+	--md-comp-dialog-exit-duration: var(--md-sys-motion-duration-short4);
+	--md-comp-dialog-enter-easing: var(--md-sys-motion-easing-emphasized-decelerate);
+	--md-comp-dialog-exit-easing: var(--md-sys-motion-easing-standard);
+}

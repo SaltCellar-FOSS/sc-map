@@ -1,0 +1,107 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: LIST & LIST ITEM COMPONENT TOKENS
+
+   Imported by components/ui/list/list.css — not directly by theme.css.
+
+   Spec measurements:
+     List container:     surface background, no elevation at rest
+     One-line item:      56px min-height, 16px vertical padding
+     Two-line item:      72px min-height, 8px vertical padding
+     Three-line item:    88px min-height, 12px vertical padding top, 12px bottom
+     Horizontal padding: 16px leading, 16px trailing
+     Leading icon:       24px, on-surface-variant, 16px from edge → 40px total
+     Leading avatar:     40px diameter, primary-container bg, full-circle
+     Leading image:      56px × 56px
+     Trailing icon:      24px, on-surface-variant
+     Overline:           label-small, on-surface-variant
+     Headline:           body-large, on-surface
+     Supporting text:    body-medium, on-surface-variant
+     Trailing text:      label-small, on-surface-variant
+   ============================================================================= */
+
+:root {
+	/* --- List container --- */
+	--md-comp-list-container-color: var(--md-sys-color-surface);
+	--md-comp-list-container-shape: var(--md-sys-shape-corner-none);
+
+	/* --- List item container --- */
+	--md-comp-list-item-container-color: var(--md-sys-color-surface);
+	--md-comp-list-item-container-shape: var(--md-sys-shape-corner-none);
+
+	/* One-line min-height (text row only, padding fills the rest) */
+	--md-comp-list-item-one-line-height: 56px;
+	--md-comp-list-item-two-line-height: 72px;
+	--md-comp-list-item-three-line-height: 88px;
+
+	/* Horizontal padding */
+	--md-comp-list-item-leading-space: 16px;
+	--md-comp-list-item-trailing-space: 16px;
+
+	/* Vertical padding per line-count */
+	--md-comp-list-item-one-line-padding-y: 16px;
+	--md-comp-list-item-two-line-padding-y: 8px;
+	--md-comp-list-item-three-line-padding-y: 12px;
+
+	/* Gap between leading element and text block, and text block and trailing */
+	--md-comp-list-item-element-gap: 16px;
+
+	/* --- Text content --- */
+	--md-comp-list-item-overline-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-list-item-overline-font: var(--md-sys-typescale-label-small-font);
+	--md-comp-list-item-overline-size: var(--md-sys-typescale-label-small-size);
+	--md-comp-list-item-overline-weight: var(--md-sys-typescale-label-small-weight);
+	--md-comp-list-item-overline-tracking: var(--md-sys-typescale-label-small-tracking);
+
+	--md-comp-list-item-headline-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-headline-font: var(--md-sys-typescale-body-large-font);
+	--md-comp-list-item-headline-size: var(--md-sys-typescale-body-large-size);
+	--md-comp-list-item-headline-weight: var(--md-sys-typescale-body-large-weight);
+	--md-comp-list-item-headline-tracking: var(--md-sys-typescale-body-large-tracking);
+
+	--md-comp-list-item-supporting-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-list-item-supporting-font: var(--md-sys-typescale-body-medium-font);
+	--md-comp-list-item-supporting-size: var(--md-sys-typescale-body-medium-size);
+	--md-comp-list-item-supporting-weight: var(--md-sys-typescale-body-medium-weight);
+	--md-comp-list-item-supporting-tracking: var(--md-sys-typescale-body-medium-tracking);
+
+	/* --- Trailing supporting text (e.g. metadata / count) --- */
+	--md-comp-list-item-trailing-text-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-list-item-trailing-text-font: var(--md-sys-typescale-label-small-font);
+	--md-comp-list-item-trailing-text-size: var(--md-sys-typescale-label-small-size);
+	--md-comp-list-item-trailing-text-weight: var(--md-sys-typescale-label-small-weight);
+	--md-comp-list-item-trailing-text-tracking: var(--md-sys-typescale-label-small-tracking);
+
+	/* --- Leading icon --- */
+	--md-comp-list-item-leading-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-list-item-leading-icon-size: 24px;
+
+	/* --- Leading avatar --- */
+	--md-comp-list-item-leading-avatar-color: var(--md-sys-color-primary-container);
+	--md-comp-list-item-leading-avatar-label-color: var(--md-sys-color-on-primary-container);
+	--md-comp-list-item-leading-avatar-label-font: var(--md-sys-typescale-title-medium-font);
+	--md-comp-list-item-leading-avatar-size: 40px;
+	--md-comp-list-item-leading-avatar-shape: var(--md-sys-shape-corner-full);
+
+	/* --- Leading image --- */
+	--md-comp-list-item-leading-image-width: 56px;
+	--md-comp-list-item-leading-image-height: 56px;
+	--md-comp-list-item-leading-image-shape: var(--md-sys-shape-corner-none);
+
+	/* --- Trailing icon --- */
+	--md-comp-list-item-trailing-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-list-item-trailing-icon-size: 24px;
+
+	/* --- State layer --- */
+	--md-comp-list-item-hover-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-hover-state-layer-opacity: var(--md-sys-state-hover-opacity);
+	--md-comp-list-item-focus-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-focus-state-layer-opacity: var(--md-sys-state-focus-opacity);
+	--md-comp-list-item-pressed-state-layer-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-pressed-state-layer-opacity: var(--md-sys-state-pressed-opacity);
+
+	/* --- Disabled --- */
+	--md-comp-list-item-disabled-label-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-disabled-label-opacity: var(--md-sys-state-disabled-content-opacity);
+	--md-comp-list-item-disabled-icon-color: var(--md-sys-color-on-surface);
+	--md-comp-list-item-disabled-icon-opacity: var(--md-sys-state-disabled-content-opacity);
+}

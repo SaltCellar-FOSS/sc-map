@@ -1,0 +1,36 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — THEME ENTRY POINT
+   
+   This is the ONE file consumers import into their app.
+   Import order is load-order significant:
+     1. Reference tokens  — concrete hex values, font names
+     2. System tokens     — semantic roles + dark mode overrides
+     3. Base styles       — reset and document defaults
+     4. Elevation utility — .md-elevation-{0-5}
+     5. Typography utility — .md-typescale-{role}-{size}
+   
+   Usage in SvelteKit (src/app.css or src/routes/+layout.svelte):
+     @import '$lib/styles/theme.css';
+   
+   To retheme: override --md-sys-color-* (or --md-ref-palette-*) AFTER this
+   import. The dark mode block in system.css will automatically derive
+   correct dark values from any reference palette you substitute.
+   ============================================================================= */
+
+@import './tokens/reference.css';
+@import './tokens/system.css';
+@import './base.css';
+@import './elevation.css';
+@import './typography.css';
+@import './motion.css';
+
+/* Component styles — each self-contained via its own internal @import */
+@import '../components/ui/button/button.css';
+@import '../components/ui/search-bar/search-bar.css';
+@import '../components/ui/search-view/search-view.css';
+@import '../components/ui/list/list.css';
+@import '../components/ui/side-sheet/side-sheet.css';
+@import '../components/ui/dialog/dialog.css';
+@import '../components/ui/bottom-sheet/bottom-sheet.css';
+@import '../components/ui/card/card.css';
+@import '../components/ui/text-field/text-field.css';

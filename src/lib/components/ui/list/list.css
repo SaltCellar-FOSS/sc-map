@@ -1,0 +1,359 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LIST & LIST ITEM COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Components:
+     .md-list           — the outer <ul> / <ol> / <div> container
+     .md-list-item      — a single row item
+
+   List item anatomy:
+     .md-list-item
+     ├── .md-list-item__state-layer     interaction overlay
+     ├── .md-list-item__leading         leading slot (icon / avatar / image)
+     │   ├── .md-list-item__icon        24px icon inside leading
+     │   ├── .md-list-item__avatar      40px circle with optional label
+     │   └── .md-list-item__image       56×56 image
+     ├── .md-list-item__content         text block (grows to fill)
+     │   ├── .md-list-item__overline    label-small, above headline
+     │   ├── .md-list-item__headline    body-large, primary text
+     │   └── .md-list-item__supporting  body-medium, secondary text
+     └── .md-list-item__trailing        trailing slot
+         ├── .md-list-item__icon        icon in trailing (same class, different side)
+         └── .md-list-item__trailing-text  label-small metadata
+
+   Line-count variants (auto-detected via :has(), or via modifier classes):
+     .md-list-item--two-line
+     .md-list-item--three-line
+
+   Interactive variants:
+     .md-list-item--interactive    adds pointer cursor + state layer + ripple
+   ============================================================================= */
+
+@import '../../../styles/tokens/components/list.css';
+
+/* =============================================================================
+   LIST CONTAINER
+   ============================================================================= */
+
+.md-list {
+	display: flex;
+	flex-direction: column;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background-color: var(--md-comp-list-container-color);
+	border-radius: var(--md-comp-list-container-shape);
+	/* 8px padding top and bottom per M3 spec (no padding for lists with subheaders) */
+	padding-block: 8px;
+}
+
+/* Remove default padding when list is nested (e.g. inside a card or dialog) */
+.md-list--no-padding {
+	padding-block: 0;
+}
+
+/* =============================================================================
+   LIST ITEM — BASE
+   ============================================================================= */
+
+.md-list-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: var(--md-comp-list-item-one-line-height);
+	padding-inline: var(--md-comp-list-item-leading-space) var(--md-comp-list-item-trailing-space);
+	padding-block: var(--md-comp-list-item-one-line-padding-y);
+	gap: var(--md-comp-list-item-element-gap);
+	box-sizing: border-box;
+
+	background-color: var(--md-comp-list-item-container-color);
+	border-radius: var(--md-comp-list-item-container-shape);
+
+	/* Reset list / button / anchor defaults */
+	text-decoration: none;
+	text-align: left;
+	color: inherit;
+	border: none;
+	cursor: default;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+
+	/* Three-line items align leading to the top, not centre */
+	&.md-list-item--three-line {
+		align-items: flex-start;
+		min-height: var(--md-comp-list-item-three-line-height);
+		padding-block: var(--md-comp-list-item-three-line-padding-y);
+	}
+}
+
+/* Two-line: auto-detected or explicit modifier */
+.md-list-item--two-line,
+.md-list-item:has(.md-list-item__supporting):not(.md-list-item--three-line) {
+	min-height: var(--md-comp-list-item-two-line-height);
+	padding-block: var(--md-comp-list-item-two-line-padding-y);
+}
+
+/* Three-line: explicit modifier (auto-detection not reliable for 3 lines) */
+.md-list-item--three-line {
+	min-height: var(--md-comp-list-item-three-line-height);
+	padding-block: var(--md-comp-list-item-three-line-padding-y);
+	align-items: flex-start;
+}
+
+/* =============================================================================
+   STATE LAYER
+   ============================================================================= */
+
+.md-list-item__state-layer {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: var(--md-comp-list-item-hover-state-layer-color);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+/* =============================================================================
+   INTERACTIVE VARIANT
+   Applied to <button> or <a> list items, or via .md-list-item--interactive
+   ============================================================================= */
+
+.md-list-item--interactive,
+a.md-list-item,
+button.md-list-item {
+	cursor: pointer;
+	overflow: hidden; /* clip ripple and state layer */
+}
+
+.md-list-item--interactive:hover .md-list-item__state-layer,
+a.md-list-item:hover .md-list-item__state-layer,
+button.md-list-item:hover .md-list-item__state-layer {
+	opacity: var(--md-comp-list-item-hover-state-layer-opacity);
+}
+
+.md-list-item--interactive:focus-visible .md-list-item__state-layer,
+a.md-list-item:focus-visible .md-list-item__state-layer,
+button.md-list-item:focus-visible .md-list-item__state-layer {
+	opacity: var(--md-comp-list-item-focus-state-layer-opacity);
+}
+
+.md-list-item--interactive:active .md-list-item__state-layer,
+a.md-list-item:active .md-list-item__state-layer,
+button.md-list-item:active .md-list-item__state-layer {
+	opacity: var(--md-comp-list-item-pressed-state-layer-opacity);
+}
+
+.md-list-item--interactive:focus-visible,
+a.md-list-item:focus-visible,
+button.md-list-item:focus-visible {
+	outline: 3px solid var(--md-sys-color-primary);
+	outline-offset: -3px;
+}
+
+/* =============================================================================
+   DISABLED STATE
+   ============================================================================= */
+
+.md-list-item--disabled,
+.md-list-item[aria-disabled='true'],
+.md-list-item:disabled {
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.md-list-item--disabled .md-list-item__headline,
+.md-list-item[aria-disabled='true'] .md-list-item__headline,
+.md-list-item:disabled .md-list-item__headline,
+.md-list-item--disabled .md-list-item__overline,
+.md-list-item[aria-disabled='true'] .md-list-item__overline,
+.md-list-item--disabled .md-list-item__supporting,
+.md-list-item[aria-disabled='true'] .md-list-item__supporting {
+	color: var(--md-comp-list-item-disabled-label-color);
+	opacity: var(--md-comp-list-item-disabled-label-opacity);
+}
+
+.md-list-item--disabled .md-list-item__icon,
+.md-list-item[aria-disabled='true'] .md-list-item__icon {
+	color: var(--md-comp-list-item-disabled-icon-color);
+	opacity: var(--md-comp-list-item-disabled-icon-opacity);
+}
+
+/* =============================================================================
+   LEADING SLOT
+   ============================================================================= */
+
+.md-list-item__leading {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* Three-line: leading aligns to top of text, with padding matching top padding */
+.md-list-item--three-line .md-list-item__leading {
+	align-self: flex-start;
+	padding-top: 4px; /* optical alignment with first line of text */
+}
+
+/* --- Leading icon (24px) --- */
+
+.md-list-item__icon {
+	display: block;
+	flex-shrink: 0;
+	fill: currentColor;
+	color: var(--md-comp-list-item-leading-icon-color);
+	width: var(--md-comp-list-item-leading-icon-size);
+	height: var(--md-comp-list-item-leading-icon-size);
+}
+
+/* Trailing icon gets its own colour token via the trailing slot */
+.md-list-item__trailing .md-list-item__icon {
+	color: var(--md-comp-list-item-trailing-icon-color);
+	width: var(--md-comp-list-item-trailing-icon-size);
+	height: var(--md-comp-list-item-trailing-icon-size);
+}
+
+/* --- Leading avatar (40px circle) --- */
+
+.md-list-item__avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: var(--md-comp-list-item-leading-avatar-size);
+	height: var(--md-comp-list-item-leading-avatar-size);
+	border-radius: var(--md-comp-list-item-leading-avatar-shape);
+	background-color: var(--md-comp-list-item-leading-avatar-color);
+	color: var(--md-comp-list-item-leading-avatar-label-color);
+	font-family: var(--md-comp-list-item-leading-avatar-label-font);
+	overflow: hidden;
+}
+
+/* Image inside avatar (replaces label text) */
+.md-list-item__avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* --- Leading image (56×56) --- */
+
+.md-list-item__image {
+	display: block;
+	flex-shrink: 0;
+	width: var(--md-comp-list-item-leading-image-width);
+	height: var(--md-comp-list-item-leading-image-height);
+	border-radius: var(--md-comp-list-item-leading-image-shape);
+	object-fit: cover;
+	overflow: hidden;
+}
+
+/* =============================================================================
+   TEXT CONTENT BLOCK
+   ============================================================================= */
+
+.md-list-item__content {
+	position: relative;
+	z-index: 1;
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+/* --- Overline --- */
+
+.md-list-item__overline {
+	font-family: var(--md-comp-list-item-overline-font);
+	font-size: var(--md-comp-list-item-overline-size);
+	font-weight: var(--md-comp-list-item-overline-weight);
+	letter-spacing: var(--md-comp-list-item-overline-tracking);
+	color: var(--md-comp-list-item-overline-color);
+	line-height: 1.2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* --- Headline --- */
+
+.md-list-item__headline {
+	font-family: var(--md-comp-list-item-headline-font);
+	font-size: var(--md-comp-list-item-headline-size);
+	font-weight: var(--md-comp-list-item-headline-weight);
+	letter-spacing: var(--md-comp-list-item-headline-tracking);
+	color: var(--md-comp-list-item-headline-color);
+	line-height: var(--md-sys-typescale-body-large-line-height);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Three-line: headline may wrap to accommodate overline + supporting */
+.md-list-item--three-line .md-list-item__headline {
+	white-space: normal;
+}
+
+/* --- Supporting text --- */
+
+.md-list-item__supporting {
+	font-family: var(--md-comp-list-item-supporting-font);
+	font-size: var(--md-comp-list-item-supporting-size);
+	font-weight: var(--md-comp-list-item-supporting-weight);
+	letter-spacing: var(--md-comp-list-item-supporting-tracking);
+	color: var(--md-comp-list-item-supporting-color);
+	line-height: var(--md-sys-typescale-body-medium-line-height);
+
+	/* One-line clamp for two-line items */
+	display: -webkit-box;
+	-webkit-line-clamp: 1;
+	line-clamp: 1;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Three-line: supporting can wrap to two lines */
+.md-list-item--three-line .md-list-item__supporting {
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+}
+
+/* =============================================================================
+   TRAILING SLOT
+   ============================================================================= */
+
+.md-list-item__trailing {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	gap: 8px;
+}
+
+/* Three-line: trailing aligns to the top */
+.md-list-item--three-line .md-list-item__trailing {
+	align-self: flex-start;
+	padding-top: 4px;
+}
+
+/* --- Trailing supporting text (metadata label) --- */
+
+.md-list-item__trailing-text {
+	font-family: var(--md-comp-list-item-trailing-text-font);
+	font-size: var(--md-comp-list-item-trailing-text-size);
+	font-weight: var(--md-comp-list-item-trailing-text-weight);
+	letter-spacing: var(--md-comp-list-item-trailing-text-tracking);
+	color: var(--md-comp-list-item-trailing-text-color);
+	white-space: nowrap;
+}
