@@ -25,6 +25,17 @@ export const VisitUpdateSchema = VisitSchema.omit({
 	updated_at: true
 }).partial();
 
+export const VisitWithUserSchema = VisitSchema.extend({
+	discord_handle: z.string().nullable(),
+	avatar_url: z.string().nullable(),
+	photo_urls: z
+		.string()
+		.array()
+		.nullish()
+		.transform((v) => v ?? [])
+});
+
 export type Visit = z.infer<typeof VisitSchema>;
+export type VisitWithUser = z.infer<typeof VisitWithUserSchema>;
 export type VisitInsert = z.infer<typeof VisitInsertSchema>;
 export type VisitUpdate = z.infer<typeof VisitUpdateSchema>;
