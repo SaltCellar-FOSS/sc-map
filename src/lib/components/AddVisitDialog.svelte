@@ -15,6 +15,7 @@
 			review: string;
 			photos: File[];
 			googlePlaceId: Place['google_place_id'];
+			visitDate?: string;
 		}) => void;
 	};
 
@@ -22,6 +23,7 @@
 
 	let rating = $state(0);
 	let review = $state('');
+	let visitDate = $state<string | undefined>(undefined);
 	let photos = $state<File[]>([]);
 	let photoUrls = $state<string[]>([]);
 	let fileInput = $state<HTMLInputElement | null>(null);
@@ -39,6 +41,7 @@
 
 	function handleClose() {
 		submitted = false;
+		visitDate = undefined;
 		onclose?.();
 		open = false;
 	}
@@ -46,7 +49,7 @@
 	function handlePost() {
 		submitted = true;
 		if (!isValid) return;
-		onadd?.({ rating, review, photos, googlePlaceId });
+		onadd?.({ rating, review, photos, googlePlaceId, visitDate });
 		handleClose();
 	}
 
@@ -86,6 +89,15 @@
 			errorText={reviewError}
 			maxlength={MAX_REVIEW_LENGTH}
 			class="review-field"
+		/>
+
+		<!-- Visit date -->
+		<TextField
+			variant="outlined"
+			type="date"
+			label="Date visited"
+			bind:value={visitDate}
+			class="date-field"
 		/>
 
 		<!-- Add photos button -->
@@ -148,6 +160,10 @@
 	}
 
 	:global(.review-field) {
+		width: 100%;
+	}
+
+	:global(.date-field) {
 		width: 100%;
 	}
 

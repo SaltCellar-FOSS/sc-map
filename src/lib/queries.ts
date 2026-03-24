@@ -9,11 +9,13 @@ export function submitPlaceOptions(queryClient: QueryClient) {
 			review: string;
 			photos: File[];
 			googlePlaceId: Place['google_place_id'];
+			visitDate?: string;
 		}) => {
 			const formData = new FormData();
 			formData.append('googlePlaceId', data.googlePlaceId);
 			formData.append('rating', String(data.rating));
 			formData.append('review', data.review);
+			if (data.visitDate) formData.append('visitDate', data.visitDate);
 			for (const photo of data.photos) {
 				formData.append('photos', photo);
 			}

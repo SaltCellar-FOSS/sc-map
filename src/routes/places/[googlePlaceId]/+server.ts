@@ -20,6 +20,7 @@ const CreatePlacePayloadSchema = z.object({
 	visit: z.object({
 		rating: z.coerce.number().min(1).max(5),
 		review: z.string().min(1),
+		visitDate: z.iso.date().optional(),
 		photos: z
 			.file()
 			.refine((f) => f.size < 5_000_000, 'Max 5MB per photo')
@@ -42,6 +43,7 @@ export const POST: RequestHandler = async ({ request, params, cookies }) => {
 		visit: {
 			rating: formData.get('rating'),
 			review: formData.get('review'),
+			visitDate: formData.get('visitDate') ?? undefined,
 			photos: formData.getAll('photos')
 		}
 	});
@@ -79,7 +81,7 @@ export const POST: RequestHandler = async ({ request, params, cookies }) => {
 					user_id: userId,
 					rating: visit.rating,
 					summary: visit.review,
-					visited_at: new Date().toISOString().slice(0, 10)
+					visited_at: visit.visitDate ?? new Date().toISOString().slice(0, 10)
 				},
 				tx
 			);

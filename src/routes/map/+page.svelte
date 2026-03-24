@@ -5,7 +5,7 @@
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
 	import { isSavedPlace, type Place } from '$lib/schemas/place.js';
 	import CloseIcon from '$lib/icons/CloseIcon.svelte';
-	import AddPlaceDialog from '$lib/components/AddPlaceDialog.svelte';
+	import AddPlaceDialog from '$lib/components/AddVisitDialog.svelte';
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { searchPlacesOptions, submitPlaceOptions, placeVisitsOptions } from '$lib/queries';
 	import { invalidateAll } from '$app/navigation';

@@ -1,6 +1,6 @@
 <script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf';
-	import AddPlaceDialog from './AddPlaceDialog.svelte';
+	import AddVisitDialog from './AddVisitDialog.svelte';
 
 	const { Story } = defineMeta({
 		tags: ['autodocs'],
@@ -14,7 +14,7 @@
 <!-- Default: open with a place name -->
 
 <Story name="Default">
-	<AddPlaceDialog
+	<AddVisitDialog
 		open={true}
 		placeName="Franklin Barbecue"
 		googlePlaceId="ChIJ24EDAYllToYR34yWOv_et-A"
@@ -24,7 +24,7 @@
 <!-- Long place name -->
 
 <Story name="Long Place Name">
-	<AddPlaceDialog
+	<AddVisitDialog
 		open={true}
 		placeName="The Salt Lick BBQ – Driftwood, Texas"
 		googlePlaceId="ChIJN1t_tDeuEmsRUsoyG83frY4"

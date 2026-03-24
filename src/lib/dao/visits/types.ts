@@ -6,9 +6,9 @@ export const VisitSchema = z.object({
 	place_id: z.coerce.bigint(),
 	summary: z.string(),
 	rating: z.number().min(1).max(5).nullable(),
-	visited_at: z.date(),
-	created_at: z.date(),
-	updated_at: z.date()
+	visited_at: z.coerce.date(),
+	created_at: z.coerce.date(),
+	updated_at: z.coerce.date()
 });
 
 export const VisitInsertSchema = VisitSchema.omit({
