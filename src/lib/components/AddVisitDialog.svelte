@@ -3,6 +3,7 @@
 	import Button from './ui/button/Button.svelte';
 	import TextField from './ui/text-field/TextField.svelte';
 	import StarRating from './ui/star-rating/StarRating.svelte';
+	import { enhance } from '$app/forms';
 	import type { Place } from '$lib/schemas/place';
 
 	type Props = {
@@ -71,7 +72,9 @@
 
 <Dialog {open} onclose={handleClose} class="add-visit-dialog">
 	{#snippet headline()}{placeName}{/snippet}
-	<form class="dialog-body" method="POST" action="/map?/savePlace">
+	<form use:enhance class="dialog-body" method="POST" action="/map?/addVisit">
+		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
+		<input type="hidden" name="rating" value={rating} />
 		<div class="rating-field">
 			<StarRating bind:value={rating} />
 			{#if ratingError}
@@ -83,6 +86,7 @@
 		<TextField
 			variant="outlined"
 			type="textarea"
+			name="review"
 			placeholder="Tell others about your experience"
 			rows={6}
 			bind:value={review}
@@ -95,6 +99,7 @@
 		<TextField
 			variant="outlined"
 			type="date"
+			name="visitDate"
 			supportingText="Date visited"
 			aria-label="Date visited"
 			bind:value={visitDate}
