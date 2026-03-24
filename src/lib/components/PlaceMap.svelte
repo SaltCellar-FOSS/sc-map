@@ -6,19 +6,21 @@
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { type CategoryConfig } from './types';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
-	import { getSelectedPlaceContext } from '$lib/contexts/selected-location.svelte';
+	import type { Place } from '$lib/schemas/search';
 
 	let {
 		categories,
 		places,
-		onaddtolist
+		selectedPlace,
+		onaddtolist,
+		onplacechange
 	}: {
 		categories: Record<SavedPlace['type'], CategoryConfig>;
 		places: SavedPlace[];
-		onaddtolist?: (placeId: string) => void;
+		selectedPlace: Place | null;
+		onaddtolist: (placeId: string) => void;
+		onplacechange: (place: Place | null) => void;
 	} = $props();
-
-	const ctx = getSelectedPlaceContext();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass: typeof google.maps.InfoWindow | null = $state(null);
@@ -36,11 +38,11 @@
 	}
 
 	$effect(() => {
-		if (map === null || ctx.selectedPlace === null) {
+		if (map === null || selectedPlace === null) {
 			return;
 		}
 
-		map.panTo(ctx.selectedPlace);
+		map.panTo(selectedPlace);
 		map.setZoom(15);
 	});
 
@@ -49,15 +51,13 @@
 			map === null ||
 			InfoWindowClass === null ||
 			AdvancedMarkerClass === null ||
-			ctx.selectedPlace === null
+			selectedPlace === null
 		) {
 			clearSelectedPin();
 			return;
 		}
 
-		const isSavedPlace = places.some(
-			(p) => p.google_place_id === ctx.selectedPlace!.google_place_id
-		);
+		const isSavedPlace = places.some((p) => p.google_place_id === selectedPlace!.google_place_id);
 		if (isSavedPlace) {
 			clearSelectedPin();
 			return;
@@ -65,19 +65,19 @@
 
 		clearSelectedPin();
 		selectedPin = new AdvancedMarkerClass({
-			position: { lat: ctx.selectedPlace.lat, lng: ctx.selectedPlace.lng },
+			position: { lat: selectedPlace.lat, lng: selectedPlace.lng },
 			map,
-			title: ctx.selectedPlace.name
+			title: selectedPlace.name
 		});
 
 		const iw = new InfoWindowClass({
-			position: { lat: ctx.selectedPlace.lat, lng: ctx.selectedPlace.lng },
+			position: { lat: selectedPlace.lat, lng: selectedPlace.lng },
 			content: `
 				<div style="max-width: 200px; color: #000">
-					<strong>${ctx.selectedPlace.name}</strong><br />
-					${ctx.selectedPlace.formatted_address}<br />
+					<strong>${selectedPlace.name}</strong><br />
+					${selectedPlace.formatted_address}<br />
 					<button
-						data-place-id="${ctx.selectedPlace.google_place_id}"
+						data-place-id="${selectedPlace.google_place_id}"
 						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
 					>
 						Add to list
@@ -87,12 +87,12 @@
 		});
 		iw.addListener('domready', () => {
 			document
-				.querySelector<HTMLButtonElement>(`[data-place-id="${ctx.selectedPlace!.google_place_id}"]`)
-				?.addEventListener('click', () => onaddtolist?.(ctx.selectedPlace!.google_place_id));
+				.querySelector<HTMLButtonElement>(`[data-place-id="${selectedPlace!.google_place_id}"]`)
+				?.addEventListener('click', () => onaddtolist(selectedPlace!.google_place_id));
 		});
 		iw.addListener('closeclick', () => {
 			clearSelectedPin();
-			ctx.selectedPlace = null;
+			onplacechange?.(null);
 		});
 		currentInfoWindow?.close();
 		currentInfoWindow = iw;
@@ -125,7 +125,7 @@
 				currentInfoWindow?.close();
 				currentInfoWindow = null;
 				clearSelectedPin();
-				ctx.selectedPlace = null;
+				onplacechange?.(null);
 				return;
 			}
 
@@ -136,13 +136,13 @@
 				fields: ['displayName', 'formattedAddress', 'location']
 			});
 
-			ctx.selectedPlace = {
+			onplacechange?.({
 				name: place.displayName ?? '',
 				lat: place.location?.lat() ?? 0,
 				lng: place.location?.lng() ?? 0,
 				formatted_address: place.formattedAddress ?? '',
 				google_place_id: event.placeId
-			};
+			});
 		});
 	});
 </script>
@@ -155,7 +155,7 @@
 			{map}
 			{place}
 			visible={true}
-			onclick={(savedPlace) => (ctx.selectedPlace = savedPlace)}
+			onclick={(savedPlace) => onplacechange(savedPlace)}
 			categoryConfig={categories[place.type]}
 		/>
 	{/each}

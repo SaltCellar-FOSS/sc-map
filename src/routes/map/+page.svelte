@@ -3,19 +3,17 @@
 	import { CATEGORIES } from '$lib/categories';
 	import SearchView from '$lib/components/ui/search-view/SearchView.svelte';
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
-	import List from '$lib/components/ui/list/List.svelte';
-	import ListItem from '$lib/components/ui/list/ListItem.svelte';
-	import { setSelectedPlaceContext } from '$lib/contexts/selected-location.svelte.js';
+	import type { Place } from '$lib/schemas/search';
 	import CloseIcon from '$lib/icons/CloseIcon.svelte';
 	import AddPlaceDialog from '$lib/components/AddPlaceDialog.svelte';
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { searchPlacesOptions, submitPlaceOptions } from '$lib/queries';
 	import { invalidateAll } from '$app/navigation';
-
-	let ctx = setSelectedPlaceContext();
+	import SearchResults from '$lib/components/SearchResults.svelte';
 
 	let { data } = $props();
 
+	let selectedPlace = $state<Place | null>(null);
 	let searchValue = $state('');
 	let debouncedSearch = $state('');
 	let dialogOpen = $state(false);
@@ -45,7 +43,13 @@
 </script>
 
 <div class="map-root">
-	<PlaceMap categories={CATEGORIES} places={data.places} onaddtolist={() => (dialogOpen = true)} />
+	<PlaceMap
+		categories={CATEGORIES}
+		places={data.places}
+		{selectedPlace}
+		onaddtolist={() => (dialogOpen = true)}
+		onplacechange={(place) => (selectedPlace = place)}
+	/>
 </div>
 
 <div class="controls">
@@ -58,14 +62,14 @@
 				aria-expanded={open}
 			>
 				{#snippet trailingIcons()}
-					{#if ctx.selectedPlace !== null}
+					{#if selectedPlace !== null}
 						<button
 							class="md-search-view__icon-btn"
 							aria-label="Clear"
 							type="button"
 							onclick={() => {
 								searchValue = '';
-								ctx.selectedPlace = null;
+								selectedPlace = null;
 							}}
 						>
 							<CloseIcon />
@@ -76,32 +80,23 @@
 		{/snippet}
 
 		{#snippet results({ close })}
-			<List as="div" noPadding>
-				{#each searchQuery.data ?? [] as place (place.google_place_id)}
-					<ListItem
-						type="button"
-						role="option"
-						aria-selected="false"
-						onclick={() => {
-							ctx.selectedPlace = place;
-							close();
-							searchValue = place.name;
-						}}
-					>
-						{place.name}
-						{#snippet supporting()}{place.formatted_address}{/snippet}
-					</ListItem>
-				{/each}
-			</List>
+			<SearchResults
+				places={searchQuery.data ?? []}
+				onlistitemclick={(place) => {
+					selectedPlace = place;
+					close();
+					searchValue = place.name;
+				}}
+			/>
 		{/snippet}
 	</SearchView>
 </div>
 
-{#if ctx.selectedPlace}
+{#if selectedPlace}
 	<AddPlaceDialog
 		open={dialogOpen}
-		placeName={ctx.selectedPlace.name}
-		googlePlaceId={ctx.selectedPlace.google_place_id}
+		placeName={selectedPlace.name}
+		googlePlaceId={selectedPlace.google_place_id}
 		onadd={handleSubmit}
 	></AddPlaceDialog>
 {/if}
