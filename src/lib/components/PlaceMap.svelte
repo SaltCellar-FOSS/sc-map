@@ -139,6 +139,13 @@
 		currentInfoWindow.open({ map, anchor: currentMarker });
 	};
 
+	$effect(() => {
+		if (map && selectedPlace) {
+			map.panTo({ lat: selectedPlace.lat, lng: selectedPlace.lng });
+			map.setZoom(15);
+		}
+	});
+
 	let mapEl: HTMLDivElement;
 
 	onMount(async () => {
