@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import type { User } from '$lib/dao/users/types';
+import type { User } from '$lib/server/dao/users/types';
 
 export async function requireAccess(parent: () => Promise<{ user: User | null }>): Promise<User> {
 	const { user } = await parent();

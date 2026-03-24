@@ -2,8 +2,8 @@ import { sql } from '$lib/db';
 import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
 import type { VisitInsert } from './types';
 import { VisitsDao, InvalidRatingError, VisitNotFoundError } from '.';
-import { UsersDao } from '$lib/dao/users';
-import { SavedPlacesDao } from '$lib/dao/saved-places';
+import { UsersDao } from '$lib/server/dao/users';
+import { SavedPlacesDao } from '$lib/server/dao/saved-places';
 
 describe('Integration', () => {
 	let visitsDao: VisitsDao;

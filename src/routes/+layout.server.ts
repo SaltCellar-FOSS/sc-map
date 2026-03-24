@@ -1,8 +1,9 @@
 import type { LayoutServerLoad } from './$types';
 import { sql } from '$lib/db';
-import { UsersDao, UserNotFoundError } from '$lib/dao/users';
-import type { User } from '$lib/dao/users/types';
 import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
+import { UserNotFoundError } from '$lib/server/dao/saved-places';
+import { UsersDao } from '$lib/server/dao/users';
+import type { User } from '$lib/server/dao/users/types';
 
 const usersDao = new UsersDao(sql);
 

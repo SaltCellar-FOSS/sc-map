@@ -43,7 +43,6 @@
 	"dependencies": {
 		"@googlemaps/js-api-loader": "^2.0.2",
 		"@storybook/addon-svelte-csf": "^5.0.12",
-		"@tanstack/svelte-query": "^6.1.1",
 		"zod": "^4.3.6"
 	}
 }

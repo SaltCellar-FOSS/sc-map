@@ -8,7 +8,7 @@ import {
 	UserNotFoundError,
 	SavedPlaceNotFoundError
 } from '.';
-import { UsersDao } from '$lib/dao/users';
+import { UsersDao } from '$lib/server/dao/users';
 
 describe('Integration', () => {
 	let dao: SavedPlacesDao;

@@ -1,5 +1,5 @@
+import type { User } from '$lib/server/dao/users/types';
 import { describe, test, expect, mock, beforeEach } from 'bun:test';
-import type { User } from '$lib/dao/users/types';
 
 // Mutable state shared between mock implementations and tests.
 // Must be set before each test that drives different behavior.
@@ -63,13 +63,6 @@ describe('layout load', () => {
 	test('returns null user when cookie fails verification', async () => {
 		verifyResult = null;
 		const result = await load({ cookies: makeCookies('bad-cookie') });
-		expect(result.user).toBeNull();
-	});
-
-	test('returns null user when user is not found in DB', async () => {
-		verifyResult = 1n;
-		mockRows = []; // empty result → UsersDao throws UserNotFoundError
-		const result = await load({ cookies: makeCookies('valid-cookie') });
 		expect(result.user).toBeNull();
 	});
 

@@ -6,7 +6,7 @@
 	import type { Place } from '$lib/schemas/place';
 
 	type Props = {
-		open?: boolean;
+		open: boolean;
 		placeName: string;
 		googlePlaceId: string;
 		onclose?: () => void;
@@ -23,7 +23,7 @@
 
 	let rating = $state(0);
 	let review = $state('');
-	let visitDate = $state<string | undefined>(undefined);
+	let visitDate = $state<string>('');
 	let photos = $state<File[]>([]);
 	let photoUrls = $state<string[]>([]);
 	let fileInput = $state<HTMLInputElement | null>(null);
@@ -41,7 +41,7 @@
 
 	function handleClose() {
 		submitted = false;
-		visitDate = undefined;
+		visitDate = '';
 		onclose?.();
 		open = false;
 	}
@@ -69,9 +69,9 @@
 	}
 </script>
 
-<Dialog bind:open {onclose} class="add-visit-dialog">
+<Dialog {open} onclose={handleClose} class="add-visit-dialog">
 	{#snippet headline()}{placeName}{/snippet}
-	<div class="dialog-body">
+	<form class="dialog-body" method="POST" action="/map?/savePlace">
 		<div class="rating-field">
 			<StarRating bind:value={rating} />
 			{#if ratingError}
@@ -95,7 +95,8 @@
 		<TextField
 			variant="outlined"
 			type="date"
-			label="Date visited"
+			supportingText="Date visited"
+			aria-label="Date visited"
 			bind:value={visitDate}
 			class="date-field"
 		/>
@@ -142,12 +143,14 @@
 				{/each}
 			</div>
 		{/if}
-	</div>
 
-	{#snippet actions()}
-		<Button variant="text" onclick={handleClose}>Cancel</Button>
-		<Button variant="text" onclick={handlePost} disabled={submitted && !isValid}>Post</Button>
-	{/snippet}
+		<div class="md-dialog__actions">
+			<Button variant="text" onclick={handleClose}>Cancel</Button>
+			<Button variant="text" onclick={handlePost} disabled={submitted && !isValid} type="submit"
+				>Post</Button
+			>
+		</div>
+	</form>
 </Dialog>
 
 <style>

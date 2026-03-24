@@ -1,8 +1,8 @@
 import { sql } from '$lib/db';
-import { UsersDao } from '$lib/dao/users';
+import { UsersDao } from '$lib/server/dao/users';
 import { discordUserToInsert, type DiscordUser, type GuildMember } from '$lib/server/discord';
 import { env } from '$env/dynamic/private';
-import type { User } from '$lib/dao/users/types';
+import type { User } from '$lib/server/dao/users/types';
 
 const { DISCORD_GOATED_ROLE_ID } = env;
 

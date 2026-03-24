@@ -14,7 +14,7 @@ import {
 } from '$lib/server/discord';
 import { createSessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { SESSION_COOKIE_MAX_AGE_SECONDS } from '$lib/server/constants';
-import { upsertDiscordUser } from '$lib/services/auth';
+import { upsertDiscordUser } from '$lib/server/services/auth';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');

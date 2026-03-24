@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { importLibrary } from '@googlemaps/js-api-loader';
-	import { type SavedPlace } from '$lib/dao/saved-places/types';
+	import { type SavedPlace } from '$lib/server/dao/saved-places/types';
 	import type { CategoryConfig } from './types';
 
 	type Props = {
