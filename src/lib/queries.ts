@@ -1,14 +1,31 @@
-import { mutationOptions } from '@tanstack/svelte-query';
-import { queryOptions } from '@tanstack/svelte-query';
-import { PlaceSchema } from '$lib/schemas/search';
+import { mutationOptions, queryOptions, type QueryClient } from '@tanstack/svelte-query';
+import { PlaceSchema, type Place } from '$lib/schemas/search';
 
-export const addPlaceOptions = mutationOptions({
-	mutationFn: async (googlePlaceId: string) => {
-		const res = await fetch(`/places/${googlePlaceId}`, { method: 'POST' });
-		if (!res.ok) throw new Error(await res.text());
-		return res.json();
-	}
-});
+export function submitPlaceOptions(queryClient: QueryClient) {
+	return mutationOptions({
+		mutationFn: async (data: {
+			rating: number;
+			review: string;
+			photos: File[];
+			googlePlaceId: Place['google_place_id'];
+		}) => {
+			const formData = new FormData();
+			formData.append('googlePlaceId', data.googlePlaceId);
+			formData.append('rating', String(data.rating));
+			formData.append('review', data.review);
+			for (const photo of data.photos) {
+				formData.append('photos', photo);
+			}
+			const res = await fetch(`/places/${data.googlePlaceId}`, {
+				method: 'POST',
+				body: formData
+			});
+			if (!res.ok) throw new Error(await res.text());
+			return res.json();
+		},
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['places'] })
+	});
+}
 
 export function searchPlacesOptions(query: string) {
 	return queryOptions({

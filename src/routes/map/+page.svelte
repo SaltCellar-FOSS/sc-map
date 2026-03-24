@@ -5,56 +5,42 @@
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
 	import List from '$lib/components/ui/list/List.svelte';
 	import ListItem from '$lib/components/ui/list/ListItem.svelte';
-	import { type Place } from '$lib/schemas/search';
 	import { setSelectedPlaceContext } from '$lib/contexts/selected-location.svelte.js';
 	import CloseIcon from '$lib/icons/CloseIcon.svelte';
 	import AddPlaceDialog from '$lib/components/AddPlaceDialog.svelte';
+	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
+	import { searchPlacesOptions, submitPlaceOptions } from '$lib/queries';
+	import { invalidateAll } from '$app/navigation';
 
 	let ctx = setSelectedPlaceContext();
 
 	let { data } = $props();
 
 	let searchValue = $state('');
-	let searchResults = $state<Place[]>([]);
+	let debouncedSearch = $state('');
 	let dialogOpen = $state(false);
 
 	$effect(() => {
 		const q = searchValue;
 		if (!q) {
-			searchResults = [];
+			debouncedSearch = '';
 			return;
 		}
-		const timer = setTimeout(async () => {
-			const res = await fetch(`/places/search?q=${encodeURIComponent(q)}`);
-			if (res.ok) {
-				searchResults = await res.json();
-			}
+		const timer = setTimeout(() => {
+			debouncedSearch = q;
 		}, 500);
 		return () => clearTimeout(timer);
 	});
 
-	const handleSubmit = async (data: {
-		rating: number;
-		review: string;
-		photos: File[];
-		googlePlaceId: Place['google_place_id'];
-	}) => {
-		const formData = new FormData();
-		formData.append('googlePlaceId', data.googlePlaceId);
-		formData.append('rating', String(data.rating));
-		formData.append('review', data.review);
-		for (const photo of data.photos) {
-			formData.append('photos', photo);
-		}
+	const searchQuery = createQuery(() => searchPlacesOptions(debouncedSearch));
 
-		const res = await fetch(`/places/${data.googlePlaceId}`, {
-			method: 'POST',
-			body: formData
-		});
+	const queryClient = useQueryClient();
+	const submitMutation = createMutation(() => submitPlaceOptions(queryClient));
 
-		if (res.ok) {
-			dialogOpen = false;
-		}
+	const handleSubmit = async (submitData: Parameters<typeof submitMutation.mutateAsync>[0]) => {
+		await submitMutation.mutateAsync(submitData);
+		await invalidateAll();
+		dialogOpen = false;
 	};
 </script>
 
@@ -91,7 +77,7 @@
 
 		{#snippet results({ close })}
 			<List as="div" noPadding>
-				{#each searchResults as place (place.google_place_id)}
+				{#each searchQuery.data ?? [] as place (place.google_place_id)}
 					<ListItem
 						type="button"
 						role="option"
