@@ -6,7 +6,7 @@
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { type CategoryConfig } from './types';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
-	import type { Place } from '$lib/schemas/search';
+	import type { Place } from '$lib/schemas/place';
 
 	let {
 		categories,

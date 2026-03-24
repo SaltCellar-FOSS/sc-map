@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Place } from '$lib/schemas/search';
+	import type { Place } from '$lib/schemas/place';
 	import List from './ui/list/List.svelte';
 	import ListItem from './ui/list/ListItem.svelte';
 

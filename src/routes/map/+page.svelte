@@ -3,7 +3,7 @@
 	import { CATEGORIES } from '$lib/categories';
 	import SearchView from '$lib/components/ui/search-view/SearchView.svelte';
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
-	import type { Place } from '$lib/schemas/search';
+	import { isSavedPlace, type Place } from '$lib/schemas/place.js';
 	import CloseIcon from '$lib/icons/CloseIcon.svelte';
 	import AddPlaceDialog from '$lib/components/AddPlaceDialog.svelte';
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
@@ -92,7 +92,7 @@
 	</SearchView>
 </div>
 
-{#if selectedPlace}
+{#if selectedPlace && !isSavedPlace(selectedPlace)}
 	<AddPlaceDialog
 		open={dialogOpen}
 		placeName={selectedPlace.name}

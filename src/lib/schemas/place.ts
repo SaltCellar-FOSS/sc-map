@@ -12,6 +12,6 @@ export const PlaceSchema = z.union([SavedPlaceSchema, BasePlaceSchema]);
 
 export type Place = z.infer<typeof PlaceSchema>;
 
-export const isSavedPlace = (searchResult: Place): searchResult is SavedPlace => {
-	return 'id' in searchResult;
+export const isSavedPlace = (place: Place): place is SavedPlace => {
+	return 'id' in place;
 };

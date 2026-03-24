@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions, type QueryClient } from '@tanstack/svelte-query';
-import { PlaceSchema, type Place } from '$lib/schemas/search';
+import { PlaceSchema, type Place } from '$lib/schemas/place';
 
 export function submitPlaceOptions(queryClient: QueryClient) {
 	return mutationOptions({

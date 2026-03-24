@@ -3,7 +3,7 @@ import { SavedPlacesDao } from '$lib/dao/saved-places';
 import { sql } from '$lib/db';
 import { searchGooglePlaces, inferPlaceType } from '$lib/server/google-places';
 import { jsonResponse } from '$lib/server/response';
-import { type Place } from '$lib/schemas/search';
+import { type Place } from '$lib/schemas/place';
 
 const placesDao = new SavedPlacesDao(sql);
 

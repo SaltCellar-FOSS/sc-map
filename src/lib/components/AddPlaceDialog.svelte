@@ -3,7 +3,7 @@
 	import Button from './ui/button/Button.svelte';
 	import TextField from './ui/text-field/TextField.svelte';
 	import StarRating from './ui/star-rating/StarRating.svelte';
-	import type { Place } from '$lib/schemas/search';
+	import type { Place } from '$lib/schemas/place';
 
 	type Props = {
 		open?: boolean;
