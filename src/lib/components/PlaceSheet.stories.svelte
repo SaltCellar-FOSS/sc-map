@@ -60,13 +60,13 @@
 <!-- Default: open with visits -->
 
 <Story name="With Visits">
-	<PlaceSheet open={true} placeName="Franklin Barbecue" {visits} />
+	<PlaceSheet open={true} placeName="Franklin Barbecue" {visits} onaddvisit={() => {}} />
 </Story>
 
 <!-- Empty state -->
 
 <Story name="No Visits">
-	<PlaceSheet open={true} placeName="Franklin Barbecue" visits={[]} />
+	<PlaceSheet open={true} placeName="Franklin Barbecue" visits={[]} onaddvisit={() => {}} />
 </Story>
 
 <!-- Many visits to demonstrate scrolling -->
@@ -85,11 +85,17 @@
 			visited_at: new Date(2026, 2, 20 - i),
 			photo_urls: []
 		}))}
+		onaddvisit={() => {}}
 	/>
 </Story>
 
 <!-- Long place name -->
 
 <Story name="Long Place Name">
-	<PlaceSheet open={true} placeName="The Salt Lick BBQ – Driftwood, Texas" {visits} />
+	<PlaceSheet
+		open={true}
+		placeName="The Salt Lick BBQ – Driftwood, Texas"
+		{visits}
+		onaddvisit={() => {}}
+	/>
 </Story>

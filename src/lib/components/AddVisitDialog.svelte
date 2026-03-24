@@ -4,6 +4,7 @@
 	import TextField from './ui/text-field/TextField.svelte';
 	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
+	import type { ActionResult } from '@sveltejs/kit';
 	import type { Place } from '$lib/schemas/place';
 
 	type Props = {
@@ -11,6 +12,7 @@
 		placeName: string;
 		googlePlaceId: string;
 		onclose?: () => void;
+		onsuccess?: () => void;
 		onadd?: (data: {
 			rating: number;
 			review: string;
@@ -20,7 +22,23 @@
 		}) => void;
 	};
 
-	let { open = $bindable(false), placeName, googlePlaceId, onclose, onadd }: Props = $props();
+	let {
+		open = $bindable(false),
+		placeName,
+		googlePlaceId,
+		onclose,
+		onsuccess,
+		onadd
+	}: Props = $props();
+
+	function enhanceVisit() {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await update();
+			if (result.type === 'success') {
+				onsuccess?.();
+			}
+		};
+	}
 
 	let rating = $state(0);
 	let review = $state('');
@@ -72,7 +90,7 @@
 
 <Dialog {open} onclose={handleClose} class="add-visit-dialog">
 	{#snippet headline()}{placeName}{/snippet}
-	<form use:enhance class="dialog-body" method="POST" action="/map?/addVisit">
+	<form use:enhance={enhanceVisit} class="dialog-body" method="POST" action="/map?/addVisit">
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
 		<input type="hidden" name="rating" value={rating} />
 		<div class="rating-field">

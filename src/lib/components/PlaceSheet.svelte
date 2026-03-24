@@ -8,17 +8,17 @@
 		placeName: string;
 		visits: VisitWithUser[];
 		onclose?: () => void;
-		onwritereview?: () => void;
+		onaddvisit: () => void;
 	};
 
-	let { open = $bindable(false), placeName, visits, onclose, onwritereview }: Props = $props();
+	let { open = $bindable(false), placeName, visits, onclose, onaddvisit }: Props = $props();
 </script>
 
 <BottomSheet bind:open {onclose}>
 	<h2 class="place-name">{placeName}</h2>
 
 	<div class="action-bar">
-		<button class="icon-btn" aria-label="Write a review" onclick={onwritereview}>
+		<button class="icon-btn" aria-label="Write a review" onclick={onaddvisit}>
 			<svg viewBox="0 0 24 24" aria-hidden="true">
 				<path
 					d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"

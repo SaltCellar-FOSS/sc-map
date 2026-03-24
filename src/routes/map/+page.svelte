@@ -18,6 +18,7 @@
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
 	let showInfoWindow = $state<((place: Place) => void) | null>(null);
+	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
 
 	const searchIconPath =
 		'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z';
@@ -26,9 +27,21 @@
 		selectedPlace = place;
 		close();
 		if (isSavedPlace(place)) {
+			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
 		} else {
 			showInfoWindow?.(place);
+		}
+	}
+
+	function handleOnAddVisit() {
+		dialogOpen = true;
+	}
+
+	async function handleVisitAdded() {
+		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			await getVisitsForPlace(selectedPlace.id).refresh();
+			visitsResult = getVisitsForPlace(selectedPlace.id);
 		}
 	}
 </script>
@@ -49,6 +62,7 @@
 				return;
 			}
 
+			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
 		}}
 	/>
@@ -86,19 +100,30 @@
 	</SearchView>
 </div>
 
-{#if selectedPlace && !isSavedPlace(selectedPlace)}
+{#if selectedPlace}
 	<AddVisitDialog
 		bind:open={dialogOpen}
 		placeName={selectedPlace.name}
 		googlePlaceId={selectedPlace.google_place_id}
+		onsuccess={handleVisitAdded}
 	/>
 {/if}
 
-{#if selectedPlace && isSavedPlace(selectedPlace)}
-	{#await getVisitsForPlace(selectedPlace.id)}
-		<PlaceSheet placeName={selectedPlace.name} visits={[]} bind:open={sheetOpen} />
+{#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
+	{#await visitsResult}
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			visits={[]}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
 	{:then visits}
-		<PlaceSheet placeName={selectedPlace.name} {visits} bind:open={sheetOpen} />
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			{visits}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
 	{/await}
 {/if}
 
