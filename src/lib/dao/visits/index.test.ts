@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
-import type { Visit, VisitInsert } from './types';
+import type { Visit, VisitInsert, VisitWithUser } from './types';
 import { VisitsDao, VisitNotFoundError, DuplicateVisitError, InvalidRatingError } from '.';
 import { createMockSQL, createErrorSQL } from '../mock';
 
@@ -12,6 +12,13 @@ const visitRow: Visit = {
 	visited_at: new Date('2024-01-01'),
 	created_at: new Date('2024-01-01'),
 	updated_at: new Date('2024-01-01')
+};
+
+const visitWithUserRow: VisitWithUser = {
+	...visitRow,
+	discord_handle: 'testuser#0001',
+	avatar_url: 'https://cdn.example.com/avatar.png',
+	photo_urls: ['https://cdn.example.com/photo1.jpg'] as string[]
 };
 
 const visitInsert: VisitInsert = {
@@ -82,6 +89,29 @@ describe('VisitsDao', () => {
 			test('lists visits by place', async () => {
 				const visits = await dao.listVisitsByPlace(1n);
 				expect(visits).toHaveLength(1);
+			});
+		});
+	});
+
+	describe('listVisitsByPlaceWithUser', () => {
+		describe('success', () => {
+			let dao: VisitsDao;
+			beforeEach(() => {
+				dao = new VisitsDao(createMockSQL([visitWithUserRow]));
+			});
+
+			test('returns visits with user fields', async () => {
+				const visits = await dao.listVisitsByPlaceWithUser(1n);
+				expect(visits).toHaveLength(1);
+				expect(visits[0].discord_handle).toBe('testuser#0001');
+				expect(visits[0].avatar_url).toBe('https://cdn.example.com/avatar.png');
+				expect(visits[0].photo_urls).toEqual(['https://cdn.example.com/photo1.jpg']);
+			});
+
+			test('returns empty array when no visits', async () => {
+				const emptyDao = new VisitsDao(createMockSQL([]));
+				const visits = await emptyDao.listVisitsByPlaceWithUser(1n);
+				expect(visits).toHaveLength(0);
 			});
 		});
 	});

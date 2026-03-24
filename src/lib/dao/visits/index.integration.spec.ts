@@ -140,6 +140,54 @@ describe('Integration', () => {
 			});
 		});
 
+		describe('listVisitsByPlaceWithUser', () => {
+			test('returns visits joined with user data', async () => {
+				await visitsDao.insertVisit(getBaseInsert());
+				const visits = await visitsDao.listVisitsByPlaceWithUser(testPlaceId);
+				expect(visits).toHaveLength(1);
+				expect(visits[0].discord_handle).toBe('testuser#0001');
+				expect(visits[0].avatar_url).toBeNull();
+				expect(visits[0].summary).toBe('Great food!');
+			});
+
+			test('excludes visits for other places', async () => {
+				await visitsDao.insertVisit(getBaseInsert());
+				const otherPlace = await placesDao.insertSavedPlace({
+					name: 'Other Place',
+					lat: 40.0,
+					lng: -73.0,
+					formatted_address: '456 Other St, New York, NY 10002',
+					google_place_id: 'other_place_id_with_user',
+					type: 'BAR',
+					submitted_by: testUserId
+				});
+				await visitsDao.insertVisit({ ...getBaseInsert(), place_id: otherPlace.id });
+				const visits = await visitsDao.listVisitsByPlaceWithUser(testPlaceId);
+				expect(visits).toHaveLength(1);
+			});
+
+			test('aggregates photo_urls for visits with photos', async () => {
+				const visit = await visitsDao.insertVisit(getBaseInsert());
+				await sql`INSERT INTO visit_photos (visit_id, url) VALUES (${visit.id}, ${'https://cdn.example.com/photo1.jpg'})`;
+				await sql`INSERT INTO visit_photos (visit_id, url) VALUES (${visit.id}, ${'https://cdn.example.com/photo2.jpg'})`;
+				const visits = await visitsDao.listVisitsByPlaceWithUser(testPlaceId);
+				expect(visits[0].photo_urls).toHaveLength(2);
+				expect(visits[0].photo_urls).toContain('https://cdn.example.com/photo1.jpg');
+				expect(visits[0].photo_urls).toContain('https://cdn.example.com/photo2.jpg');
+			});
+
+			test('returns empty photo_urls when visit has no photos', async () => {
+				await visitsDao.insertVisit(getBaseInsert());
+				const visits = await visitsDao.listVisitsByPlaceWithUser(testPlaceId);
+				expect(visits[0].photo_urls).toEqual([]);
+			});
+
+			test('returns empty array when no visits exist for place', async () => {
+				const visits = await visitsDao.listVisitsByPlaceWithUser(testPlaceId);
+				expect(visits).toHaveLength(0);
+			});
+		});
+
 		describe('listVisitsByPlace', () => {
 			test('lists visits for a specific place', async () => {
 				await visitsDao.insertVisit(getBaseInsert());
