@@ -384,7 +384,8 @@
 }
 
 .md-tf--populated .md-tf__input::placeholder,
-.md-tf .md-tf__input:focus::placeholder {
+.md-tf .md-tf__input:focus::placeholder,
+.md-tf--no-label .md-tf__input::placeholder {
 	opacity: 1;
 }
 
@@ -424,16 +425,6 @@ textarea.md-tf__input {
 		var(--md-comp-tf-outlined-padding-block) - var(--md-comp-outlined-tf-outline-width)
 	);
 	/* Adjust for focus (thicker border) */
-}
-
-.md-tf--outlined:focus-within .md-tf__field-wrap,
-.md-tf--outlined.md-tf--error .md-tf__field-wrap {
-	padding-inline: calc(
-		var(--md-comp-tf-padding-inline) - var(--md-comp-outlined-tf-focus-outline-width)
-	);
-	padding-block: calc(
-		var(--md-comp-tf-outlined-padding-block) - var(--md-comp-outlined-tf-focus-outline-width)
-	);
 }
 
 /* =============================================================================
