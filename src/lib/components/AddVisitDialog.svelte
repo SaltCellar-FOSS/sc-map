@@ -88,8 +88,8 @@
 	}
 </script>
 
-<Dialog {open} onclose={handleClose} class="add-visit-dialog">
-	{#snippet headline()}{placeName}{/snippet}
+<Dialog {open} onclose={handleClose}>
+	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
 	<form use:enhance={enhanceVisit} class="dialog-body" method="POST" action="/map?/addVisit">
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
 		<input type="hidden" name="rating" value={rating} />
@@ -101,40 +101,44 @@
 		</div>
 
 		<!-- Review textarea -->
-		<TextField
-			variant="outlined"
-			type="textarea"
-			name="review"
-			placeholder="Tell others about your experience"
-			rows={6}
-			bind:value={review}
-			errorText={reviewError}
-			maxlength={MAX_REVIEW_LENGTH}
-			class="review-field"
-		/>
+		<div class="field-row">
+			<TextField
+				variant="outlined"
+				type="textarea"
+				name="review"
+				placeholder="Tell others about your experience"
+				rows={6}
+				bind:value={review}
+				errorText={reviewError}
+				maxlength={MAX_REVIEW_LENGTH}
+			/>
+		</div>
 
 		<!-- Visit date -->
-		<TextField
-			variant="outlined"
-			type="date"
-			name="visitDate"
-			supportingText="Date visited"
-			aria-label="Date visited"
-			bind:value={visitDate}
-			class="date-field"
-		/>
+		<div class="field-row">
+			<TextField
+				variant="outlined"
+				type="date"
+				name="visitDate"
+				supportingText="Date visited"
+				aria-label="Date visited"
+				bind:value={visitDate}
+			/>
+		</div>
 
 		<!-- Add photos button -->
-		<Button variant="tonal" class="add-photos-btn" onclick={() => fileInput?.click()}>
-			{#snippet icon()}
-				<svg class="md-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-					<path
-						d="M18 10.48V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4.48l4 3.98v-11l-4 3.98zm-2-.79V18H4V6h12v3.69z"
-					/>
-				</svg>
-			{/snippet}
-			Add photos &amp; videos
-		</Button>
+		<div class="photos-row">
+			<Button variant="tonal" onclick={() => fileInput?.click()}>
+				{#snippet icon()}
+					<svg class="md-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M18 10.48V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4.48l4 3.98v-11l-4 3.98zm-2-.79V18H4V6h12v3.69z"
+						/>
+					</svg>
+				{/snippet}
+				Add photos &amp; videos
+			</Button>
+		</div>
 
 		<input
 			bind:this={fileInput}
@@ -177,25 +181,17 @@
 </Dialog>
 
 <style>
-	:global(.add-visit-dialog) {
-		width: min(560px, 100%);
-	}
-
-	:global(.add-visit-dialog .md-dialog__headline) {
+	.headline-centered {
+		display: block;
 		text-align: center;
 	}
 
-	:global(.review-field) {
+	.field-row {
 		width: 100%;
 	}
 
-	:global(.date-field) {
-		width: 100%;
-	}
-
-	:global(.add-photos-btn) {
-		width: 100%;
-		margin-top: 12px;
+	.photos-row {
+		display: grid;
 	}
 
 	.photo-strip {

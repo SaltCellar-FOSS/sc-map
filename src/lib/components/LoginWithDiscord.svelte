@@ -26,37 +26,42 @@
 		align-items: center;
 		justify-content: center;
 		min-height: 100vh;
-		background-color: var(--color-surface-page);
+		background-color: var(--md-sys-color-surface);
 	}
 
 	.login-button {
 		display: flex;
 		align-items: center;
-		background-color: var(--color-surface);
-		border: 1px solid var(--color-outline-login);
-		border-radius: var(--radius-md);
-		box-shadow: var(--shadow-button);
-		padding: var(--space-2) var(--space-6);
-		font-size: var(--text-md);
+		background-color: var(--md-sys-color-surface-container);
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: var(--md-sys-shape-corner-medium);
+		box-shadow: var(--md-sys-elevation-level1-shadow);
+		padding: 8px 24px;
+		font-size: var(--md-sys-typescale-label-large-size);
 		font-weight: 500;
-		color: var(--color-login-text);
+		color: var(--md-sys-color-on-surface);
 		cursor: pointer;
-		transition: background-color var(--duration-fast);
+		transition: background-color
+			calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4));
 	}
 
 	.login-button:hover {
-		background-color: var(--color-login-hover);
+		background-color: color-mix(
+			in srgb,
+			var(--md-sys-color-on-surface) 8%,
+			var(--md-sys-color-surface-container)
+		);
 	}
 
 	.login-button:focus {
-		outline: none;
-		box-shadow: var(--shadow-focus-ring);
+		outline: 3px solid var(--md-sys-color-primary);
+		outline-offset: 2px;
 	}
 
 	.discord-icon {
 		display: flex;
 		width: 1.5rem;
 		height: 1.5rem;
-		margin-right: var(--space-2);
+		margin-right: 8px;
 	}
 </style>
