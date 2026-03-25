@@ -1,0 +1,357 @@
+@import '../../../styles/tokens/components/button-group.css';
+
+/* =============================================================================
+   MATERIAL DESIGN 3 — BUTTON GROUP COMPONENT CSS
+
+   Self-contained: imports its own Layer 3 component tokens.
+   Requires --md-sys-* tokens to already be in the cascade (theme.css).
+
+   Two layout variants:
+     .md-btn-group--connected   2px gaps, outer pill corners, inner small corners
+     .md-btn-group--standard    0px gaps, shared borders, only end corners rounded
+
+   Toggle variants (applied to .md-btn-group):
+     .md-btn-group--single      radio behaviour (one selected)
+     .md-btn-group--multi       checkbox behaviour (any selected)
+     (no class)                 non-toggle: all items are regular action buttons
+
+   Button item structure (inside the group):
+     .md-btn-group__item        the button element (button or a)
+       .md-btn-group__state-layer  interaction overlay
+       .md-btn-group__icon      optional leading icon (24px)
+       .md-btn-group__label     text label
+
+   Button visual variants (applied to .md-btn-group, cascade to items):
+     .md-btn-group--filled      primary background
+     .md-btn-group--tonal       secondary-container background
+     .md-btn-group--outlined    transparent + outline border
+     .md-btn-group--elevated    surface-container-low + shadow
+
+   Position modifiers (applied automatically by ButtonGroup.svelte):
+     .md-btn-group__item--leading   first button (outer start corners = full)
+     .md-btn-group__item--trailing  last button (outer end corners = full)
+     .md-btn-group__item--middle    middle buttons (all inner)
+     .md-btn-group__item--only      single button (all corners = full)
+     .md-btn-group__item--checked   currently selected (toggle mode)
+   ============================================================================= */
+
+/* =============================================================================
+   GROUP CONTAINER
+   ============================================================================= */
+
+.md-btn-group {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: nowrap;
+}
+
+/* =============================================================================
+   BASE ITEM
+   Shared structure for all variants and positions.
+   ============================================================================= */
+
+.md-btn-group__item {
+	/* Reset */
+	appearance: none;
+	border: none;
+	background: transparent;
+	padding: 0;
+	margin: 0;
+	text-decoration: none;
+	cursor: pointer;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+
+	/* Layout */
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	overflow: hidden;
+	white-space: nowrap;
+	height: 40px;
+	padding-inline: 24px;
+
+	/* Typography (inherits from button tokens via --_* props) */
+	font-family: var(--md-sys-typescale-label-large-font);
+	font-size: var(--md-sys-typescale-label-large-size);
+	font-weight: var(--md-sys-typescale-label-large-weight);
+	letter-spacing: var(--md-sys-typescale-label-large-tracking);
+
+	/* Color — overridden per variant */
+	color: var(--_label-color, var(--md-sys-color-on-surface));
+	background-color: var(--_container-color, transparent);
+
+	/* Shape — set per position class */
+	border-radius: var(--_shape, var(--md-sys-shape-corner-full));
+
+	/* Shape transition on selection */
+	transition:
+		border-radius
+			calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-btn-group-shape-duration))
+			var(--md-comp-btn-group-shape-easing),
+		background-color
+			calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard),
+		color calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard),
+		box-shadow calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+			var(--md-sys-motion-easing-standard);
+
+	/* Focus ring */
+	outline-offset: 2px;
+}
+
+.md-btn-group__item:focus-visible {
+	outline: 3px solid var(--md-sys-color-secondary);
+}
+
+/* With leading icon: reduce leading padding */
+.md-btn-group__item:has(.md-btn-group__icon) {
+	padding-inline-start: 16px;
+}
+
+/* =============================================================================
+   STATE LAYER
+   ============================================================================= */
+
+.md-btn-group__state-layer {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-color: currentColor;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity
+		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-sys-motion-duration-short4))
+		var(--md-sys-motion-easing-standard);
+}
+
+.md-btn-group__item:hover .md-btn-group__state-layer {
+	opacity: var(--md-comp-btn-group-hover-state-layer-opacity);
+}
+
+.md-btn-group__item:focus-visible .md-btn-group__state-layer {
+	opacity: var(--md-comp-btn-group-focus-state-layer-opacity);
+}
+
+.md-btn-group__item:active .md-btn-group__state-layer {
+	opacity: var(--md-comp-btn-group-pressed-state-layer-opacity);
+}
+
+/* =============================================================================
+   ICON + LABEL (sit above state layer)
+   ============================================================================= */
+
+.md-btn-group__icon,
+.md-btn-group__label {
+	position: relative;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.md-btn-group__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+}
+
+.md-btn-group__icon svg,
+.md-btn-group__icon img {
+	width: 100%;
+	height: 100%;
+	fill: currentColor;
+	display: block;
+}
+
+/* =============================================================================
+   DISABLED
+   ============================================================================= */
+
+.md-btn-group__item:disabled,
+.md-btn-group__item[aria-disabled='true'] {
+	cursor: not-allowed;
+	pointer-events: none;
+	opacity: var(--md-comp-btn-group-disabled-content-opacity);
+}
+
+/* =============================================================================
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONNECTED VARIANT
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   2px gaps visible between buttons.
+   Outer corners = full (pill). Inner corners = small (8px).
+   Checked item gets all-full corners (pops out).
+   ============================================================================= */
+
+.md-btn-group--connected {
+	gap: var(--md-comp-btn-group-connected-gap);
+}
+
+/* --- LEADING (first) button: start corners = full, end corners = inner --- */
+.md-btn-group--connected .md-btn-group__item--leading {
+	--_shape: /* tl tr br bl */ var(--md-comp-btn-group-connected-outer-shape)
+		var(--md-comp-btn-group-connected-inner-shape) var(--md-comp-btn-group-connected-inner-shape)
+		var(--md-comp-btn-group-connected-outer-shape);
+	border-start-start-radius: var(--md-comp-btn-group-connected-outer-shape);
+	border-start-end-radius: var(--md-comp-btn-group-connected-inner-shape);
+	border-end-end-radius: var(--md-comp-btn-group-connected-inner-shape);
+	border-end-start-radius: var(--md-comp-btn-group-connected-outer-shape);
+}
+
+/* --- MIDDLE button: all corners = inner --- */
+.md-btn-group--connected .md-btn-group__item--middle {
+	border-radius: var(--md-comp-btn-group-connected-inner-shape);
+}
+
+/* --- TRAILING (last) button: start corners = inner, end corners = full --- */
+.md-btn-group--connected .md-btn-group__item--trailing {
+	border-start-start-radius: var(--md-comp-btn-group-connected-inner-shape);
+	border-start-end-radius: var(--md-comp-btn-group-connected-outer-shape);
+	border-end-end-radius: var(--md-comp-btn-group-connected-outer-shape);
+	border-end-start-radius: var(--md-comp-btn-group-connected-inner-shape);
+}
+
+/* --- ONLY button (single item): all corners = full --- */
+.md-btn-group--connected .md-btn-group__item--only {
+	border-radius: var(--md-comp-btn-group-connected-outer-shape);
+}
+
+/* --- CHECKED: override to full pill regardless of position --- */
+.md-btn-group--connected .md-btn-group__item--checked {
+	border-radius: var(--md-comp-btn-group-connected-checked-shape) !important;
+}
+
+/* =============================================================================
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   STANDARD VARIANT
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   No gap. Shared borders. Only end corners rounded.
+   ============================================================================= */
+
+.md-btn-group--standard {
+	gap: 0;
+}
+
+.md-btn-group--standard .md-btn-group__item--leading {
+	border-start-start-radius: var(--md-comp-btn-group-standard-outer-shape);
+	border-start-end-radius: var(--md-comp-btn-group-standard-inner-shape);
+	border-end-end-radius: var(--md-comp-btn-group-standard-inner-shape);
+	border-end-start-radius: var(--md-comp-btn-group-standard-outer-shape);
+}
+
+.md-btn-group--standard .md-btn-group__item--middle {
+	border-radius: var(--md-comp-btn-group-standard-inner-shape);
+}
+
+.md-btn-group--standard .md-btn-group__item--trailing {
+	border-start-start-radius: var(--md-comp-btn-group-standard-inner-shape);
+	border-start-end-radius: var(--md-comp-btn-group-standard-outer-shape);
+	border-end-end-radius: var(--md-comp-btn-group-standard-outer-shape);
+	border-end-start-radius: var(--md-comp-btn-group-standard-inner-shape);
+}
+
+.md-btn-group--standard .md-btn-group__item--only {
+	border-radius: var(--md-comp-btn-group-standard-outer-shape);
+}
+
+/* =============================================================================
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   VISUAL VARIANTS (filled / tonal / outlined / elevated)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   When a toggle mode is active, unchecked items use a neutral "ghost" style
+   and checked items use secondary-container. For non-toggle groups, all items
+   use the chosen variant colors throughout.
+   ============================================================================= */
+
+/* ---- FILLED ---- */
+.md-btn-group--filled .md-btn-group__item {
+	--_container-color: var(--md-comp-filled-button-container-color);
+	--_label-color: var(--md-comp-filled-button-label-color);
+}
+
+/* In toggle mode, unchecked items de-emphasise */
+.md-btn-group--filled.md-btn-group--single .md-btn-group__item:not(.md-btn-group__item--checked),
+.md-btn-group--filled.md-btn-group--multi .md-btn-group__item:not(.md-btn-group__item--checked) {
+	--_container-color: color-mix(
+		in srgb,
+		var(--md-comp-filled-button-container-color) 20%,
+		var(--md-sys-color-surface)
+	);
+	--_label-color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Checked: secondary-container */
+.md-btn-group--filled .md-btn-group__item--checked {
+	--_container-color: var(--md-comp-btn-group-checked-container-color);
+	--_label-color: var(--md-comp-btn-group-checked-label-color);
+}
+
+/* ---- TONAL ---- */
+.md-btn-group--tonal .md-btn-group__item {
+	--_container-color: var(--md-comp-tonal-button-container-color);
+	--_label-color: var(--md-comp-tonal-button-label-color);
+}
+
+.md-btn-group--tonal.md-btn-group--single .md-btn-group__item:not(.md-btn-group__item--checked),
+.md-btn-group--tonal.md-btn-group--multi .md-btn-group__item:not(.md-btn-group__item--checked) {
+	--_container-color: var(--md-sys-color-surface-container-lowest);
+	--_label-color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-btn-group--tonal .md-btn-group__item--checked {
+	--_container-color: var(--md-comp-btn-group-checked-container-color);
+	--_label-color: var(--md-comp-btn-group-checked-label-color);
+}
+
+/* ---- OUTLINED ---- */
+.md-btn-group--outlined .md-btn-group__item {
+	--_container-color: transparent;
+	--_label-color: var(--md-comp-outlined-button-label-color);
+	border: var(--md-comp-btn-group-outline-width) solid var(--md-comp-btn-group-outline-color);
+}
+
+/* Standard variant: avoid double borders between adjacent outlined items */
+.md-btn-group--standard.md-btn-group--outlined .md-btn-group__item + .md-btn-group__item {
+	border-inline-start: none;
+}
+
+.md-btn-group--outlined.md-btn-group--single .md-btn-group__item:not(.md-btn-group__item--checked),
+.md-btn-group--outlined.md-btn-group--multi .md-btn-group__item:not(.md-btn-group__item--checked) {
+	--_label-color: var(--md-sys-color-on-surface-variant);
+}
+
+.md-btn-group--outlined .md-btn-group__item--checked {
+	--_container-color: var(--md-comp-btn-group-checked-container-color);
+	--_label-color: var(--md-comp-btn-group-checked-label-color);
+	/* Keep the outline but match the container */
+	border-color: transparent;
+}
+
+/* ---- ELEVATED ---- */
+.md-btn-group--elevated .md-btn-group__item {
+	--_container-color: var(--md-comp-elevated-button-container-color);
+	--_label-color: var(--md-comp-elevated-button-label-color);
+	box-shadow: var(--md-comp-elevated-button-container-elevation);
+}
+
+.md-btn-group--elevated .md-btn-group__item:hover {
+	box-shadow: var(--md-comp-elevated-button-hover-container-elevation);
+}
+
+.md-btn-group--elevated.md-btn-group--single .md-btn-group__item:not(.md-btn-group__item--checked),
+.md-btn-group--elevated.md-btn-group--multi .md-btn-group__item:not(.md-btn-group__item--checked) {
+	--_container-color: var(--md-sys-color-surface-container-lowest);
+	--_label-color: var(--md-sys-color-on-surface-variant);
+	box-shadow: none;
+}
+
+.md-btn-group--elevated .md-btn-group__item--checked {
+	--_container-color: var(--md-comp-btn-group-checked-container-color);
+	--_label-color: var(--md-comp-btn-group-checked-label-color);
+	box-shadow: none;
+}
