@@ -68,6 +68,24 @@
 	/>
 </div>
 
+{#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
+	{#await visitsResult}
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			visits={[]}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
+	{:then visits}
+		<PlaceSheet
+			placeName={selectedPlace.name}
+			{visits}
+			bind:open={sheetOpen}
+			onaddvisit={handleOnAddVisit}
+		/>
+	{/await}
+{/if}
+
 <div class="controls">
 	<SearchView bind:value={searchQuery} placeholder="Search places" class="search-view">
 		{#snippet children({ open, value })}
@@ -107,24 +125,6 @@
 		googlePlaceId={selectedPlace.google_place_id}
 		onsuccess={handleVisitAdded}
 	/>
-{/if}
-
-{#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
-	{#await visitsResult}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			visits={[]}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-		/>
-	{:then visits}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			{visits}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-		/>
-	{/await}
 {/if}
 
 <style>

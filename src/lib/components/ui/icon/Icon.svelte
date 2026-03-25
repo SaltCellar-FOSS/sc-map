@@ -7,6 +7,7 @@
 	import searchIcon from '$lib/icons/SearchIcon.svg?url';
 	import arrowFillIcon from '$lib/icons/ArrowFillIcon.svg?url';
 	import discordIcon from '$lib/icons/DiscordIcon.svg?url';
+	import reviewIcon from '$lib/icons/ReviewIcon.svg?url';
 
 	type IconName =
 		| 'restaurant'
@@ -16,7 +17,8 @@
 		| 'close'
 		| 'search'
 		| 'arrowFill'
-		| 'discord';
+		| 'discord'
+		| 'addReview';
 
 	type Props = {
 		name: IconName;
@@ -33,7 +35,8 @@
 		close: closeIcon,
 		search: searchIcon,
 		arrowFill: arrowFillIcon,
-		discord: discordIcon
+		discord: discordIcon,
+		addReview: reviewIcon
 	};
 
 	let { name, size = 24, class: className = '', ariaLabel }: Props = $props();

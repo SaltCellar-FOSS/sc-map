@@ -28,13 +28,19 @@
 :root {
 	/* --- Container --- */
 	--md-comp-side-sheet-container-color: var(--md-sys-color-surface-container-low);
-	--md-comp-side-sheet-container-width: 256px;
+	--md-comp-side-sheet-container-width: 408px;
 
 	/* Inner corners (top-start + bottom-start for a right-anchored sheet) */
 	--md-comp-side-sheet-shape-start-start: var(--md-sys-shape-corner-large);
 	--md-comp-side-sheet-shape-start-end: var(--md-sys-shape-corner-none);
 	--md-comp-side-sheet-shape-end-start: var(--md-sys-shape-corner-large);
 	--md-comp-side-sheet-shape-end-end: var(--md-sys-shape-corner-none);
+
+	/* Left-anchored inner corners (top-end + bottom-end) */
+	--md-comp-side-sheet-shape-left-start-start: var(--md-sys-shape-corner-none);
+	--md-comp-side-sheet-shape-left-start-end: var(--md-sys-shape-corner-large);
+	--md-comp-side-sheet-shape-left-end-start: var(--md-sys-shape-corner-none);
+	--md-comp-side-sheet-shape-left-end-end: var(--md-sys-shape-corner-large);
 
 	/* --- Header --- */
 	--md-comp-side-sheet-header-height: 56px;
