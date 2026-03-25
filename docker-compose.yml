@@ -61,6 +61,3 @@ services:
       - 'traefik.http.routers.${PROJECT}.service=${PROJECT}'
       - 'traefik.http.routers.${PROJECT}.tls=true'
       - traefik.http.routers.${PROJECT}.tls.certresolver=default
-
-volumes:
-  db_data:
