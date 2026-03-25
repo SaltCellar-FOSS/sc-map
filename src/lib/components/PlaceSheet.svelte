@@ -1,5 +1,5 @@
 <script lang="ts">
-	import BottomSheet from './ui/bottom-sheet/BottomSheet.svelte';
+	import BottomSheet from './ui/sheet/BottomSheet.svelte';
 	import VisitList from './VisitList.svelte';
 	import type { VisitWithUser } from '$lib/server/dao/visits/types';
 

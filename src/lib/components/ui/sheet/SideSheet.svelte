@@ -1,51 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
-	// ---------------------------------------------------------------------------
-	// Types
-	// ---------------------------------------------------------------------------
-
-	type Props = {
-		/**
-		 * Sheet variant:
-		 *   'standard' — co-exists with main content, no scrim. Use on tablet/desktop.
-		 *   'modal'    — blocks main content with a scrim. Use on mobile or for
-		 *                focused flows (e.g. checkout). Dismissed on scrim tap or Escape.
-		 */
-		variant?: 'standard' | 'modal';
-
-		/**
-		 * Whether the sheet is currently open.
-		 * Bind with bind:open for two-way control.
-		 */
-		open?: boolean;
-
-		/** Title text shown in the sheet header. */
-		title?: string;
-
-		/**
-		 * Called when the sheet requests to close (close button, scrim tap, Escape).
-		 * Consumer is responsible for updating `open`. This matches the M3 pattern
-		 * of the component being controlled from outside.
-		 */
-		onclose?: () => void;
-
-		/** Sheet body content. */
-		children?: Snippet;
-
-		/**
-		 * Optional trailing icon buttons in the header row (e.g. a menu or pin icon).
-		 * Use .md-side-sheet__close as a template for accessible icon buttons.
-		 */
-		headerActions?: Snippet;
-
-		/** Additional classes merged onto the root wrapper element. */
-		class?: string;
-	};
-
-	// ---------------------------------------------------------------------------
-	// Props
-	// ---------------------------------------------------------------------------
+	import type { SheetProps } from '$lib/components/ui/sheet';
 
 	let {
 		variant = 'modal',
@@ -55,7 +9,7 @@
 		children,
 		headerActions,
 		class: extraClass
-	}: Props = $props();
+	}: SheetProps = $props();
 
 	// ---------------------------------------------------------------------------
 	// Internal state
