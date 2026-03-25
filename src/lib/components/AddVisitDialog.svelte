@@ -5,7 +5,6 @@
 	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
-	import type { Place } from '$lib/schemas/place';
 	import ButtonGroup from './ui/button-group/ButtonGroup.svelte';
 
 	type Props = {
@@ -14,23 +13,9 @@
 		googlePlaceId: string;
 		onclose?: () => void;
 		onsuccess?: () => void;
-		onadd?: (data: {
-			rating: number;
-			review: string;
-			photos: File[];
-			googlePlaceId: Place['google_place_id'];
-			visitDate?: string;
-		}) => void;
 	};
 
-	let {
-		open = $bindable(false),
-		placeName,
-		googlePlaceId,
-		onclose,
-		onsuccess,
-		onadd
-	}: Props = $props();
+	let { open = $bindable(false), placeName, googlePlaceId, onclose, onsuccess }: Props = $props();
 
 	function enhanceVisit() {
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -44,7 +29,8 @@
 	let rating = $state(0);
 	let review = $state('');
 	let visitDate = $state<string>('');
-	let photos = $state<File[]>([]);
+	// let photos = $state<File[]>([]);
+	let selectedType = $state<'RESTAURANT' | 'BAR' | 'BAKERY'>('RESTAURANT');
 	// let photoUrls = $state<string[]>([]);
 	// let fileInput = $state<HTMLInputElement | null>(null);
 	let submitted = $state(false);
@@ -69,7 +55,6 @@
 	function handlePost() {
 		submitted = true;
 		if (!isValid) return;
-		onadd?.({ rating, review, photos, googlePlaceId, visitDate });
 		handleClose();
 	}
 
@@ -94,6 +79,7 @@
 	<form use:enhance={enhanceVisit} class="dialog-body" method="POST" action="/map?/addVisit">
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
 		<input type="hidden" name="rating" value={rating} />
+		<input type="hidden" name="selectedType" value={selectedType} />
 		<div class="rating-field">
 			<StarRating bind:value={rating} />
 			{#if ratingError}
@@ -129,6 +115,7 @@
 
 		<div class="field-row">
 			<ButtonGroup
+				bind:selected={selectedType}
 				toggleMode="single"
 				buttonVariant="filled"
 				items={[
