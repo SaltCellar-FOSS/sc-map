@@ -140,13 +140,18 @@
 		height: 100vh;
 		padding-left: 1rem;
 		padding-right: 1rem;
-		padding-top: 2rem;
+		padding-top: 1rem;
 		box-sizing: border-box;
 		pointer-events: none;
 	}
 
 	.controls :global(.search-view) {
-		padding-top: 2rem;
 		pointer-events: auto;
+	}
+
+	@media screen and (min-width: 768px) {
+		.controls :global(.search-view) {
+			width: 360px;
+		}
 	}
 </style>
