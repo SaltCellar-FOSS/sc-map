@@ -70,7 +70,7 @@ export async function searchGooglePlaces(
 		return [];
 	}
 
-	const body: Record<string, unknown> = { textQuery: query, pageSize: 5 };
+	const body: Record<string, unknown> = { textQuery: query, pageSize: 10 };
 	if (includedType) {
 		body.includedType = includedType;
 		body.strictTypeFiltering = true;
