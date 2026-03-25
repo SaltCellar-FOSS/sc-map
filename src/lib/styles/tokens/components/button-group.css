@@ -1,0 +1,84 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: BUTTON GROUP COMPONENT TOKENS
+
+   Imported by components/ButtonGroup/button-group.css — not by theme.css.
+
+   M3 Button Group spec (M3 Expressive, 2024):
+
+   CONNECTED variant (the defining visual):
+     Buttons sit 2px apart; the gap is visible surface/background showing through.
+     Outer corners:  full (pill/stadium) — same as standalone buttons
+     Inner corners:  small (8px) — the corners that face adjacent siblings
+     Checked shape:  all corners become full (pill) — the active button "pops"
+     Height:         40px (matches common buttons)
+     Supported variants: filled, tonal, outlined, elevated
+
+   The shape variation between inner/outer corners is the key M3 Expressive
+   design detail — it groups the buttons visually while each retains identity.
+
+   STANDARD variant (no gap, flat join):
+     Buttons share borders; only the leftmost and rightmost ends are rounded.
+     All inner corners: none (0px)
+     Outer corners: full on the leading end of first button, full on the
+     trailing end of last button. Middle buttons have no rounded corners.
+     Used for formatting toolbars etc.
+
+   Toggle modes:
+     single  — radio behaviour, one selected at a time
+     multi   — checkbox behaviour, any number selected
+     none    — no toggle state (all buttons are regular actions)
+   ============================================================================= */
+
+:root {
+	/* Gap between buttons in connected variant */
+	--md-comp-btn-group-connected-gap: 2px;
+
+	/* Connected outer corners (leading button start, trailing button end) */
+	--md-comp-btn-group-connected-outer-shape: var(--md-comp-tonal-button-container-shape);
+
+	/* Connected inner corners (where buttons face each other) */
+	--md-comp-btn-group-connected-inner-shape: var(--md-sys-shape-corner-small);
+
+	/* Checked button shape: all corners full (button "pops" into pill) */
+	--md-comp-btn-group-connected-checked-shape: var(--md-comp-tonal-button-container-shape);
+
+	/* Standard variant: no gap, flat join */
+	--md-comp-btn-group-standard-gap: 0px;
+	--md-comp-btn-group-standard-outer-shape: var(--md-comp-tonal-button-container-shape);
+	--md-comp-btn-group-standard-inner-shape: var(--md-sys-shape-corner-none);
+
+	/* Checked state colors — reuse tonal button tokens */
+	--md-comp-btn-group-checked-container-color: var(--md-comp-tonal-button-container-color);
+	--md-comp-btn-group-checked-label-color: var(--md-comp-tonal-button-label-color);
+	--md-comp-btn-group-checked-icon-color: var(--md-comp-tonal-button-icon-color);
+
+	/* Unchecked state for toggle buttons */
+	--md-comp-btn-group-unchecked-container-color: var(--md-sys-color-surface-container-lowest);
+	--md-comp-btn-group-unchecked-label-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-btn-group-unchecked-icon-color: var(--md-sys-color-on-surface-variant);
+
+	/* Outline — reuse outlined button tokens */
+	--md-comp-btn-group-outline-color: var(--md-comp-outlined-button-outline-color);
+	--md-comp-btn-group-outline-width: var(--md-comp-outlined-button-outline-width);
+
+	/* State layers — reuse tonal button tokens */
+	--md-comp-btn-group-hover-state-layer-opacity: var(
+		--md-comp-tonal-button-hover-state-layer-opacity
+	);
+	--md-comp-btn-group-focus-state-layer-opacity: var(
+		--md-comp-tonal-button-focus-state-layer-opacity
+	);
+	--md-comp-btn-group-pressed-state-layer-opacity: var(
+		--md-comp-tonal-button-pressed-state-layer-opacity
+	);
+
+	/* Disabled — reuse tonal button tokens */
+	--md-comp-btn-group-disabled-container-opacity: var(
+		--md-comp-tonal-button-disabled-container-opacity
+	);
+	--md-comp-btn-group-disabled-content-opacity: var(--md-comp-tonal-button-disabled-label-opacity);
+
+	/* Shape transition on check/uncheck */
+	--md-comp-btn-group-shape-duration: var(--md-sys-motion-duration-medium2);
+	--md-comp-btn-group-shape-easing: var(--md-sys-motion-easing-emphasized);
+}

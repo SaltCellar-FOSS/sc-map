@@ -8,6 +8,15 @@
 	import type { Place } from '$lib/schemas/place';
 	import type { CATEGORIES } from '$lib/categories';
 
+	type Props = {
+		categories: typeof CATEGORIES;
+		savedPlaces: SavedPlace[];
+		selectedPlace: Place | null;
+		onsaveplace: (placeId: string) => void;
+		onplacechange: (place: Place | null) => void;
+		showInfoWindow?: ((place: Place) => void) | null;
+	};
+
 	let {
 		categories,
 		savedPlaces,
@@ -15,14 +24,7 @@
 		onsaveplace,
 		onplacechange,
 		showInfoWindow = $bindable<((place: Place) => void) | null>(null)
-	}: {
-		categories: typeof CATEGORIES;
-		savedPlaces: SavedPlace[];
-		selectedPlace: Place | null;
-		onsaveplace: (placeId: string) => void;
-		onplacechange: (place: Place | null) => void;
-		showInfoWindow?: ((place: Place) => void) | null;
-	} = $props();
+	}: Props = $props();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
@@ -185,7 +187,7 @@
 	});
 </script>
 
-<div bind:this={mapEl} style="width: 100%; height: 100%;"></div>
+<div bind:this={mapEl} class="map"></div>
 
 {#if map}
 	{#each savedPlaces as place (place.id)}
@@ -198,3 +200,10 @@
 		/>
 	{/each}
 {/if}
+
+<style>
+	.map {
+		width: 100%;
+		height: 100%;
+	}
+</style>

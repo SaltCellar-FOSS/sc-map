@@ -29,8 +29,9 @@
 @import '../components/ui/search-bar/search-bar.css';
 @import '../components/ui/search-view/search-view.css';
 @import '../components/ui/list/list.css';
-@import '../components/ui/side-sheet/side-sheet.css';
+@import '../components/ui/sheet/side-sheet.css';
 @import '../components/ui/dialog/dialog.css';
-@import '../components/ui/bottom-sheet/bottom-sheet.css';
+@import '../components/ui/sheet/bottom-sheet.css';
 @import '../components/ui/card/card.css';
 @import '../components/ui/text-field/text-field.css';
+@import '../components/ui/button-group/button-group.css';

@@ -1,54 +1,13 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { SheetProps } from '$lib/components/ui/sheet';
 
-	// ---------------------------------------------------------------------------
-	// Types
-	// ---------------------------------------------------------------------------
-
-	type Props = {
-		/**
-		 * Sheet variant:
-		 *   'standard' — co-exists with main content, no scrim. Sits in document flow.
-		 *   'modal'    — blocks main content with a scrim. Fixed overlay.
-		 *               Dismissed by scrim tap, swipe down, or Escape.
-		 */
-		variant?: 'standard' | 'modal';
-
-		/**
-		 * Whether the sheet is open. Bind with bind:open for two-way control.
-		 */
-		open?: boolean;
-
+	type Props = SheetProps & {
 		/**
 		 * When true, renders the drag handle pill at the top of the sheet.
 		 * Default: true.
 		 */
 		showDragHandle?: boolean;
-
-		/** Optional title text rendered in the header row. */
-		title?: string;
-
-		/**
-		 * Called when the sheet requests to close (scrim click, Escape,
-		 * swipe-down gesture). Consumer is responsible for setting open = false.
-		 */
-		onclose?: () => void;
-
-		/**
-		 * Optional header actions rendered at the trailing edge of the header row.
-		 */
-		headerActions?: Snippet;
-
-		/** Sheet body content. */
-		children?: Snippet;
-
-		/** Additional classes on the root wrapper element. */
-		class?: string;
 	};
-
-	// ---------------------------------------------------------------------------
-	// Props
-	// ---------------------------------------------------------------------------
 
 	let {
 		variant = 'modal',

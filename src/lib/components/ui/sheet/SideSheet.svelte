@@ -1,51 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
-	// ---------------------------------------------------------------------------
-	// Types
-	// ---------------------------------------------------------------------------
-
-	type Props = {
-		/**
-		 * Sheet variant:
-		 *   'standard' — co-exists with main content, no scrim. Use on tablet/desktop.
-		 *   'modal'    — blocks main content with a scrim. Use on mobile or for
-		 *                focused flows (e.g. checkout). Dismissed on scrim tap or Escape.
-		 */
-		variant?: 'standard' | 'modal';
-
-		/**
-		 * Whether the sheet is currently open.
-		 * Bind with bind:open for two-way control.
-		 */
-		open?: boolean;
-
-		/** Title text shown in the sheet header. */
-		title?: string;
-
-		/**
-		 * Called when the sheet requests to close (close button, scrim tap, Escape).
-		 * Consumer is responsible for updating `open`. This matches the M3 pattern
-		 * of the component being controlled from outside.
-		 */
-		onclose?: () => void;
-
-		/** Sheet body content. */
-		children?: Snippet;
-
-		/**
-		 * Optional trailing icon buttons in the header row (e.g. a menu or pin icon).
-		 * Use .md-side-sheet__close as a template for accessible icon buttons.
-		 */
-		headerActions?: Snippet;
-
-		/** Additional classes merged onto the root wrapper element. */
-		class?: string;
-	};
-
-	// ---------------------------------------------------------------------------
-	// Props
-	// ---------------------------------------------------------------------------
+	import type { SheetProps } from '$lib/components/ui/sheet';
 
 	let {
 		variant = 'modal',
@@ -55,7 +9,7 @@
 		children,
 		headerActions,
 		class: extraClass
-	}: Props = $props();
+	}: SheetProps = $props();
 
 	// ---------------------------------------------------------------------------
 	// Internal state
@@ -223,27 +177,6 @@
 	>
 		<!-- Header -->
 		<div class="md-side-sheet__header">
-			<!-- Close button -->
-			<button
-				class="md-side-sheet__close"
-				type="button"
-				aria-label="Close"
-				onclick={requestClose}
-				bind:this={closeButtonEl}
-			>
-				<!-- Close icon (✕) -->
-				<svg
-					class="md-side-sheet__close-icon"
-					viewBox="0 0 24 24"
-					aria-hidden="true"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-					/>
-				</svg>
-			</button>
-
 			{#if title}
 				<span class="md-side-sheet__title">{title}</span>
 			{/if}
@@ -254,9 +187,6 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Divider -->
-		<hr class="md-side-sheet__divider" aria-hidden="true" />
 
 		<!-- Body content -->
 		<div class="md-side-sheet__content">

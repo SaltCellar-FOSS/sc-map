@@ -12,9 +12,7 @@ export const searchPlaces = query(z.string(), async (q) => {
 
 	const [dbResults, ...googleResultsByType] = await Promise.all([
 		savedPlacesDao.searchSavedPlaces(q),
-		searchGooglePlaces(q, 'bar'),
-		searchGooglePlaces(q, 'restaurant'),
-		searchGooglePlaces(q, 'bakery')
+		searchGooglePlaces(q)
 	]);
 
 	const seen = new Set<string>();

@@ -5,7 +5,8 @@
 	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
-	import type { Place } from '$lib/schemas/place';
+	import ButtonGroup from './ui/button-group/ButtonGroup.svelte';
+	import Icon from './ui/icon/Icon.svelte';
 
 	type Props = {
 		open: boolean;
@@ -13,23 +14,9 @@
 		googlePlaceId: string;
 		onclose?: () => void;
 		onsuccess?: () => void;
-		onadd?: (data: {
-			rating: number;
-			review: string;
-			photos: File[];
-			googlePlaceId: Place['google_place_id'];
-			visitDate?: string;
-		}) => void;
 	};
 
-	let {
-		open = $bindable(false),
-		placeName,
-		googlePlaceId,
-		onclose,
-		onsuccess,
-		onadd
-	}: Props = $props();
+	let { open = $bindable(false), placeName, googlePlaceId, onclose, onsuccess }: Props = $props();
 
 	function enhanceVisit() {
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
@@ -43,9 +30,10 @@
 	let rating = $state(0);
 	let review = $state('');
 	let visitDate = $state<string>('');
-	let photos = $state<File[]>([]);
-	let photoUrls = $state<string[]>([]);
-	let fileInput = $state<HTMLInputElement | null>(null);
+	// let photos = $state<File[]>([]);
+	let selectedType = $state<'RESTAURANT' | 'BAR' | 'BAKERY'>('RESTAURANT');
+	// let photoUrls = $state<string[]>([]);
+	// let fileInput = $state<HTMLInputElement | null>(null);
 	let submitted = $state(false);
 
 	const MAX_REVIEW_LENGTH = 2000;
@@ -68,31 +56,35 @@
 	function handlePost() {
 		submitted = true;
 		if (!isValid) return;
-		onadd?.({ rating, review, photos, googlePlaceId, visitDate });
 		handleClose();
 	}
 
-	function handleFileChange(event: Event) {
-		const input = event.currentTarget as HTMLInputElement;
-		const files = Array.from(input.files ?? []);
-		photos = [...photos, ...files];
-		for (const file of files) {
-			photoUrls = [...photoUrls, URL.createObjectURL(file)];
-		}
-	}
+	// function handleFileChange(event: Event) {
+	// 	const input = event.currentTarget as HTMLInputElement;
+	// 	const files = Array.from(input.files ?? []);
+	// 	photos = [...photos, ...files];
+	// 	for (const file of files) {
+	// 		photoUrls = [...photoUrls, URL.createObjectURL(file)];
+	// 	}
+	// }
 
-	function removePhoto(index: number) {
-		URL.revokeObjectURL(photoUrls[index]);
-		photos = photos.filter((_, i) => i !== index);
-		photoUrls = photoUrls.filter((_, i) => i !== index);
-	}
+	// function removePhoto(index: number) {
+	// 	URL.revokeObjectURL(photoUrls[index]);
+	// 	photos = photos.filter((_, i) => i !== index);
+	// 	photoUrls = photoUrls.filter((_, i) => i !== index);
+	// }
 </script>
 
-<Dialog {open} onclose={handleClose} class="add-visit-dialog">
-	{#snippet headline()}{placeName}{/snippet}
+{#snippet restaurantIcon()}<Icon name="restaurant" />{/snippet}
+{#snippet barIcon()}<Icon name="bar" />{/snippet}
+{#snippet bakeryIcon()}<Icon name="bakery" />{/snippet}
+
+<Dialog {open} onclose={handleClose}>
+	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
 	<form use:enhance={enhanceVisit} class="dialog-body" method="POST" action="/map?/addVisit">
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
 		<input type="hidden" name="rating" value={rating} />
+		<input type="hidden" name="selectedType" value={selectedType} />
 		<div class="rating-field">
 			<StarRating bind:value={rating} />
 			{#if ratingError}
@@ -101,42 +93,65 @@
 		</div>
 
 		<!-- Review textarea -->
-		<TextField
-			variant="outlined"
-			type="textarea"
-			name="review"
-			placeholder="Tell others about your experience"
-			rows={6}
-			bind:value={review}
-			errorText={reviewError}
-			maxlength={MAX_REVIEW_LENGTH}
-			class="review-field"
-		/>
+		<div class="field-row">
+			<TextField
+				variant="outlined"
+				type="textarea"
+				name="review"
+				placeholder="Tell others about your experience"
+				rows={6}
+				bind:value={review}
+				errorText={reviewError}
+				maxlength={MAX_REVIEW_LENGTH}
+			/>
+		</div>
 
 		<!-- Visit date -->
-		<TextField
-			variant="outlined"
-			type="date"
-			name="visitDate"
-			supportingText="Date visited"
-			aria-label="Date visited"
-			bind:value={visitDate}
-			class="date-field"
-		/>
+		<div class="field-row">
+			<TextField
+				variant="outlined"
+				type="date"
+				name="visitDate"
+				supportingText="Date visited"
+				aria-label="Date visited"
+				bind:value={visitDate}
+			/>
+		</div>
+
+		<div class="field-row">
+			<ButtonGroup
+				bind:selected={selectedType}
+				toggleMode="single"
+				buttonVariant="filled"
+				items={[
+					{
+						value: 'RESTAURANT',
+						label: 'Restaurant',
+						icon: restaurantIcon
+					},
+					{ value: 'BAR', label: 'Bar', icon: barIcon },
+					{ value: 'BAKERY', label: 'Bakery', icon: bakeryIcon }
+				]}
+				aria-label="Location type"
+				class="type-toggle"
+			/>
+		</div>
 
 		<!-- Add photos button -->
-		<Button variant="tonal" class="add-photos-btn" onclick={() => fileInput?.click()}>
-			{#snippet icon()}
-				<svg class="md-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-					<path
-						d="M18 10.48V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4.48l4 3.98v-11l-4 3.98zm-2-.79V18H4V6h12v3.69z"
-					/>
-				</svg>
-			{/snippet}
-			Add photos &amp; videos
-		</Button>
+		<!-- <div class="photos-row">
+			<Button variant="tonal" onclick={() => fileInput?.click()}>
+				{#snippet icon()}
+					<svg class="md-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M18 10.48V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4.48l4 3.98v-11l-4 3.98zm-2-.79V18H4V6h12v3.69z"
+						/>
+					</svg>
+				{/snippet}
+				Add photos &amp; videos
+			</Button>
+		</div> -->
 
-		<input
+		<!-- <input
 			bind:this={fileInput}
 			type="file"
 			accept="image/*,video/*"
@@ -145,7 +160,6 @@
 			onchange={handleFileChange}
 		/>
 
-		<!-- Photo thumbnails -->
 		{#if photoUrls.length > 0}
 			<div class="photo-strip" role="list" aria-label="Added photos">
 				{#each photoUrls as url, i (url)}
@@ -165,7 +179,7 @@
 					</div>
 				{/each}
 			</div>
-		{/if}
+		{/if} -->
 
 		<div class="md-dialog__actions">
 			<Button variant="text" onclick={handleClose}>Cancel</Button>
@@ -177,28 +191,20 @@
 </Dialog>
 
 <style>
-	:global(.add-visit-dialog) {
-		width: min(560px, 100%);
-	}
-
-	:global(.add-visit-dialog .md-dialog__headline) {
+	.headline-centered {
+		display: block;
 		text-align: center;
 	}
 
-	:global(.review-field) {
+	.field-row {
 		width: 100%;
 	}
 
-	:global(.date-field) {
-		width: 100%;
+	/* .photos-row {
+		display: grid;
 	}
 
-	:global(.add-photos-btn) {
-		width: 100%;
-		margin-top: 12px;
-	}
-
-	.photo-strip {
+	 .photo-strip {
 		display: flex;
 		gap: 8px;
 		overflow-x: auto;
@@ -248,7 +254,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-	}
+	} */
 
 	.dialog-body {
 		display: flex;
@@ -267,5 +273,9 @@
 		margin: 0;
 		font-size: 0.75rem;
 		color: var(--md-sys-color-error, #b3261e);
+	}
+
+	:global(.type-toggle) {
+		width: 100%;
 	}
 </style>

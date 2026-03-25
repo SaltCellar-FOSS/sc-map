@@ -1,7 +1,10 @@
 <script lang="ts">
-	import BottomSheet from './ui/bottom-sheet/BottomSheet.svelte';
+	import BottomSheet from './ui/sheet/BottomSheet.svelte';
+	import SideSheet from './ui/sheet/SideSheet.svelte';
 	import VisitList from './VisitList.svelte';
 	import type { VisitWithUser } from '$lib/server/dao/visits/types';
+	import Button from './ui/button/Button.svelte';
+	import Icon from './ui/icon/Icon.svelte';
 
 	type Props = {
 		open?: boolean;
@@ -12,23 +15,51 @@
 	};
 
 	let { open = $bindable(false), placeName, visits, onclose, onaddvisit }: Props = $props();
+
+	let isDesktop = $state(false);
+
+	function checkViewport() {
+		isDesktop = window.innerWidth >= 768;
+	}
+
+	$effect(() => {
+		checkViewport();
+		window.addEventListener('resize', checkViewport);
+		return () => window.removeEventListener('resize', checkViewport);
+	});
 </script>
 
-<BottomSheet bind:open {onclose}>
-	<h2 class="place-name">{placeName}</h2>
+{#if isDesktop}
+	<SideSheet variant="standard" bind:open {onclose}>
+		<div class="action-bar">
+			<Button variant="tonal" onclick={onaddvisit}>
+				{#snippet icon()}
+					<Icon name="addReview" />
+				{/snippet}
 
-	<div class="action-bar">
-		<button class="icon-btn" aria-label="Write a review" onclick={onaddvisit}>
-			<svg viewBox="0 0 24 24" aria-hidden="true">
-				<path
-					d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"
-				/>
-			</svg>
-		</button>
-	</div>
+				Write a review
+			</Button>
+		</div>
 
-	<VisitList {visits} />
-</BottomSheet>
+		<VisitList {visits} />
+	</SideSheet>
+{:else}
+	<BottomSheet bind:open {onclose}>
+		<h2 class="place-name">{placeName}</h2>
+
+		<div class="action-bar">
+			<button class="icon-btn" aria-label="Write a review" onclick={onaddvisit}>
+				<svg viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"
+					/>
+				</svg>
+			</button>
+		</div>
+
+		<VisitList {visits} />
+	</BottomSheet>
+{/if}
 
 <style>
 	.place-name {
@@ -41,10 +72,14 @@
 
 	.action-bar {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		justify-content: stretch;
+		align-items: stretch;
 		padding-block: 8px;
 		margin-bottom: 8px;
+	}
+
+	.action-bar :global(button) {
+		width: 100%;
 	}
 
 	.icon-btn {

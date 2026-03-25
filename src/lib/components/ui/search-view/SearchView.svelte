@@ -40,7 +40,7 @@
 		 * The results / suggestions content rendered inside the scrollable
 		 * panel region. Receives the live `value` so it can filter:
 		 *
-		 *   {#snippet results({ value })}
+		 *   {#snippet results({ value, close })}
 		 *     {#each filter(items, value) as item}
 		 *       <div class="result-item">{item.label}</div>
 		 *     {/each}
@@ -269,9 +269,6 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Divider -->
-		<hr class="md-search-view__divider" aria-hidden="true" />
 
 		<!-- Results -->
 		<div class="md-search-view__results" id="md-search-view-results" role="listbox" tabindex="-1">
