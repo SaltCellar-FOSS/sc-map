@@ -1,32 +1,30 @@
 <script lang="ts">
-	import type { Place } from '$lib/schemas/place';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
-	import { isSavedPlace } from '$lib/schemas/place';
 	import { CATEGORIES } from '$lib/categories';
 	import List from './ui/list/List.svelte';
 	import ListItem from './ui/list/ListItem.svelte';
 	import Icon from './ui/icon/Icon.svelte';
+	import type { AutocompleteSuggestion } from '$lib/google-places';
 
 	type Props = {
-		places: Place[];
-		onlistitemclick: (place: Place) => void;
+		results: (AutocompleteSuggestion | SavedPlace)[];
+		onlistitemclick: (result: AutocompleteSuggestion | SavedPlace) => void;
 	};
 
-	const { onlistitemclick, places }: Props = $props();
+	const { onlistitemclick, results }: Props = $props();
 
-	function getIndicator(place: Place) {
-		if (!isSavedPlace(place)) {
-			return { isSaved: false };
+	function getIndicator(result: AutocompleteSuggestion | SavedPlace) {
+		if (!('id' in result)) {
+			return { isSavedPlace: false };
 		}
 
-		const savedPlace = place as SavedPlace;
-		const category = CATEGORIES[savedPlace.type];
+		const category = CATEGORIES[result.type];
 		const bgColor = category.color;
 
-		const needsDarkIcon = savedPlace.type === 'BAKERY';
+		const needsDarkIcon = result.type === 'BAKERY';
 		const iconColor = needsDarkIcon ? '#1A1A1A' : '#FFFFFF';
 
-		return { isSaved: true, bgColor, iconColor, type: savedPlace.type };
+		return { isSaved: true, bgColor, iconColor, type: result.type };
 	}
 
 	function getIconName(type: SavedPlace['type']) {
@@ -42,15 +40,15 @@
 </script>
 
 <List as="div" noPadding>
-	{#each places as place (place.google_place_id)}
-		{@const indicator = getIndicator(place)}
+	{#each results as result (result.google_place_id)}
+		{@const indicator = getIndicator(result)}
 		{@const isSaved = indicator?.isSaved}
 		{@const iconName = isSaved && indicator.type ? getIconName(indicator.type) : null}
 		<ListItem
 			type="button"
 			role="option"
 			aria-selected="false"
-			onclick={() => onlistitemclick(place)}
+			onclick={() => onlistitemclick(result)}
 		>
 			{#snippet leading()}
 				{#if isSaved && iconName}
@@ -67,8 +65,8 @@
 				{/if}
 			{/snippet}
 
-			{place.name}
-			{#snippet supporting()}{place.formatted_address}{/snippet}
+			{result.name}
+			{#snippet supporting()}{result.formatted_address}{/snippet}
 		</ListItem>
 	{/each}
 </List>

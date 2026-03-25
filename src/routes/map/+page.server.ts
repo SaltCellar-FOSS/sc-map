@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { sql } from '$lib/db';
 import { SavedPlacesDao } from '$lib/server/dao/saved-places';
 import { VisitsDao } from '$lib/server/dao/visits';
-import { getGooglePlaceById } from '$lib/server/google-places';
+import { getGooglePlaceById } from '$lib/google-places';
 import { SavedPlaceSchema, type SavedPlace } from '$lib/schemas/saved-place';
 import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 
