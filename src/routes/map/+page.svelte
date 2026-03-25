@@ -23,6 +23,7 @@
 
 	function handlePlaceSelect(place: Place, close: () => void) {
 		selectedPlace = place;
+		searchQuery = place.name;
 		close();
 		if (isSavedPlace(place)) {
 			visitsResult = getVisitsForPlace(place.id);
