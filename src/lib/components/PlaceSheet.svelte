@@ -10,11 +10,21 @@
 		open?: boolean;
 		placeName: string;
 		visits: VisitWithUser[];
+		currentUserId?: bigint;
 		onclose?: () => void;
 		onaddvisit: () => void;
+		oneditvisit?: (visit: VisitWithUser) => void;
 	};
 
-	let { open = $bindable(false), placeName, visits, onclose, onaddvisit }: Props = $props();
+	let {
+		open = $bindable(false),
+		placeName,
+		visits,
+		currentUserId,
+		onclose,
+		onaddvisit,
+		oneditvisit
+	}: Props = $props();
 
 	let isDesktop = $state(false);
 
@@ -41,7 +51,7 @@
 			</Button>
 		</div>
 
-		<VisitList {visits} />
+		<VisitList {visits} {currentUserId} {oneditvisit} />
 	</SideSheet>
 {:else}
 	<BottomSheet bind:open {onclose}>
@@ -57,7 +67,7 @@
 			</button>
 		</div>
 
-		<VisitList {visits} />
+		<VisitList {visits} {currentUserId} {oneditvisit} />
 	</BottomSheet>
 {/if}
 
