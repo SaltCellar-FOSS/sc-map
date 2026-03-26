@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import PlaceSheet from './PlaceSheet.svelte';
-	import type { VisitWithUser } from '$lib/server/dao/visits/types';
+	import type { VisitWithUser } from '$lib/schemas/visit';
 
 	const { Story } = defineMeta({
 		tags: ['autodocs'],
@@ -27,7 +27,7 @@
 			discord_handle: '@netshaq',
 			avatar_url: null,
 			summary: 'If you pee pee when you poo poo, why do you not poo poo when you pee pee',
-			rating: null,
+			rating: 1,
 			visited_at: now,
 			photo_urls: [
 				'https://picsum.photos/seed/v1a/400/400',

@@ -5,23 +5,61 @@
 	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
-	import ButtonGroup from './ui/button-group/ButtonGroup.svelte';
+	import { SavedPlaceType } from '$lib/schemas/saved-place';
+	import ChipSet from './ui/chip/ChipSet.svelte';
+	import { Chip } from './ui/chip';
+
+	import type { ComponentProps } from 'svelte';
 	import Icon from './ui/icon/Icon.svelte';
 
 	type Props = {
 		open: boolean;
 		placeName: string;
 		googlePlaceId: string;
+		isSavedPlace: boolean;
 		onclose?: () => void;
 		onsuccess?: () => void;
 	};
 
-	let { open = $bindable(false), placeName, googlePlaceId, onclose, onsuccess }: Props = $props();
+	const savedPlaceTypeMap: Record<
+		SavedPlaceType,
+		{
+			iconName: Extract<
+				ComponentProps<typeof Icon>['name'],
+				'restaurant' | 'bar' | 'bakery' | 'deli' | 'foodTruck' | 'dessert' | 'otherDestination'
+			>;
+			label: string;
+		}
+	> = {
+		[SavedPlaceType.Restaurant]: { iconName: 'restaurant', label: 'Restaurant' },
+		[SavedPlaceType.Bar]: { iconName: 'bar', label: 'Bar' },
+		[SavedPlaceType.Bakery]: { iconName: 'bakery', label: 'Bakery' },
+		[SavedPlaceType.Deli]: { iconName: 'deli', label: 'Deli' },
+		[SavedPlaceType.FoodTruck]: { iconName: 'foodTruck', label: 'Food Truck' },
+		[SavedPlaceType.Dessert]: { iconName: 'dessert', label: 'Dessert' },
+		[SavedPlaceType.OtherDestination]: { iconName: 'otherDestination', label: 'Other Destination' }
+	};
+
+	const formatter = Intl.DateTimeFormat('en-CA');
+
+	const today = (): string => {
+		return formatter.format(new Date());
+	};
+
+	let {
+		open = $bindable(false),
+		placeName,
+		googlePlaceId,
+		onclose,
+		onsuccess,
+		isSavedPlace
+	}: Props = $props();
 
 	function enhanceVisit() {
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			await update();
 			if (result.type === 'success') {
+				handleClose();
 				onsuccess?.();
 			}
 		};
@@ -29,9 +67,9 @@
 
 	let rating = $state(0);
 	let review = $state('');
-	let visitDate = $state<string>('');
+	let visitDate = $state<string>(today());
 	// let photos = $state<File[]>([]);
-	let selectedType = $state<'RESTAURANT' | 'BAR' | 'BAKERY'>('RESTAURANT');
+	let selectedType = $state<SavedPlaceType | null>(null);
 	// let photoUrls = $state<string[]>([]);
 	// let fileInput = $state<HTMLInputElement | null>(null);
 	let submitted = $state(false);
@@ -48,15 +86,14 @@
 
 	function handleClose() {
 		submitted = false;
-		visitDate = '';
+		rating = 0;
+		visitDate = today();
 		onclose?.();
 		open = false;
 	}
 
 	function handlePost() {
 		submitted = true;
-		if (!isValid) return;
-		handleClose();
 	}
 
 	// function handleFileChange(event: Event) {
@@ -74,10 +111,6 @@
 	// 	photoUrls = photoUrls.filter((_, i) => i !== index);
 	// }
 </script>
-
-{#snippet restaurantIcon()}<Icon name="restaurant" />{/snippet}
-{#snippet barIcon()}<Icon name="bar" />{/snippet}
-{#snippet bakeryIcon()}<Icon name="bakery" />{/snippet}
 
 <Dialog {open} onclose={handleClose}>
 	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
@@ -118,24 +151,23 @@
 			/>
 		</div>
 
-		<div class="field-row">
-			<ButtonGroup
-				bind:selected={selectedType}
-				toggleMode="single"
-				buttonVariant="filled"
-				items={[
-					{
-						value: 'RESTAURANT',
-						label: 'Restaurant',
-						icon: restaurantIcon
-					},
-					{ value: 'BAR', label: 'Bar', icon: barIcon },
-					{ value: 'BAKERY', label: 'Bakery', icon: bakeryIcon }
-				]}
-				aria-label="Location type"
-				class="type-toggle"
-			/>
-		</div>
+		{#if !isSavedPlace}
+			<div class="field-row">
+				<ChipSet>
+					{#each Object.values(SavedPlaceType) as savedPlaceType (savedPlaceType)}
+						<Chip
+							type="filter"
+							label={savedPlaceTypeMap[savedPlaceType].label}
+							onchange={() => (selectedType = savedPlaceType)}
+						>
+							{#snippet icon()}
+								<Icon name={savedPlaceTypeMap[savedPlaceType].iconName} />
+							{/snippet}
+						</Chip>
+					{/each}
+				</ChipSet>
+			</div>
+		{/if}
 
 		<!-- Add photos button -->
 		<!-- <div class="photos-row">

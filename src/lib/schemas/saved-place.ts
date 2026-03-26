@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+export enum SavedPlaceType {
+	Restaurant = 'RESTAURANT',
+	Bar = 'BAR',
+	Bakery = 'BAKERY',
+	Deli = 'DELI',
+	FoodTruck = 'FOOD_TRUCK',
+	Dessert = 'DESSERT',
+	OtherDestination = 'OTHER_DESTINATION'
+}
+
 export const SavedPlaceSchema = z.object({
 	id: z.coerce.bigint(),
 	name: z.string(),
@@ -7,7 +17,7 @@ export const SavedPlaceSchema = z.object({
 	lng: z.number(),
 	formatted_address: z.string(),
 	google_place_id: z.string(),
-	type: z.enum(['RESTAURANT', 'BAR', 'BAKERY']),
+	type: z.enum(SavedPlaceType),
 	submitted_by: z.coerce.bigint(),
 	created_at: z.coerce.date()
 });
@@ -15,6 +25,10 @@ export const SavedPlaceSchema = z.object({
 export const SavedPlaceInsertSchema = SavedPlaceSchema.omit({ id: true, created_at: true });
 
 export const SavedPlaceUpdateSchema = SavedPlaceSchema.omit({ id: true }).partial();
+
+export function isSavedPlaceType(value: string): value is SavedPlaceType {
+	return Object.values(SavedPlaceType).includes(value as SavedPlaceType);
+}
 
 export type SavedPlace = z.infer<typeof SavedPlaceSchema>;
 export type SavedPlaceInsert = z.infer<typeof SavedPlaceInsertSchema>;

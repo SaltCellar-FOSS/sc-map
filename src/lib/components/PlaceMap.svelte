@@ -6,17 +6,15 @@
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
 	import type { Place } from '$lib/schemas/place';
-	import type { CATEGORIES } from '$lib/categories';
 	import { getGooglePlaceById } from '$lib/google-places';
 
 	type Props = {
-		categories: typeof CATEGORIES;
 		savedPlaces: { [googlePlaceId: string]: SavedPlace };
 		onsaveplace: (place: Place) => void;
 		onplacechange: (place: Place | null) => void;
 	};
 
-	let { categories, savedPlaces, onsaveplace, onplacechange }: Props = $props();
+	let { savedPlaces, onsaveplace, onplacechange }: Props = $props();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
@@ -200,7 +198,6 @@
 			{place}
 			visible={true}
 			onclick={(place) => handlePlaceSelected(place.google_place_id, null)}
-			categoryConfig={categories[place.type]}
 		/>
 	{/each}
 {/if}

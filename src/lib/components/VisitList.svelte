@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Card from './ui/card/Card.svelte';
-	import type { VisitWithUser } from '$lib/server/dao/visits/types';
+	import type { VisitWithUser } from '$lib/schemas/visit';
 
 	type Props = {
 		visits: VisitWithUser[];

@@ -2,7 +2,7 @@
 	import BottomSheet from './ui/sheet/BottomSheet.svelte';
 	import SideSheet from './ui/sheet/SideSheet.svelte';
 	import VisitList from './VisitList.svelte';
-	import type { VisitWithUser } from '$lib/server/dao/visits/types';
+	import type { VisitWithUser } from '$lib/schemas/visit';
 	import Button from './ui/button/Button.svelte';
 	import Icon from './ui/icon/Icon.svelte';
 

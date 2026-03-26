@@ -1,7 +1,12 @@
 import type { SavedPlace } from '$lib/schemas/saved-place';
+import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async ({ fetch }) => {
+export const load: PageLoad = async ({ fetch, parent }) => {
+	const parentData = await parent();
+	if (!parentData.user) {
+		redirect(307, '/');
+	}
 	const res = await fetch('/api/places');
 	const savedPlacesList: SavedPlace[] = await res.json();
 

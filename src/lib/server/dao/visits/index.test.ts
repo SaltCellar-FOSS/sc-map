@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
-import type { Visit, VisitInsert, VisitWithUser } from './types';
+import type { Visit, VisitInsert, VisitWithUser } from '../../../schemas/visit';
 import { VisitsDao, VisitNotFoundError, DuplicateVisitError, InvalidRatingError } from '.';
 import { createMockSQL, createErrorSQL } from '../mock';
 

@@ -1,0 +1,164 @@
+/* =============================================================================
+   MATERIAL DESIGN 3 — LAYER 3: CHIP COMPONENT TOKENS
+
+   Imported by components/Chip/chip.css — not directly by theme.css.
+
+   Spec summary (m3.material.io/components/chips/specs):
+
+   ALL CHIPS:
+     Height:      32px
+     Shape:       small (8px) — all four corners
+     Typography:  label-large
+     Icon size:   18px
+     Min width:   none specified (content-driven)
+     Padding:     8px horizontal (label) + 8px icon-to-edge
+     Touch target: 48px (achieved via min-height on wrapper, not the chip itself)
+
+   ASSIST:
+     Container:   transparent, 1px outline (outline color)
+     Label:       on-surface
+     Icon:        on-surface (optional leading)
+     Elevated variant: surface-container-low + elevation-1, no outline
+
+   FILTER:
+     Container:   transparent, 1px outline — at rest
+     Selected:    secondary-container bg, outline disappears
+     Label:       on-surface → on-secondary-container when selected
+     Checkmark:   18px, appears leading when selected (replaces or precedes icon)
+     Elevated variant: surface-container-low + elevation-1, no outline at rest
+
+   INPUT:
+     Container:   transparent, 1px outline
+     Label:       on-surface
+     Leading:     optional icon OR avatar (circular, 24px)
+     Trailing:    always a remove/close (×) button — 18px icon
+     No elevated variant (input chips live in forms, not over images)
+
+   SUGGESTION:
+     Container:   transparent, 1px outline
+     Label:       on-surface
+     Icon:        optional leading
+     Elevated variant: surface-container-low + elevation-1, no outline
+     No toggle / no selected state
+
+   STATES (all chips):
+     Hover:   state layer on-surface 8% opacity
+     Focus:   state layer on-surface 10% opacity (+ focus ring)
+     Pressed: state layer on-surface 10% opacity (+ ripple)
+     Disabled: container opacity 0.12, content opacity 0.38
+   ============================================================================= */
+
+:root {
+	/* =========================================================================
+     SHARED GEOMETRY
+     ========================================================================= */
+
+	--md-comp-chip-height: 32px;
+	--md-comp-chip-shape: var(--md-sys-shape-corner-small); /* 8px */
+	--md-comp-chip-icon-size: 18px;
+	--md-comp-chip-padding-inline: 8px; /* label ↔ edge (no icon) */
+	--md-comp-chip-icon-gap: 8px; /* gap between icon and label */
+	--md-comp-chip-icon-padding: 8px; /* icon ↔ chip edge */
+
+	/* =========================================================================
+     SHARED TYPOGRAPHY
+     ========================================================================= */
+
+	--md-comp-chip-label-font: var(--md-sys-typescale-label-large-font);
+	--md-comp-chip-label-size: var(--md-sys-typescale-label-large-size);
+	--md-comp-chip-label-weight: var(--md-sys-typescale-label-large-weight);
+	--md-comp-chip-label-tracking: var(--md-sys-typescale-label-large-tracking);
+
+	/* =========================================================================
+     SHARED OUTLINE (assist, filter, input, suggestion — flat variant)
+     ========================================================================= */
+
+	--md-comp-chip-outline-color: var(--md-sys-color-outline);
+	--md-comp-chip-outline-width: 1px;
+
+	/* =========================================================================
+     SHARED STATE LAYERS
+     ========================================================================= */
+
+	--md-comp-chip-hover-opacity: var(--md-sys-state-hover-opacity);
+	--md-comp-chip-focus-opacity: var(--md-sys-state-focus-opacity);
+	--md-comp-chip-pressed-opacity: var(--md-sys-state-pressed-opacity);
+
+	/* =========================================================================
+     SHARED DISABLED
+     ========================================================================= */
+
+	--md-comp-chip-disabled-container-opacity: var(--md-sys-state-disabled-container-opacity);
+	--md-comp-chip-disabled-content-opacity: var(--md-sys-state-disabled-content-opacity);
+	--md-comp-chip-disabled-outline-opacity: var(--md-sys-state-disabled-content-opacity);
+
+	/* =========================================================================
+     SHARED ELEVATED VARIANT
+     (assist, filter, suggestion can be elevated; input cannot)
+     ========================================================================= */
+
+	--md-comp-chip-elevated-container-color: var(--md-sys-color-surface-container-low);
+	--md-comp-chip-elevated-container-elevation: var(--md-sys-elevation-level1-shadow);
+	--md-comp-chip-elevated-hover-elevation: var(--md-sys-elevation-level2-shadow);
+
+	/* =========================================================================
+     ASSIST CHIP
+     ========================================================================= */
+
+	--md-comp-assist-chip-container-color: transparent;
+	--md-comp-assist-chip-label-color: var(--md-sys-color-on-surface);
+	--md-comp-assist-chip-icon-color: var(--md-sys-color-primary);
+	--md-comp-assist-chip-state-layer-color: var(--md-sys-color-on-surface);
+
+	/* =========================================================================
+     FILTER CHIP
+     ========================================================================= */
+
+	/* Unselected */
+	--md-comp-filter-chip-container-color: transparent;
+	--md-comp-filter-chip-label-color: var(--md-sys-color-on-surface);
+	--md-comp-filter-chip-icon-color: var(--md-sys-color-on-surface);
+	--md-comp-filter-chip-state-layer-color: var(--md-sys-color-on-surface);
+
+	/* Selected */
+	--md-comp-filter-chip-selected-container-color: var(--md-sys-color-secondary-container);
+	--md-comp-filter-chip-selected-label-color: var(--md-sys-color-on-secondary-container);
+	--md-comp-filter-chip-selected-icon-color: var(--md-sys-color-on-secondary-container);
+	--md-comp-filter-chip-selected-state-layer-color: var(--md-sys-color-on-secondary-container);
+
+	/* Checkmark drawn in SVG — same size as icon */
+	--md-comp-filter-chip-checkmark-color: var(--md-sys-color-on-secondary-container);
+
+	/* =========================================================================
+     INPUT CHIP
+     ========================================================================= */
+
+	--md-comp-input-chip-container-color: transparent;
+	--md-comp-input-chip-label-color: var(--md-sys-color-on-surface);
+	--md-comp-input-chip-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-input-chip-state-layer-color: var(--md-sys-color-on-surface);
+
+	/* Avatar (optional circular image, 24px) */
+	--md-comp-input-chip-avatar-size: 24px;
+	--md-comp-input-chip-avatar-shape: var(--md-sys-shape-corner-full);
+
+	/* Remove/close button */
+	--md-comp-input-chip-remove-icon-color: var(--md-sys-color-on-surface-variant);
+	--md-comp-input-chip-remove-icon-size: var(--md-comp-chip-icon-size);
+
+	/* =========================================================================
+     SUGGESTION CHIP
+     ========================================================================= */
+
+	--md-comp-suggestion-chip-container-color: transparent;
+	--md-comp-suggestion-chip-label-color: var(--md-sys-color-on-surface);
+	--md-comp-suggestion-chip-icon-color: var(--md-sys-color-on-surface);
+	--md-comp-suggestion-chip-state-layer-color: var(--md-sys-color-on-surface);
+
+	/* =========================================================================
+     MOTION
+     ========================================================================= */
+
+	--md-comp-chip-checkmark-duration: var(--md-sys-motion-duration-short3);
+	--md-comp-chip-checkmark-easing: var(--md-sys-motion-easing-standard);
+}
