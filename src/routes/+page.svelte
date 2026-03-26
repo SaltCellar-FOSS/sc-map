@@ -16,6 +16,15 @@
 </div>
 
 <style>
+	@font-face {
+		font-family: 'VC Henrietta';
+		src:
+			url('/fonts/VCHenrietta-Regular.woff2') format('woff2'),
+			url('/fonts/VCHenrietta-Regular.woff') format('woff');
+		font-weight: 400;
+		font-display: swap;
+	}
+
 	.container {
 		background-size: cover;
 		background-position: center;
@@ -25,5 +34,9 @@
 		justify-content: center;
 		gap: 2rem;
 		height: 100vh;
+	}
+
+	h1 {
+		font-family: 'VC Henrietta', sans-serif;
 	}
 </style>
