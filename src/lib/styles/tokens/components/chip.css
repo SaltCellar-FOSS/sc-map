@@ -56,7 +56,7 @@
 	--md-comp-chip-height: 32px;
 	--md-comp-chip-shape: var(--md-sys-shape-corner-small); /* 8px */
 	--md-comp-chip-icon-size: 18px;
-	--md-comp-chip-padding-inline: 8px; /* label ↔ edge (no icon) */
+	--md-comp-chip-padding-inline: 16px; /* label ↔ edge (no icon) */
 	--md-comp-chip-icon-gap: 8px; /* gap between icon and label */
 	--md-comp-chip-icon-padding: 8px; /* icon ↔ chip edge */
 
