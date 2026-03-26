@@ -8,10 +8,10 @@
 
 	type Props = {
 		results: (AutocompleteSuggestion | SavedPlace)[];
-		onlistitemclick: (result: AutocompleteSuggestion | SavedPlace) => void;
+		onsearchresultclick: (googlePlaceId: string) => void;
 	};
 
-	const { onlistitemclick, results }: Props = $props();
+	const { onsearchresultclick, results }: Props = $props();
 
 	function getIndicator(result: AutocompleteSuggestion | SavedPlace) {
 		if (!('id' in result)) {
@@ -48,7 +48,7 @@
 			type="button"
 			role="option"
 			aria-selected="false"
-			onclick={() => onlistitemclick(result)}
+			onclick={() => onsearchresultclick(result.google_place_id)}
 		>
 			{#snippet leading()}
 				{#if isSaved && iconName}

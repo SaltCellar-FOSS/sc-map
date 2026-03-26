@@ -36,7 +36,7 @@ interface NewPlaceResult {
 
 export async function getGooglePlaceById(
 	placeId: string,
-	sessionToken?: string
+	sessionToken: string | null = null
 ): Promise<GooglePlaceResult | null> {
 	const { PUBLIC_GOOGLE_MAPS_API_KEY: apiKey } = await import('$env/static/public');
 	if (!apiKey) return null;
