@@ -25,7 +25,11 @@ export const VisitUpdateSchema = VisitSchema.omit({
 	id: true,
 	created_at: true,
 	updated_at: true
-}).partial();
+})
+	.extend({
+		visited_at: z.iso.date()
+	})
+	.partial();
 
 export const VisitWithUserSchema = VisitSchema.extend({
 	discord_handle: z.string().nullable(),
