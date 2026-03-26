@@ -52,7 +52,7 @@ cp .env.example .env
 # Edit .env — see "Environment Variables" below
 
 # 3. Build and start everything
-docker compose -f docker-compose.local.yml up --build
+docker compose up --build
 # → http://localhost:3000
 ```
 
@@ -68,7 +68,7 @@ Copy `.env.example` to `.env` and fill in each value:
 | `PUBLIC_DISCORD_CLIENT_ID` | Discord OAuth app client ID |
 | `SESSION_SECRET` | Long random string, e.g. `openssl rand -hex 32` |
 | `DISCORD_CLIENT_SECRET` | Discord OAuth app secret |
-| `DISCORD_REDIRECT_URI` | OAuth callback URL (see below) |
+| `DISCORD_REDIRECT_URI` | OAuth callback URL — must also be registered in the [Discord Developer Portal](#discord-setup) |
 | `DISCORD_GUILD_ID` | Your Discord server's ID |
 | `DISCORD_GOATED_ROLE_ID` | Role ID for permanent access tier |
 | `ORIGIN` | Full URL the app is served from |
@@ -142,16 +142,3 @@ Key rules (enforced by pre-commit hooks via `prek`):
    src/lib/db/migrations/<timestamp>_description.down.sql
    ```
 4. Open a pull request against `staging` with a clear description of what changed and why.
-
-## Project Structure
-
-```
-src/
-├── lib/
-│   ├── dao/          # Data access objects (SQL queries, Zod-validated types)
-│   ├── db/           # DB singleton, migrations
-│   ├── server/       # Server-only utilities (auth, OAuth, Places API)
-│   └── result.ts     # Result<T, E> type for synchronous error handling
-└── routes/           # SvelteKit pages and API endpoints
-```
-
