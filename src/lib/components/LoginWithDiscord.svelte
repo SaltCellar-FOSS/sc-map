@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { PUBLIC_DISCORD_CLIENT_ID } from '$env/static/public';
 	import { page } from '$app/state';
-	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Button from './ui/button/Button.svelte';
 	function discordAuthUrl(): string {
 		const url = new URL('https://discord.com/oauth2/authorize');
@@ -13,16 +12,16 @@
 	}
 </script>
 
-<Button href={discordAuthUrl()} class="discord-btn">
-	{#snippet icon()}
-		<Icon name="discord" />
-	{/snippet}
-	<span>Continue with Discord</span>
-</Button>
+<Button href={discordAuthUrl()} class="discord-btn">Continue with Discord</Button>
 
 <style>
 	:global(.discord-btn) {
-		background-color: white;
-		color: black;
+		background-color: #5864f1;
+		color: white;
+		font-family: 'VCHenrietta', sans-serif;
+		font-weight: bold;
+		font-size: 1.5em;
+		border-radius: var(--md-sys-shape-corner-small);
+		padding: 1em;
 	}
 </style>
