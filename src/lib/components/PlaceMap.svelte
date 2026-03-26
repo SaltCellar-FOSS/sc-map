@@ -10,7 +10,7 @@
 
 	type Props = {
 		categories: typeof CATEGORIES;
-		savedPlaces: SavedPlace[];
+		savedPlaces: Record<string, SavedPlace>;
 		selectedPlace: Place | null;
 		onsaveplace: (placeId: string) => void;
 		onplacechange: (place: Place | null) => void;
@@ -190,7 +190,7 @@
 <div bind:this={mapEl} class="map"></div>
 
 {#if map}
-	{#each savedPlaces as place (place.id)}
+	{#each Object.values(savedPlaces) as place (place.id)}
 		<PlaceMarker
 			{map}
 			{place}

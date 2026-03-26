@@ -10,7 +10,12 @@
 	import type { PageProps } from './$types';
 	import { getVisitsForPlace } from './visits.remote';
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
-	import { searchPlaces } from './search.remote';
+	import {
+		autocompletePlaces,
+		getGooglePlaceById,
+		type AutocompleteSuggestion
+	} from '$lib/google-places';
+	import type { SavedPlace } from '$lib/schemas/saved-place';
 
 	let { data }: PageProps = $props();
 
@@ -20,6 +25,8 @@
 	let searchQuery = $state('');
 	let showInfoWindow = $state<((place: Place) => void) | null>(null);
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
+
+	let sessionToken: string | null = null;
 
 	function handlePlaceSelect(place: Place | null) {
 		selectedPlace = place;
@@ -48,6 +55,35 @@
 			visitsResult = getVisitsForPlace(selectedPlace.id);
 		}
 	}
+
+	const fetchAutocompleteResults = async (
+		query: string
+	): Promise<(AutocompleteSuggestion | SavedPlace)[]> => {
+		sessionToken ??= crypto.randomUUID();
+
+		const suggestions = await autocompletePlaces(query, sessionToken);
+
+		return suggestions.map(
+			(suggestion) => data.savedPlaces[suggestion.google_place_id] ?? suggestion
+		);
+	};
+
+	const handleListItemClicked = async (result: AutocompleteSuggestion | SavedPlace) => {
+		if ('id' in result) {
+			handlePlaceSelect(result);
+			return;
+		}
+		const googlePlace = await getGooglePlaceById(result.google_place_id, sessionToken ?? undefined);
+		sessionToken = null; // session token is consumed after a place details fetch
+		if (!googlePlace) return;
+		handlePlaceSelect({
+			name: googlePlace.name,
+			lat: googlePlace.geometry.location.lat,
+			lng: googlePlace.geometry.location.lng,
+			formatted_address: googlePlace.formatted_address,
+			google_place_id: googlePlace.place_id
+		});
+	};
 </script>
 
 <div class="map-root">
@@ -118,11 +154,11 @@
 		{/snippet}
 
 		{#snippet results({ value, close })}
-			{#await searchPlaces(value)}
+			{#await fetchAutocompleteResults(value)}
 				<SearchResults
-					places={[]}
-					onlistitemclick={(place) => {
-						handlePlaceSelect(place);
+					results={[]}
+					onlistitemclick={(result) => {
+						handleListItemClicked(result);
 						close();
 					}}
 				/>
@@ -131,9 +167,9 @@
 					<hr class="md-search-view__divider" aria-hidden="true" />
 				{/if}
 				<SearchResults
-					{places}
-					onlistitemclick={(place) => {
-						handlePlaceSelect(place);
+					results={places}
+					onlistitemclick={(result) => {
+						handleListItemClicked(result);
 						close();
 					}}
 				/>
