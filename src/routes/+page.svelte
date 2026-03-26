@@ -7,7 +7,7 @@
 </script>
 
 <div class="container" style:background-image="url({PurplePattern})">
-	<h1>Salt Cellar Map</h1>
+	<img src="/salt-cellar-map.svg" alt="Salt Cellar Map" class="title" />
 	{#if !data.user}
 		<LoginWithDiscord />
 	{:else if !data.user.is_current_server_member && !data.user.has_lifetime_access}
@@ -16,15 +16,6 @@
 </div>
 
 <style>
-	@font-face {
-		font-family: 'VC Henrietta';
-		src:
-			url('/fonts/VCHenrietta-Regular.woff2') format('woff2'),
-			url('/fonts/VCHenrietta-Regular.woff') format('woff');
-		font-weight: 400;
-		font-display: swap;
-	}
-
 	.container {
 		background-size: cover;
 		background-position: center;
@@ -36,7 +27,8 @@
 		height: 100vh;
 	}
 
-	h1 {
-		font-family: 'VC Henrietta', sans-serif;
+	.title {
+		max-width: 600px;
+		width: 90%;
 	}
 </style>
