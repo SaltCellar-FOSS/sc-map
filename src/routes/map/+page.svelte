@@ -2,6 +2,7 @@
 	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
+	import SavedPlacesSidebar from '$lib/components/SavedPlacesSidebar.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
 	import SearchView from '$lib/components/ui/search-view/SearchView.svelte';
@@ -66,6 +67,10 @@
 		await placeMap?.handlePlaceSelected(googlePlaceId, sessionToken);
 		closeSearchResults();
 	};
+
+	const handleSidebarPlaceClick = async (place: SavedPlace) => {
+		await placeMap?.handlePlaceSelected(place.google_place_id, null);
+	};
 </script>
 
 <div class="map-root">
@@ -78,6 +83,8 @@
 		onplacechange={handlePlaceSelect}
 	/>
 </div>
+
+<SavedPlacesSidebar savedPlaces={data.savedPlaces} onplaceclick={handleSidebarPlaceClick} />
 
 {#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
 	{#await visitsResult}
