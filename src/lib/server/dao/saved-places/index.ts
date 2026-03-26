@@ -8,13 +8,13 @@ import {
 import { isPostgresError } from '$lib/db/utils';
 import { PG_ERRORS } from '$lib/db/errors';
 
-export class DuplicateGooglePlaceIdError extends Error {}
+export class DuplicateExternalPlaceIdError extends Error {}
 export class InvalidPlaceTypeError extends Error {}
 export class UserNotFoundError extends Error {}
 export class SavedPlaceNotFoundError extends Error {}
 
 export type InsertSavedPlaceError =
-	| DuplicateGooglePlaceIdError
+	| DuplicateExternalPlaceIdError
 	| InvalidPlaceTypeError
 	| UserNotFoundError;
 
@@ -35,12 +35,12 @@ export class SavedPlacesDao {
 		return SavedPlaceSchema.parse(result);
 	}
 
-	public async retrieveSavedPlaceByGooglePlaceId(googlePlaceId: string) {
+	public async retrieveSavedPlaceByOsmPlaceId(osmPlaceId: string) {
 		const [result] = await this
-			.sql`SELECT * FROM saved_places WHERE google_place_id = ${googlePlaceId}`;
+			.sql`SELECT * FROM saved_places WHERE osm_place_id = ${osmPlaceId}`;
 
 		if (!result) {
-			throw new SavedPlaceNotFoundError(String(googlePlaceId));
+			throw new SavedPlaceNotFoundError(osmPlaceId);
 		}
 
 		return SavedPlaceSchema.parse(result);
@@ -68,7 +68,9 @@ export class SavedPlacesDao {
 		} catch (e) {
 			if (isPostgresError(e)) {
 				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION)
-					throw new DuplicateGooglePlaceIdError(placeInsert.google_place_id);
+					throw new DuplicateExternalPlaceIdError(
+						placeInsert.osm_place_id ?? placeInsert.google_place_id ?? ''
+					);
 				if (e.errno === PG_ERRORS.CHECK_VIOLATION)
 					throw new InvalidPlaceTypeError(placeInsert.type);
 				if (e.errno === PG_ERRORS.FOREIGN_KEY_VIOLATION)

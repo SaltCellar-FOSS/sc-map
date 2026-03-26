@@ -1,210 +1,219 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+	import { onMount, onDestroy } from 'svelte';
+	import type { Map as LeafletMap, Marker, Popup } from 'leaflet';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
-	import PlaceMarker from './PlaceMarker.svelte';
-	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
-	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
+	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from './map-constants';
 	import type { Place } from '$lib/schemas/place';
-	import { getGooglePlaceById } from '$lib/google-places';
+	import { getExternalPlaceId } from '$lib/schemas/place';
+	import { CATEGORIES } from '$lib/categories';
 
 	type Props = {
-		savedPlaces: { [googlePlaceId: string]: SavedPlace };
+		savedPlaces: { [osmPlaceId: string]: SavedPlace };
 		onsaveplace: (place: Place) => void;
 		onplacechange: (place: Place | null) => void;
 	};
 
 	let { savedPlaces, onsaveplace, onplacechange }: Props = $props();
 
-	let map: google.maps.Map | null = $state(null);
-	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
-	let AdvancedMarkerClass = $state<typeof google.maps.marker.AdvancedMarkerElement | null>(null);
-	let selectedPlace = $state<Place | null>(null);
-	let currentInfoWindow = $state<google.maps.InfoWindow | null>(null);
-	let currentMarker = $state<google.maps.marker.AdvancedMarkerElement | null>(null);
+	let mapEl: HTMLDivElement;
+	let map: LeafletMap | null = $state(null);
+	let currentMarker: Marker | null = $state(null);
+	let currentPopup: Popup | null = $state(null);
+	let savedMarkers: Map<string, Marker> = new Map();
 
-	/**
-	 * Given a Google Place ID and an optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens),
-	 * retrieves the info needed to render a place on the map.
-	 *
-	 * Exposed externally so that clicking a search result can reuse the same behavior as clicking a location on the map.
-	 * @param googlePlaceId The [Google Place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of a location.
-	 * @param sessionToken An optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens), used to minimize autocomplete costs.
-	 */
-	export const handlePlaceSelected = async (googlePlaceId: string, sessionToken: string | null) => {
-		if (googlePlaceId in savedPlaces) {
-			clearCurrentInfoWindow();
+	const clearCurrentMarker = () => {
+		if (currentMarker) {
+			currentMarker.remove();
+			currentMarker = null;
+		}
+	};
+
+	const clearCurrentPopup = () => {
+		if (currentPopup) {
+			currentPopup.remove();
+			currentPopup = null;
+		}
+	};
+
+	const openPopupForPlace = async (place: Place) => {
+		if (!map) return;
+		const L = await import('leaflet');
+
+		clearCurrentMarker();
+		clearCurrentPopup();
+
+		currentMarker = L.marker([place.lat, place.lng]).addTo(map);
+
+		const container = document.createElement('div');
+		container.style.maxWidth = '200px';
+		container.innerHTML = `
+			<strong>${place.name}</strong><br />
+			${place.formatted_address ?? ''}<br />
+		`;
+		const btn = document.createElement('button');
+		btn.textContent = 'Save place';
+		btn.style.cssText =
+			'margin-top:8px;padding:6px 12px;background:var(--md-sys-color-primary,#6750a4);color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer';
+		btn.onclick = () => {
+			clearCurrentPopup();
+			onsaveplace(place);
+		};
+		container.appendChild(btn);
+
+		currentPopup = L.popup({ closeButton: true })
+			.setLatLng([place.lat, place.lng])
+			.setContent(container)
+			.openOn(map);
+
+		currentPopup.on('remove', () => {
 			clearCurrentMarker();
-			// This place is in our saved places, we can save ourselves a query to Google
-			// (thus avoiding incurring charges) by just using the saved place instead.
-			const savedPlace = savedPlaces[googlePlaceId];
-			onplacechange(savedPlace);
+			currentPopup = null;
+		});
+	};
+
+	export const handlePlaceSelected = async (osmPlaceId: string) => {
+		if (osmPlaceId in savedPlaces) {
+			clearCurrentMarker();
+			clearCurrentPopup();
+			const saved = savedPlaces[osmPlaceId];
+			onplacechange(saved);
+			if (map) map.setView([saved.lat, saved.lng], 15);
 			return;
 		}
 
-		// This is a new place that isn't saved in our database. We need to retrieve
-		// information for it from Google and ask the user if they want to save it.
+		const { getPlaceById } = await import('$lib/place-search');
+		const place = await getPlaceById(osmPlaceId);
+		if (!place) return;
 
-		// Fetch the place by its Google Place ID (hits Google APIs and incurs cost)
-		const googlePlace = await getGooglePlaceById(googlePlaceId, sessionToken);
-
-		if (googlePlace === null) {
-			// TODO: Visually handle error
-			return;
-		}
-
-		const unsavedPlace = {
-			name: googlePlace.name,
-			lat: googlePlace.geometry.location.lat,
-			lng: googlePlace.geometry.location.lng,
-			formatted_address: googlePlace.formatted_address,
-			google_place_id: googlePlace.place_id
+		const unsaved: Place = {
+			name: place.name,
+			lat: place.lat,
+			lng: place.lng,
+			formatted_address: place.formatted_address,
+			osm_place_id: place.osm_place_id
 		};
 
-		// Signal to the parent that the place has changed.
-		onplacechange(unsavedPlace);
-
-		// Show an InfoWindow so the user can save the place if desired.
-		openInfoWindowForPlace(unsavedPlace);
+		onplacechange(unsaved);
+		if (map) map.setView([unsaved.lat, unsaved.lng], 15);
+		await openPopupForPlace(unsaved);
 	};
 
-	/** Clears the current marker from Google's map, then de-references it (for GC).*/
-	const clearCurrentMarker = () => {
-		if (currentMarker === null) {
-			return;
-		}
+	const buildMarkerIcon = async (place: SavedPlace) => {
+		const L = await import('leaflet');
+		const category = CATEGORIES[place.type];
 
-		currentMarker.map = null;
-		currentMarker = null;
-	};
+		const icon = document.createElement('div');
+		icon.style.cssText = `
+			width:32px;height:32px;border-radius:50%;
+			background:${category.color};
+			display:flex;align-items:center;justify-content:center;
+			font-size:14px;border:2px solid rgba(0,0,0,0.2);
+			cursor:pointer;
+		`;
+		icon.textContent = category.glyphText;
 
-	/** Closes the current InfoWindow so the user doesn't see it, then de-references it (for GC).*/
-	const clearCurrentInfoWindow = () => {
-		if (currentInfoWindow === null) {
-			return;
-		}
-
-		currentInfoWindow.close();
-		currentInfoWindow = null;
-	};
-
-	// Close the current InfoWindow before indicating that the current place should be saved.
-	const handleSavePlace = (place: Place) => {
-		clearCurrentInfoWindow();
-		onsaveplace(place);
-	};
-
-	const openInfoWindowForPlace = (place: Place) => {
-		if (InfoWindowClass === null || AdvancedMarkerClass === null || map === null) {
-			return;
-		}
-
-		currentMarker = new AdvancedMarkerClass({
-			position: { lat: place.lat, lng: place.lng },
-			map,
-			title: place.name
+		return L.divIcon({
+			html: icon.outerHTML,
+			className: '',
+			iconSize: [32, 32],
+			iconAnchor: [16, 16],
+			popupAnchor: [0, -18]
 		});
+	};
 
-		currentInfoWindow = new InfoWindowClass({
-			position: { lat: place.lat, lng: place.lng },
-			content: `
-				<div style="max-width: 200px; color: #000">
-					<strong>${place.name}</strong><br />
-					${place.formatted_address}<br />
-					<button
-						id="save-place-btn"
-						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
-					>
-						Save place
-					</button>
-				</div>
-			`
-		});
-
-		currentInfoWindow.addListener('domready', () => {
-			document
-				.querySelector<HTMLButtonElement>('#save-place-btn')
-				?.addEventListener('click', () => handleSavePlace(place));
-		});
-
-		currentInfoWindow.addListener('closeclick', () => {
+	const addSavedMarker = async (place: SavedPlace) => {
+		if (!map) return;
+		const L = await import('leaflet');
+		const icon = await buildMarkerIcon(place);
+		const marker = L.marker([place.lat, place.lng], { icon, title: place.name }).addTo(map);
+		marker.on('click', () => {
 			clearCurrentMarker();
-			clearCurrentInfoWindow();
+			clearCurrentPopup();
+			onplacechange(place);
+			map?.setView([place.lat, place.lng], 15);
 		});
-
-		currentInfoWindow.open({ map, anchor: currentMarker });
+		savedMarkers.set(getExternalPlaceId(place), marker);
 	};
 
-	const handleMapClick = async (event: google.maps.MapMouseEvent & { placeId?: string }) => {
-		// If setup hasn't completed for some reason, do nothing.
-		// Failed setup will cause serious downstream issues.
-		if (InfoWindowClass === null || AdvancedMarkerClass === null) {
-			return;
-		}
-		clearCurrentMarker();
-		clearCurrentInfoWindow();
+	const syncSavedMarkers = async () => {
+		if (!map) return;
 
-		// If the user has just clicked on the map, we don't want to create new UI.
-		// Early exit.
-		if (event.placeId === undefined) {
-			onplacechange(null);
-			return;
+		const currentIds = new Set(savedMarkers.keys());
+		const newIds = new Set(Object.keys(savedPlaces));
+
+		for (const id of currentIds) {
+			if (!newIds.has(id)) {
+				savedMarkers.get(id)?.remove();
+				savedMarkers.delete(id);
+			}
 		}
 
-		event.stop();
-
-		handlePlaceSelected(event.placeId, null);
+		for (const id of newIds) {
+			if (!currentIds.has(id)) {
+				await addSavedMarker(savedPlaces[id]);
+			}
+		}
 	};
 
 	$effect(() => {
-		if (map && selectedPlace) {
-			map.panTo({ lat: selectedPlace.lat, lng: selectedPlace.lng });
-			map.setZoom(15);
-		}
+		void savedPlaces;
+		syncSavedMarkers();
 	});
 
-	let mapEl: HTMLDivElement;
-
 	onMount(async () => {
-		setOptions({ key: PUBLIC_GOOGLE_MAPS_API_KEY });
+		const L = await import('leaflet');
+		await import('leaflet/dist/leaflet.css');
 
-		const [{ Map, InfoWindow }, { AdvancedMarkerElement }] = await Promise.all([
-			importLibrary('maps') as Promise<google.maps.MapsLibrary>,
-			importLibrary('marker') as Promise<google.maps.MarkerLibrary>
-		]);
-
-		InfoWindowClass = InfoWindow;
-		AdvancedMarkerClass = AdvancedMarkerElement;
-
-		map = new Map(mapEl, {
-			center: DEFAULT_MAP_CENTER,
+		map = L.map(mapEl, {
+			center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
 			zoom: DEFAULT_MAP_ZOOM,
-			mapId: MAP_ID,
-			mapTypeControl: false,
-			streetViewControl: false,
-			fullscreenControl: false
+			zoomControl: true
 		});
 
-		map.addListener('click', handleMapClick);
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			maxZoom: 19
+		}).addTo(map);
+
+		map.on('click', async (e) => {
+			clearCurrentMarker();
+			clearCurrentPopup();
+			onplacechange(null);
+
+			const { reverseGeocode } = await import('$lib/place-search');
+			const result = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+			if (!result) return;
+
+			const place: Place = {
+				name: result.name,
+				lat: result.lat,
+				lng: result.lng,
+				formatted_address: result.formatted_address,
+				osm_place_id: result.osm_place_id
+			};
+
+			onplacechange(place);
+			await openPopupForPlace(place);
+		});
+
+		await syncSavedMarkers();
+	});
+
+	onDestroy(() => {
+		map?.remove();
+		map = null;
 	});
 </script>
 
 <div bind:this={mapEl} class="map"></div>
 
-{#if map}
-	{#each Object.values(savedPlaces) as place (place.id)}
-		<PlaceMarker
-			{map}
-			{place}
-			visible={true}
-			onclick={(place) => handlePlaceSelected(place.google_place_id, null)}
-		/>
-	{/each}
-{/if}
-
 <style>
 	.map {
 		width: 100%;
 		height: 100%;
+	}
+
+	:global(.leaflet-container) {
+		font-family: inherit;
 	}
 </style>

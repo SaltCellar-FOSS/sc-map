@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'bun:test';
 import { SavedPlaceType, type SavedPlaceInsert } from './types';
 import {
 	SavedPlacesDao,
-	DuplicateGooglePlaceIdError,
+	DuplicateExternalPlaceIdError,
 	InvalidPlaceTypeError,
 	UserNotFoundError,
 	SavedPlaceNotFoundError
@@ -71,10 +71,10 @@ describe('SavedPlacesDao', () => {
 		});
 
 		describe('errors', () => {
-			test('throws DuplicateGooglePlaceIdError on duplicate google_place_id', async () => {
+			test('throws DuplicateExternalPlaceIdError on duplicate place id', async () => {
 				const dao = new SavedPlacesDao(createErrorSQL('23505'));
 				expect(dao.insertSavedPlace(placeInsert)).rejects.toBeInstanceOf(
-					DuplicateGooglePlaceIdError
+					DuplicateExternalPlaceIdError
 				);
 			});
 

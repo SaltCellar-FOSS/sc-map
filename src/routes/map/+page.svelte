@@ -5,11 +5,11 @@
 	import SearchResults from '$lib/components/SearchResults.svelte';
 	import SearchBar from '$lib/components/ui/search-bar/SearchBar.svelte';
 	import SearchView from '$lib/components/ui/search-view/SearchView.svelte';
-	import { isSavedPlace, type Place } from '$lib/schemas/place';
+	import { isSavedPlace, type Place, getExternalPlaceId } from '$lib/schemas/place';
 	import type { PageProps } from './$types';
 	import { getVisitsForPlace } from './visits.remote';
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
-	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
+	import type { PlaceSearchResult } from '$lib/place-search';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 
 	let { data }: PageProps = $props();
@@ -21,8 +21,6 @@
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
-
-	let sessionToken: string | null = null;
 
 	function handlePlaceSelect(place: Place | null) {
 		selectedPlace = place;
@@ -52,18 +50,16 @@
 
 	const fetchAutocompleteResults = async (
 		query: string
-	): Promise<(AutocompleteSuggestion | SavedPlace)[]> => {
-		sessionToken ??= crypto.randomUUID();
+	): Promise<(PlaceSearchResult | SavedPlace)[]> => {
+		const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+		if (!res.ok) return [];
+		const results: PlaceSearchResult[] = await res.json();
 
-		const suggestions = await autocompletePlaces(query, sessionToken);
-
-		return suggestions.map(
-			(suggestion) => data.savedPlaces[suggestion.google_place_id] ?? suggestion
-		);
+		return results.map((result) => data.savedPlaces[result.osm_place_id] ?? result);
 	};
 
-	const handleSearchResultClick = async (googlePlaceId: string, closeSearchResults: () => void) => {
-		await placeMap?.handlePlaceSelected(googlePlaceId, sessionToken);
+	const handleSearchResultClick = async (osmPlaceId: string, closeSearchResults: () => void) => {
+		await placeMap?.handlePlaceSelected(osmPlaceId);
 		closeSearchResults();
 	};
 </script>
@@ -156,7 +152,7 @@
 	<AddVisitDialog
 		bind:open={dialogOpen}
 		placeName={selectedPlace.name}
-		googlePlaceId={selectedPlace.google_place_id}
+		osmPlaceId={getExternalPlaceId(selectedPlace)}
 		isSavedPlace={isSavedPlace(selectedPlace)}
 		onsuccess={handleVisitAdded}
 	/>

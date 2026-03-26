@@ -10,21 +10,24 @@ export enum SavedPlaceType {
 	OtherDestination = 'OTHER_DESTINATION'
 }
 
-export const SavedPlaceSchema = z.object({
+const SavedPlaceBaseSchema = z.object({
 	id: z.coerce.bigint(),
 	name: z.string(),
 	lat: z.number(),
 	lng: z.number(),
 	formatted_address: z.string(),
-	google_place_id: z.string(),
+	google_place_id: z.string().optional(),
+	osm_place_id: z.string().optional(),
 	type: z.enum(SavedPlaceType),
 	submitted_by: z.coerce.bigint(),
 	created_at: z.coerce.date()
 });
 
-export const SavedPlaceInsertSchema = SavedPlaceSchema.omit({ id: true, created_at: true });
+export const SavedPlaceSchema = SavedPlaceBaseSchema;
 
-export const SavedPlaceUpdateSchema = SavedPlaceSchema.omit({ id: true }).partial();
+export const SavedPlaceInsertSchema = SavedPlaceBaseSchema.omit({ id: true, created_at: true });
+
+export const SavedPlaceUpdateSchema = SavedPlaceBaseSchema.omit({ id: true }).partial();
 
 export function isSavedPlaceType(value: string): value is SavedPlaceType {
 	return Object.values(SavedPlaceType).includes(value as SavedPlaceType);

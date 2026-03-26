@@ -15,7 +15,7 @@
 	type Props = {
 		open: boolean;
 		placeName: string;
-		googlePlaceId: string;
+		osmPlaceId: string;
 		isSavedPlace: boolean;
 		onclose?: () => void;
 		onsuccess?: () => void;
@@ -49,7 +49,7 @@
 	let {
 		open = $bindable(false),
 		placeName,
-		googlePlaceId,
+		osmPlaceId,
 		onclose,
 		onsuccess,
 		isSavedPlace
@@ -115,7 +115,7 @@
 <Dialog {open} onclose={handleClose}>
 	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
 	<form use:enhance={enhanceVisit} class="dialog-body" method="POST" action="/map?/addVisit">
-		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
+		<input type="hidden" name="osmPlaceId" value={osmPlaceId} />
 		<input type="hidden" name="rating" value={rating} />
 		<input type="hidden" name="selectedType" value={selectedType} />
 		<div class="rating-field">

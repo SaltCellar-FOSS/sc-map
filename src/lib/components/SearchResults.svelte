@@ -4,17 +4,17 @@
 	import List from './ui/list/List.svelte';
 	import ListItem from './ui/list/ListItem.svelte';
 	import Icon from './ui/icon/Icon.svelte';
-	import type { AutocompleteSuggestion } from '$lib/google-places';
+	import type { PlaceSearchResult } from '$lib/place-search';
 	import type { ComponentProps } from 'svelte';
 
 	type Props = {
-		results: (AutocompleteSuggestion | SavedPlace)[];
-		onsearchresultclick: (googlePlaceId: string) => void;
+		results: (PlaceSearchResult | SavedPlace)[];
+		onsearchresultclick: (osmPlaceId: string) => void;
 	};
 
 	const { onsearchresultclick, results }: Props = $props();
 
-	function getIndicator(result: AutocompleteSuggestion | SavedPlace) {
+	function getIndicator(result: PlaceSearchResult | SavedPlace) {
 		if (!('id' in result)) {
 			return { isSavedPlace: false };
 		}
@@ -48,10 +48,14 @@
 				throw new Error('This should never happen');
 		}
 	}
+
+	function getPlaceId(result: PlaceSearchResult | SavedPlace): string {
+		return result.osm_place_id ?? result.google_place_id ?? '';
+	}
 </script>
 
 <List as="div" noPadding>
-	{#each results as result (result.google_place_id)}
+	{#each results as result (getPlaceId(result))}
 		{@const indicator = getIndicator(result)}
 		{@const isSaved = indicator?.isSaved}
 		{@const iconName = isSaved && indicator.type ? getIconName(indicator.type) : null}
@@ -59,7 +63,7 @@
 			type="button"
 			role="option"
 			aria-selected="false"
-			onclick={() => onsearchresultclick(result.google_place_id)}
+			onclick={() => onsearchresultclick(getPlaceId(result))}
 		>
 			{#snippet leading()}
 				{#if isSaved && iconName}

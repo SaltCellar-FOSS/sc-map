@@ -11,7 +11,10 @@ export const load: PageLoad = async ({ fetch, parent }) => {
 	const savedPlacesList: SavedPlace[] = await res.json();
 
 	const savedPlaces: Record<string, SavedPlace> = Object.fromEntries(
-		savedPlacesList.map((savedPlace) => [savedPlace.google_place_id, savedPlace])
+		savedPlacesList.map((savedPlace) => [
+			savedPlace.osm_place_id ?? savedPlace.google_place_id ?? String(savedPlace.id),
+			savedPlace
+		])
 	);
 
 	return { savedPlaces };

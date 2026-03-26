@@ -15,3 +15,8 @@ export type Place = z.infer<typeof PlaceSchema>;
 export const isSavedPlace = (place: Place): place is SavedPlace => {
 	return 'id' in place;
 };
+
+/** Returns the OSM place ID if available, falling back to google_place_id for legacy places. */
+export function getExternalPlaceId(place: Place): string {
+	return place.osm_place_id ?? place.google_place_id ?? '';
+}

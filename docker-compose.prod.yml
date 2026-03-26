@@ -24,7 +24,6 @@ services:
     build:
       context: .
       args:
-        PUBLIC_GOOGLE_MAPS_API_KEY: ${PUBLIC_GOOGLE_MAPS_API_KEY}
         PUBLIC_DISCORD_CLIENT_ID: ${PUBLIC_DISCORD_CLIENT_ID}
     restart: unless-stopped
 
@@ -41,7 +40,6 @@ services:
     environment:
       SQL_URL: postgres://sc_map:sc_map@db:5432/sc_map
       ORIGIN: ${ORIGIN}
-      PUBLIC_GOOGLE_MAPS_API_KEY: ${PUBLIC_GOOGLE_MAPS_API_KEY}
       SESSION_SECRET: ${SESSION_SECRET}
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}

@@ -3,7 +3,7 @@ import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
 import { SavedPlaceType, type SavedPlaceInsert } from './types';
 import {
 	SavedPlacesDao,
-	DuplicateGooglePlaceIdError,
+	DuplicateExternalPlaceIdError,
 	InvalidPlaceTypeError,
 	UserNotFoundError,
 	SavedPlaceNotFoundError
@@ -80,11 +80,11 @@ describe('Integration', () => {
 			});
 
 			describe('constraints', () => {
-				test('throws DuplicateGooglePlaceIdError on duplicate google_place_id', async () => {
+				test('throws DuplicateExternalPlaceIdError on duplicate place id', async () => {
 					await dao.insertSavedPlace(getBaseInsert());
 					expect(
 						dao.insertSavedPlace({ ...getBaseInsert(), name: 'Different Name' })
-					).rejects.toBeInstanceOf(DuplicateGooglePlaceIdError);
+					).rejects.toBeInstanceOf(DuplicateExternalPlaceIdError);
 				});
 
 				test('throws UserNotFoundError when submitted_by references non-existent user', async () => {

@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { sql } from '$lib/db';
 import { SavedPlaceNotFoundError, SavedPlacesDao } from '$lib/server/dao/saved-places';
 import { VisitsDao } from '$lib/server/dao/visits';
-import { getGooglePlaceById } from '$lib/google-places';
+import { getPlaceById } from '$lib/place-search';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
 import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { VisitInsertSchema } from '$lib/schemas/visit.js';
@@ -22,9 +22,9 @@ export const actions = {
 
 		const data = await request.formData();
 
-		const googlePlaceId = data.get('googlePlaceId')?.toString();
+		const osmPlaceId = data.get('osmPlaceId')?.toString();
 
-		if (!googlePlaceId) return fail(400, { error: 'Missing googlePlaceId' });
+		if (!osmPlaceId) return fail(400, { error: 'Missing osmPlaceId' });
 
 		const parseResult = VisitInsertWithoutPlaceSchema.safeParse({
 			user_id: userId,
@@ -43,7 +43,7 @@ export const actions = {
 			let placeId: bigint;
 
 			try {
-				const existing = await savedPlacesDao.retrieveSavedPlaceByGooglePlaceId(googlePlaceId);
+				const existing = await savedPlacesDao.retrieveSavedPlaceByOsmPlaceId(osmPlaceId);
 
 				placeId = existing.id;
 			} catch (error) {
@@ -51,8 +51,8 @@ export const actions = {
 					throw error;
 				}
 
-				const googlePlace = await getGooglePlaceById(googlePlaceId);
-				if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
+				const osmPlace = await getPlaceById(osmPlaceId);
+				if (!osmPlace) throw new Error(`OSM place not found: ${osmPlaceId}`);
 
 				const selectedType = data.get('selectedType')?.toString();
 				if (!selectedType) {
@@ -64,11 +64,11 @@ export const actions = {
 
 				const place = await savedPlacesDao.insertSavedPlace(
 					{
-						name: googlePlace.name,
-						lat: googlePlace.geometry.location.lat,
-						lng: googlePlace.geometry.location.lng,
-						formatted_address: googlePlace.formatted_address,
-						google_place_id: googlePlace.place_id,
+						name: osmPlace.name,
+						lat: osmPlace.lat,
+						lng: osmPlace.lng,
+						formatted_address: osmPlace.formatted_address,
+						osm_place_id: osmPlace.osm_place_id,
 						type: selectedType,
 						submitted_by: userId
 					},

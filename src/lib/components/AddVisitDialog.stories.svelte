@@ -17,7 +17,7 @@
 	<AddVisitDialog
 		open={true}
 		placeName="Franklin Barbecue"
-		googlePlaceId="ChIJ24EDAYllToYR34yWOv_et-A"
+		osmPlaceId="ChIJ24EDAYllToYR34yWOv_et-A"
 		isSavedPlace={false}
 	/>
 </Story>
@@ -28,7 +28,7 @@
 	<AddVisitDialog
 		open={true}
 		placeName="The Salt Lick BBQ – Driftwood, Texas"
-		googlePlaceId="ChIJN1t_tDeuEmsRUsoyG83frY4"
+		osmPlaceId="ChIJN1t_tDeuEmsRUsoyG83frY4"
 		isSavedPlace={false}
 	/>
 </Story>
