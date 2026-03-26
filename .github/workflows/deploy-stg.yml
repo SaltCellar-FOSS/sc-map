@@ -15,4 +15,4 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY_STG }}
-          script: /home/nachotp/containers/sc_map_stg/deploy.sh
+          script: /home/nachotp/salt_cellar/sc-map-stg/deploy.sh

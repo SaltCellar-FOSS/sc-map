@@ -18,4 +18,4 @@ jobs:
           port: 22
           script_stop: true
           # This command triggers the script we just made on the VPS
-          script: /home/nachotp/containers/sc-map/deploy.sh
+          script: /home/nachotp/salt_cellar/sc-map/deploy.sh
