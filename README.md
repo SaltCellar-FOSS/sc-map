@@ -1,42 +1,69 @@
-# sv
+# Salt Cellar Map
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A Discord-gated web app for Salt Cellar members to discover, submit, and review food & drink venues on an interactive map.
 
-## Creating a project
+Access is tied to Discord guild membership. Members can browse and submit places; "Goated" role holders get permanent lifetime access.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Tech Stack
 
-```sh
-# create a new project
-npx sv create my-app
-```
+- **Framework**: SvelteKit (SSR + API routes)
+- **Runtime**: Bun
+- **Database**: PostgreSQL 17
+- **Auth**: Discord OAuth with HMAC-signed session cookies
+- **Reverse proxy**: nginx (Docker) / Traefik (production)
 
-To recreate this project with the same configuration:
+## Quick Start
 
-```sh
-# recreate this project
-bun x sv@0.12.7 create --template minimal --types ts --add prettier eslint --install bun .
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Option A — Native Bun (recommended for development)
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+git clone <repo-url> && cd sc-map
+bun install
+cp .env.example .env   # fill in your secrets
+docker compose -f docker-compose.dev.yml up -d   # start Postgres only
+bun run migrate
+bun run dev              # http://localhost:5173
 ```
 
-## Building
-
-To create a production version of your app:
+### Option B — Full Docker stack
 
 ```sh
-npm run build
+cp .env.example .env   # fill in your secrets
+docker compose -f docker-compose.local.yml up --build
+# app available at http://localhost:3000
 ```
 
-You can preview the production build with `npm run preview`.
+## Environment Variables
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Copy `.env.example` to `.env` and fill in every value before running. Required variables:
+
+| Variable | Description |
+|---|---|
+| `PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps JS API key (baked into client bundle at build time) |
+| `PUBLIC_DISCORD_CLIENT_ID` | Discord OAuth application client ID |
+| `SESSION_SECRET` | Long random string for HMAC cookie signing |
+| `DISCORD_CLIENT_SECRET` | Discord OAuth secret |
+| `DISCORD_REDIRECT_URI` | OAuth callback URL (e.g. `http://localhost:5173/auth/discord/callback`) |
+| `DISCORD_GUILD_ID` | Your Discord server ID |
+| `DISCORD_GOATED_ROLE_ID` | Role ID that grants permanent access |
+| `ORIGIN` | Full origin URL the app is served from (e.g. `http://localhost:5173`) |
+
+> `PUBLIC_*` variables are baked into the client bundle at build time — set them before running `docker compose build` or `bun run build`.
+
+## Commands
+
+```sh
+bun run dev               # dev server on :5173
+bun run build             # production build → build/
+bun run migrate           # run pending DB migrations
+bun run test              # unit tests
+bun run test:integration  # integration tests (requires real DB)
+bun run lint              # prettier + eslint check
+bun run format            # auto-format
+```
+
+## Documentation
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — how to set up a local environment and contribute
+- [DESIGN_DOC.md](./DESIGN_DOC.md) — architecture decisions and data model
+- [AGENTS.md](./AGENTS.md) — tooling list and code quality rules
