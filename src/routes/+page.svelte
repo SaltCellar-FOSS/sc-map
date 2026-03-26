@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LoginWithDiscord from '$lib/components/LoginWithDiscord.svelte';
 
-	import PurplePattern from '$lib/assets/Purple_Pattern_-_Full_Res_-_Fixed.png';
+	const PurplePattern = '/Purple_Pattern_-_Full_Res_-_Fixed.png';
 
 	let { data } = $props();
 </script>
