@@ -7,32 +7,68 @@
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
 	import type { Place } from '$lib/schemas/place';
 	import type { CATEGORIES } from '$lib/categories';
+	import { getGooglePlaceById } from '$lib/google-places';
 
 	type Props = {
 		categories: typeof CATEGORIES;
-		savedPlaces: Record<string, SavedPlace>;
-		selectedPlace: Place | null;
-		onsaveplace: (placeId: string) => void;
+		savedPlaces: { [googlePlaceId: string]: SavedPlace };
+		onsaveplace: (place: Place) => void;
 		onplacechange: (place: Place | null) => void;
-		showInfoWindow?: ((place: Place) => void) | null;
 	};
 
-	let {
-		categories,
-		savedPlaces,
-		selectedPlace,
-		onsaveplace,
-		onplacechange,
-		showInfoWindow = $bindable<((place: Place) => void) | null>(null)
-	}: Props = $props();
+	let { categories, savedPlaces, onsaveplace, onplacechange }: Props = $props();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
 	let AdvancedMarkerClass = $state<typeof google.maps.marker.AdvancedMarkerElement | null>(null);
-	let PlaceClass = $state<typeof google.maps.places.Place | null>(null);
-
+	let selectedPlace = $state<Place | null>(null);
 	let currentInfoWindow = $state<google.maps.InfoWindow | null>(null);
 	let currentMarker = $state<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+	/**
+	 * Given a Google Place ID and an optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens),
+	 * retrieves the info needed to render a place on the map.
+	 *
+	 * Exposed externally so that clicking a search result can reuse the same behavior as clicking a location on the map.
+	 * @param googlePlaceId The [Google Place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of a location.
+	 * @param sessionToken An optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens), used to minimize autocomplete costs.
+	 */
+	export const handlePlaceSelected = async (googlePlaceId: string, sessionToken: string | null) => {
+		if (googlePlaceId in savedPlaces) {
+			clearCurrentInfoWindow();
+			clearCurrentMarker();
+			// This place is in our saved places, we can save ourselves a query to Google
+			// (thus avoiding incurring charges) by just using the saved place instead.
+			const savedPlace = savedPlaces[googlePlaceId];
+			onplacechange(savedPlace);
+			return;
+		}
+
+		// This is a new place that isn't saved in our database. We need to retrieve
+		// information for it from Google and ask the user if they want to save it.
+
+		// Fetch the place by its Google Place ID (hits Google APIs and incurs cost)
+		const googlePlace = await getGooglePlaceById(googlePlaceId, sessionToken);
+
+		if (googlePlace === null) {
+			// TODO: Visually handle error
+			return;
+		}
+
+		const unsavedPlace = {
+			name: googlePlace.name,
+			lat: googlePlace.geometry.location.lat,
+			lng: googlePlace.geometry.location.lng,
+			formatted_address: googlePlace.formatted_address,
+			google_place_id: googlePlace.place_id
+		};
+
+		// Signal to the parent that the place has changed.
+		onplacechange(unsavedPlace);
+
+		// Show an InfoWindow so the user can save the place if desired.
+		openInfoWindowForPlace(unsavedPlace);
+	};
 
 	/** Clears the current marker from Google's map, then de-references it (for GC).*/
 	const clearCurrentMarker = () => {
@@ -55,9 +91,9 @@
 	};
 
 	// Close the current InfoWindow before indicating that the current place should be saved.
-	const handleSavePlace = (googlePlaceId: string) => {
+	const handleSavePlace = (place: Place) => {
 		clearCurrentInfoWindow();
-		onsaveplace(googlePlaceId);
+		onsaveplace(place);
 	};
 
 	const openInfoWindowForPlace = (place: Place) => {
@@ -78,7 +114,7 @@
 					<strong>${place.name}</strong><br />
 					${place.formatted_address}<br />
 					<button
-						data-place-id="${place.google_place_id}"
+						id="save-place-btn"
 						style="margin-top: 8px; padding: 6px 12px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer"
 					>
 						Save place
@@ -89,8 +125,8 @@
 
 		currentInfoWindow.addListener('domready', () => {
 			document
-				.querySelector<HTMLButtonElement>(`[data-place-id="${place.google_place_id}"]`)
-				?.addEventListener('click', () => handleSavePlace(place.google_place_id));
+				.querySelector<HTMLButtonElement>('#save-place-btn')
+				?.addEventListener('click', () => handleSavePlace(place));
 		});
 
 		currentInfoWindow.addListener('closeclick', () => {
@@ -102,13 +138,9 @@
 	};
 
 	const handleMapClick = async (event: google.maps.MapMouseEvent & { placeId?: string }) => {
-		// If the user has clicked on the same place twice, nothing needs to happen.
-		if (event.placeId === selectedPlace?.google_place_id) {
-			return;
-		}
 		// If setup hasn't completed for some reason, do nothing.
 		// Failed setup will cause serious downstream issues.
-		if (InfoWindowClass === null || AdvancedMarkerClass === null || PlaceClass === null) {
+		if (InfoWindowClass === null || AdvancedMarkerClass === null) {
 			return;
 		}
 		clearCurrentMarker();
@@ -123,32 +155,7 @@
 
 		event.stop();
 
-		// Load the currently-clicked place and its associated data needed
-		// for rendering.
-		const place = new PlaceClass({ id: event.placeId });
-		await place.fetchFields({
-			fields: ['displayName', 'formattedAddress', 'location']
-		});
-
-		const latLng = event.latLng;
-
-		if (latLng === null) {
-			return;
-		}
-
-		const unsavedPlace = {
-			name: place.displayName ?? '',
-			lat: latLng.lat(),
-			lng: latLng.lng(),
-			formatted_address: place.formattedAddress ?? '',
-			google_place_id: place.id
-		};
-
-		// Signal to the parent that the place has changed.
-		onplacechange(unsavedPlace);
-
-		// Show an InfoWindow so the user can save the place if desired.
-		openInfoWindowForPlace(unsavedPlace);
+		handlePlaceSelected(event.placeId, null);
 	};
 
 	$effect(() => {
@@ -163,16 +170,13 @@
 	onMount(async () => {
 		setOptions({ key: PUBLIC_GOOGLE_MAPS_API_KEY });
 
-		const [{ Map, InfoWindow }, { Place }, { AdvancedMarkerElement }] = await Promise.all([
+		const [{ Map, InfoWindow }, { AdvancedMarkerElement }] = await Promise.all([
 			importLibrary('maps') as Promise<google.maps.MapsLibrary>,
-			importLibrary('places') as Promise<google.maps.PlacesLibrary>,
 			importLibrary('marker') as Promise<google.maps.MarkerLibrary>
 		]);
 
 		InfoWindowClass = InfoWindow;
 		AdvancedMarkerClass = AdvancedMarkerElement;
-		PlaceClass = Place;
-		showInfoWindow = openInfoWindowForPlace;
 
 		map = new Map(mapEl, {
 			center: DEFAULT_MAP_CENTER,
@@ -195,7 +199,7 @@
 			{map}
 			{place}
 			visible={true}
-			onclick={onplacechange}
+			onclick={(place) => handlePlaceSelected(place.google_place_id, null)}
 			categoryConfig={categories[place.type]}
 		/>
 	{/each}

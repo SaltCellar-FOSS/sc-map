@@ -10,20 +10,17 @@
 	import type { PageProps } from './$types';
 	import { getVisitsForPlace } from './visits.remote';
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
-	import {
-		autocompletePlaces,
-		getGooglePlaceById,
-		type AutocompleteSuggestion
-	} from '$lib/google-places';
+	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 
 	let { data }: PageProps = $props();
+
+	let placeMap = $state<PlaceMap | null>(null);
 
 	let selectedPlace = $state<Place | null>(null);
 	let dialogOpen = $state(false);
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
-	let showInfoWindow = $state<((place: Place) => void) | null>(null);
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
 
 	let sessionToken: string | null = null;
@@ -40,8 +37,6 @@
 		if (isSavedPlace(place)) {
 			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
-		} else {
-			showInfoWindow?.(place);
 		}
 	}
 
@@ -68,30 +63,17 @@
 		);
 	};
 
-	const handleListItemClicked = async (result: AutocompleteSuggestion | SavedPlace) => {
-		if ('id' in result) {
-			handlePlaceSelect(result);
-			return;
-		}
-		const googlePlace = await getGooglePlaceById(result.google_place_id, sessionToken ?? undefined);
-		sessionToken = null; // session token is consumed after a place details fetch
-		if (!googlePlace) return;
-		handlePlaceSelect({
-			name: googlePlace.name,
-			lat: googlePlace.geometry.location.lat,
-			lng: googlePlace.geometry.location.lng,
-			formatted_address: googlePlace.formatted_address,
-			google_place_id: googlePlace.place_id
-		});
+	const handleSearchResultClick = async (googlePlaceId: string, closeSearchResults: () => void) => {
+		await placeMap?.handlePlaceSelected(googlePlaceId, sessionToken);
+		closeSearchResults();
 	};
 </script>
 
 <div class="map-root">
 	<PlaceMap
+		bind:this={placeMap}
 		savedPlaces={data.savedPlaces}
 		categories={CATEGORIES}
-		{selectedPlace}
-		bind:showInfoWindow
 		onsaveplace={() => {
 			dialogOpen = true;
 		}}
@@ -157,10 +139,7 @@
 			{#await fetchAutocompleteResults(value)}
 				<SearchResults
 					results={[]}
-					onlistitemclick={(result) => {
-						handleListItemClicked(result);
-						close();
-					}}
+					onsearchresultclick={(result) => handleSearchResultClick(result, close)}
 				/>
 			{:then places}
 				{#if places.length > 0}
@@ -168,10 +147,7 @@
 				{/if}
 				<SearchResults
 					results={places}
-					onlistitemclick={(result) => {
-						handleListItemClicked(result);
-						close();
-					}}
+					onsearchresultclick={(result) => handleSearchResultClick(result, close)}
 				/>
 			{/await}
 		{/snippet}
