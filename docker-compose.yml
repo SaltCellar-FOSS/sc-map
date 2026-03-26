@@ -1,8 +1,4 @@
-version: '3.5'
-
 networks:
-  web:
-    external: true
   internal:
 
 services:
@@ -36,8 +32,11 @@ services:
       - '3000'
 
     networks:
-      - web
       - internal
+
+    depends_on:
+      db:
+        condition: service_healthy
 
     environment:
       SQL_URL: postgres://sc_map:sc_map@db:5432/sc_map
@@ -49,12 +48,12 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
 
-    labels:
-      - traefik.enable=true
-      - 'traefik.docker.network=web'
-      - traefik.http.routers.${PROJECT}.entryPoints=${ENTRYPOINT}
-      - 'traefik.http.routers.${PROJECT}.rule=Host(`${PROJECT}.${DOMAIN}`)'
-      - 'traefik.http.services.${PROJECT}.loadbalancer.server.port=${PORT}'
-      - 'traefik.http.routers.${PROJECT}.service=${PROJECT}'
-      - 'traefik.http.routers.${PROJECT}.tls=true'
-      - traefik.http.routers.${PROJECT}.tls.certresolver=default
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
+
+    networks:
+      - internal
+    depends_on:
+      - app
