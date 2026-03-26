@@ -1,9 +1,10 @@
 import { sql } from '$lib/db';
 import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
-import type { VisitInsert } from './types';
+import type { VisitInsert } from '../../../schemas/visit';
 import { VisitsDao, InvalidRatingError, VisitNotFoundError } from '.';
 import { UsersDao } from '$lib/server/dao/users';
 import { SavedPlacesDao } from '$lib/server/dao/saved-places';
+import { SavedPlaceType } from '$lib/schemas/saved-place';
 
 describe('Integration', () => {
 	let visitsDao: VisitsDao;
@@ -33,7 +34,7 @@ describe('Integration', () => {
 			lng: -74.006,
 			formatted_address: '123 Test St, New York, NY 10001',
 			google_place_id: 'test_google_place_id',
-			type: 'RESTAURANT',
+			type: SavedPlaceType.Restaurant,
 			submitted_by: testUserId
 		});
 		testPlaceId = place.id;
@@ -66,14 +67,6 @@ describe('Integration', () => {
 					expect(visit.place_id).toBe(testPlaceId);
 					expect(visit.summary).toBe('Great food!');
 					expect(visit.rating).toBe(4);
-				});
-
-				test('inserts a visit with null rating', async () => {
-					const visit = await visitsDao.insertVisit({
-						...getBaseInsert(),
-						rating: null
-					});
-					expect(visit.rating).toBeNull();
 				});
 			});
 
@@ -158,7 +151,7 @@ describe('Integration', () => {
 					lng: -73.0,
 					formatted_address: '456 Other St, New York, NY 10002',
 					google_place_id: 'other_place_id_with_user',
-					type: 'BAR',
+					type: SavedPlaceType.Bar,
 					submitted_by: testUserId
 				});
 				await visitsDao.insertVisit({ ...getBaseInsert(), place_id: otherPlace.id });
@@ -197,7 +190,7 @@ describe('Integration', () => {
 					lng: -73.0,
 					formatted_address: '456 Other St, New York, NY 10002',
 					google_place_id: 'other_place_id',
-					type: 'BAR',
+					type: SavedPlaceType.Bar,
 					submitted_by: testUserId
 				});
 				await visitsDao.insertVisit({

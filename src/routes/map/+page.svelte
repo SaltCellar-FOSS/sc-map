@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { CATEGORIES } from '$lib/categories';
 	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
@@ -73,7 +72,6 @@
 	<PlaceMap
 		bind:this={placeMap}
 		savedPlaces={data.savedPlaces}
-		categories={CATEGORIES}
 		onsaveplace={() => {
 			dialogOpen = true;
 		}}
@@ -159,6 +157,7 @@
 		bind:open={dialogOpen}
 		placeName={selectedPlace.name}
 		googlePlaceId={selectedPlace.google_place_id}
+		isSavedPlace={isSavedPlace(selectedPlace)}
 		onsuccess={handleVisitAdded}
 	/>
 {/if}

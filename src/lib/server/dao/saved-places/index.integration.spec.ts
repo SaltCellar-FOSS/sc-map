@@ -1,6 +1,6 @@
 import { sql } from '$lib/db';
 import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
-import type { SavedPlaceInsert } from './types';
+import { SavedPlaceType, type SavedPlaceInsert } from './types';
 import {
 	SavedPlacesDao,
 	DuplicateGooglePlaceIdError,
@@ -56,7 +56,7 @@ describe('Integration', () => {
 					expect(place.lat).toBe(40.7128);
 					expect(place.lng).toBe(-74.006);
 					expect(place.google_place_id).toBe('test_google_place_id');
-					expect(place.type).toBe('RESTAURANT');
+					expect(place.type).toBe(SavedPlaceType.Restaurant);
 					expect(place.submitted_by).toBe(testUserId);
 				});
 
@@ -64,18 +64,18 @@ describe('Integration', () => {
 					const place = await dao.insertSavedPlace({
 						...getBaseInsert(),
 						google_place_id: 'bar_place_id',
-						type: 'BAR'
+						type: SavedPlaceType.Bar
 					});
-					expect(place.type).toBe('BAR');
+					expect(place.type).toBe(SavedPlaceType.Bar);
 				});
 
 				test('inserts a saved place with BAKERY type', async () => {
 					const place = await dao.insertSavedPlace({
 						...getBaseInsert(),
 						google_place_id: 'bakery_place_id',
-						type: 'BAKERY'
+						type: SavedPlaceType.Bakery
 					});
-					expect(place.type).toBe('BAKERY');
+					expect(place.type).toBe(SavedPlaceType.Bakery);
 				});
 			});
 
@@ -95,7 +95,7 @@ describe('Integration', () => {
 
 				test('throws InvalidPlaceTypeError for invalid type', async () => {
 					expect(
-						dao.insertSavedPlace({ ...getBaseInsert(), type: 'INVALID_TYPE' as 'RESTAURANT' })
+						dao.insertSavedPlace({ ...getBaseInsert(), type: 'INVALID_TYPE' as SavedPlaceType })
 					).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 				});
 			});
@@ -157,7 +157,7 @@ describe('Integration', () => {
 				test('throws InvalidPlaceTypeError for invalid type', async () => {
 					const place = await dao.insertSavedPlace(getBaseInsert());
 					expect(
-						dao.updateSavedPlace(place.id, { type: 'INVALID_TYPE' as 'RESTAURANT' })
+						dao.updateSavedPlace(place.id, { type: 'INVALID_TYPE' as SavedPlaceType })
 					).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 				});
 			});

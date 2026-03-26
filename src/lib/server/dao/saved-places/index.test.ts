@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import type { SavedPlaceInsert } from './types';
+import { SavedPlaceType, type SavedPlaceInsert } from './types';
 import {
 	SavedPlacesDao,
 	DuplicateGooglePlaceIdError,
@@ -27,7 +27,7 @@ const placeInsert: SavedPlaceInsert = {
 	lng: -74.006,
 	formatted_address: '123 Test St, New York, NY 10001',
 	google_place_id: 'abc123',
-	type: 'BAKERY',
+	type: SavedPlaceType.Bakery,
 	submitted_by: 42n
 };
 
@@ -65,7 +65,7 @@ describe('SavedPlacesDao', () => {
 				expect(place.id).toBeDefined();
 				expect(place.name).toBe('Test Bakery');
 				expect(place.google_place_id).toBe('abc123');
-				expect(place.type).toBe('BAKERY');
+				expect(place.type).toBe(SavedPlaceType.Bakery);
 				expect(place.submitted_by).toBe(42n);
 			});
 		});
@@ -81,7 +81,7 @@ describe('SavedPlacesDao', () => {
 			test('throws InvalidPlaceTypeError on invalid type', async () => {
 				const dao = new SavedPlacesDao(createErrorSQL('23514'));
 				expect(
-					dao.insertSavedPlace({ ...placeInsert, type: 'INVALID' as 'BAKERY' })
+					dao.insertSavedPlace({ ...placeInsert, type: 'INVALID' as SavedPlaceType })
 				).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 			});
 
@@ -158,9 +158,9 @@ describe('SavedPlacesDao', () => {
 
 			test('throws InvalidPlaceTypeError on invalid type', async () => {
 				const dao = new SavedPlacesDao(createErrorSQL('23514'));
-				expect(dao.updateSavedPlace(1n, { type: 'INVALID' as 'BAKERY' })).rejects.toBeInstanceOf(
-					InvalidPlaceTypeError
-				);
+				expect(
+					dao.updateSavedPlace(1n, { type: 'INVALID' as SavedPlaceType })
+				).rejects.toBeInstanceOf(InvalidPlaceTypeError);
 			});
 
 			test('throws UserNotFoundError when submitted_by user does not exist', async () => {

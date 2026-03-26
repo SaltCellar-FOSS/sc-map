@@ -35,6 +35,17 @@ export class SavedPlacesDao {
 		return SavedPlaceSchema.parse(result);
 	}
 
+	public async retrieveSavedPlaceByGooglePlaceId(googlePlaceId: string) {
+		const [result] = await this
+			.sql`SELECT * FROM saved_places WHERE google_place_id = ${googlePlaceId}`;
+
+		if (!result) {
+			throw new SavedPlaceNotFoundError(String(googlePlaceId));
+		}
+
+		return SavedPlaceSchema.parse(result);
+	}
+
 	public async listSavedPlaces() {
 		const results: unknown[] = await this.sql`
         SELECT * FROM saved_places;

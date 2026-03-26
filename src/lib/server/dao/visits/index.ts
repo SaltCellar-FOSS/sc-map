@@ -6,7 +6,7 @@ import {
 	type VisitWithUser,
 	type VisitInsert,
 	type VisitUpdate
-} from './types';
+} from '../../../schemas/visit';
 import { isPostgresError } from '$lib/db/utils';
 import { PG_ERRORS } from '$lib/db/errors';
 

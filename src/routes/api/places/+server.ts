@@ -10,6 +10,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	const sessionCookie = cookies.get('session');
 	const userId = sessionCookie ? await verifySessionCookie(sessionCookie) : null;
 	if (!userId) return errorResponse('Unauthorized', 401);
+	console.error('userId =', userId);
 
 	const places = await savedPlacesDao.listSavedPlaces();
 	return jsonResponse(places, 200);

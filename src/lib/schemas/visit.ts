@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
+const MAX_SUMMARY_CHARS = 2_000;
+
 export const VisitSchema = z.object({
 	id: z.coerce.bigint(),
 	user_id: z.coerce.bigint(),
 	place_id: z.coerce.bigint(),
-	summary: z.string(),
-	rating: z.number().min(1).max(5).nullable(),
+	summary: z.string().max(MAX_SUMMARY_CHARS),
+	rating: z.coerce.number().min(1).max(5),
 	visited_at: z.coerce.date(),
 	created_at: z.coerce.date(),
 	updated_at: z.coerce.date()

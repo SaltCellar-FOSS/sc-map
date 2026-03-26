@@ -62,24 +62,26 @@ docker compose up --build
 
 Copy `.env.example` to `.env` and fill in each value:
 
-| Variable | Description |
-|---|---|
-| `PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps JS API key |
-| `PUBLIC_DISCORD_CLIENT_ID` | Discord OAuth app client ID |
-| `SESSION_SECRET` | Long random string, e.g. `openssl rand -hex 32` |
-| `DISCORD_CLIENT_SECRET` | Discord OAuth app secret |
-| `DISCORD_REDIRECT_URI` | OAuth callback URL — must also be registered in the [Discord Developer Portal](#discord-setup) |
-| `DISCORD_GUILD_ID` | Your Discord server's ID |
-| `DISCORD_GOATED_ROLE_ID` | Role ID for permanent access tier |
-| `ORIGIN` | Full URL the app is served from |
+| Variable                     | Description                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps JS API key                                                                         |
+| `PUBLIC_DISCORD_CLIENT_ID`   | Discord OAuth app client ID                                                                    |
+| `SESSION_SECRET`             | Long random string, e.g. `openssl rand -hex 32`                                                |
+| `DISCORD_CLIENT_SECRET`      | Discord OAuth app secret                                                                       |
+| `DISCORD_REDIRECT_URI`       | OAuth callback URL — must also be registered in the [Discord Developer Portal](#discord-setup) |
+| `DISCORD_GUILD_ID`           | Your Discord server's ID                                                                       |
+| `DISCORD_GOATED_ROLE_ID`     | Role ID for permanent access tier                                                              |
+| `ORIGIN`                     | Full URL the app is served from                                                                |
 
 For **Option A**, set:
+
 ```
 DISCORD_REDIRECT_URI=http://localhost:5173/auth/discord/callback
 ORIGIN=http://localhost:5173
 ```
 
 For **Option B**, set:
+
 ```
 DISCORD_REDIRECT_URI=http://localhost:3000/auth/discord/callback
 ORIGIN=http://localhost:3000

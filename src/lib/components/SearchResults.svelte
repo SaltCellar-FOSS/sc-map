@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { SavedPlace } from '$lib/schemas/saved-place';
+	import { SavedPlaceType, type SavedPlace } from '$lib/schemas/saved-place';
 	import { CATEGORIES } from '$lib/categories';
 	import List from './ui/list/List.svelte';
 	import ListItem from './ui/list/ListItem.svelte';
 	import Icon from './ui/icon/Icon.svelte';
 	import type { AutocompleteSuggestion } from '$lib/google-places';
+	import type { ComponentProps } from 'svelte';
 
 	type Props = {
 		results: (AutocompleteSuggestion | SavedPlace)[];
@@ -27,14 +28,24 @@
 		return { isSaved: true, bgColor, iconColor, type: result.type };
 	}
 
-	function getIconName(type: SavedPlace['type']) {
+	function getIconName(type: SavedPlaceType): ComponentProps<typeof Icon>['name'] {
 		switch (type) {
-			case 'RESTAURANT':
+			case SavedPlaceType.Restaurant:
 				return 'restaurant';
-			case 'BAR':
+			case SavedPlaceType.Bar:
 				return 'bar';
-			case 'BAKERY':
+			case SavedPlaceType.Bakery:
 				return 'bakery';
+			// case SavedPlaceType.Deli:
+			// 	return 'deli';
+			// case SavedPlaceType.FoodTruck:
+			// 	return 'food-truck';
+			// case SavedPlaceType.Dessert:
+			// 	return 'dessert';
+			// case SavedPlaceType.OtherDestination:
+			// 	return 'other-destination';
+			default:
+				throw new Error('This should never happen');
 		}
 	}
 </script>
