@@ -152,6 +152,7 @@
 						type="filter"
 						label={savedPlaceTypeMap[savedPlaceType].label}
 						onchange={() => (selectedType = savedPlaceType)}
+						selected={selectedType === savedPlaceType}
 					>
 						{#snippet icon()}
 							<Icon name={savedPlaceTypeMap[savedPlaceType].iconName} />
