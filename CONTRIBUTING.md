@@ -155,4 +155,3 @@ src/
 └── routes/           # SvelteKit pages and API endpoints
 ```
 
-See [DESIGN_DOC.md](./DESIGN_DOC.md) for the full architecture and data model.
