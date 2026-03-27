@@ -9,7 +9,7 @@
 	type Props = {
 		open?: boolean;
 		placeName: string;
-		visits: VisitWithUser[];
+		visits: Promise<VisitWithUser[]>;
 		currentUserId?: bigint;
 		onclose?: () => void;
 		onaddvisit: () => void;

@@ -5,6 +5,6 @@ import { VisitsDao } from '$lib/server/dao/visits';
 
 const visitsDao = new VisitsDao(sql);
 
-export const getVisitsForPlace = query(z.coerce.bigint(), async (placeId) => {
+export const getVisitsForPlace = query(z.coerce.bigint(), async (placeId: bigint) => {
 	return visitsDao.listVisitsByPlaceWithUser(placeId);
 });

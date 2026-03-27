@@ -55,18 +55,39 @@
 			photo_urls: []
 		}
 	];
+
+	const manyVisits: VisitWithUser[] = Array.from({ length: 8 }, (_, i) => ({
+		...baseVisit,
+		id: BigInt(i + 10),
+		discord_handle: `@user${i + 1}`,
+		avatar_url: null,
+		summary: `Visit number ${i + 1}. Great food as always.`,
+		rating: ((i % 5) + 1) as 1 | 2 | 3 | 4 | 5,
+		visited_at: new Date(2026, 2, 20 - i),
+		photo_urls: []
+	}));
 </script>
 
 <!-- Default: open with visits -->
 
 <Story name="With Visits">
-	<PlaceSheet open={true} placeName="Franklin Barbecue" {visits} onaddvisit={() => {}} />
+	<PlaceSheet
+		open={true}
+		placeName="Franklin Barbecue"
+		visits={Promise.resolve(visits)}
+		onaddvisit={() => {}}
+	/>
 </Story>
 
 <!-- Empty state -->
 
 <Story name="No Visits">
-	<PlaceSheet open={true} placeName="Franklin Barbecue" visits={[]} onaddvisit={() => {}} />
+	<PlaceSheet
+		open={true}
+		placeName="Franklin Barbecue"
+		visits={Promise.resolve([])}
+		onaddvisit={() => {}}
+	/>
 </Story>
 
 <!-- Many visits to demonstrate scrolling -->
@@ -75,16 +96,7 @@
 	<PlaceSheet
 		open={true}
 		placeName="Franklin Barbecue"
-		visits={Array.from({ length: 8 }, (_, i) => ({
-			...baseVisit,
-			id: BigInt(i + 10),
-			discord_handle: `@user${i + 1}`,
-			avatar_url: null,
-			summary: `Visit number ${i + 1}. Great food as always.`,
-			rating: ((i % 5) + 1) as 1 | 2 | 3 | 4 | 5,
-			visited_at: new Date(2026, 2, 20 - i),
-			photo_urls: []
-		}))}
+		visits={Promise.resolve(manyVisits)}
 		onaddvisit={() => {}}
 	/>
 </Story>
@@ -95,7 +107,7 @@
 	<PlaceSheet
 		open={true}
 		placeName="The Salt Lick BBQ – Driftwood, Texas"
-		{visits}
+		visits={Promise.resolve(visits)}
 		onaddvisit={() => {}}
 	/>
 </Story>
