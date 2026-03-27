@@ -4,7 +4,7 @@
 	import ChipSet from './ui/chip/ChipSet.svelte';
 	import { Chip } from './ui/chip';
 	import { enhance } from '$app/forms';
-	import type { ActionResult } from '@sveltejs/kit';
+	import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
 	import { SavedPlaceType } from '$lib/schemas/saved-place';
 	import { VisitInsertSchema } from '$lib/schemas/visit';
 	import { z } from 'zod';
@@ -77,7 +77,7 @@
 		selectedType = null;
 	}
 
-	function enhanceVisit({ cancel }: { cancel: () => void }) {
+	const enhanceVisit: SubmitFunction = ({ cancel }) => {
 		submitted = true;
 		const result = AddVisitClientSchema.safeParse({
 			rating,
@@ -88,13 +88,14 @@
 			cancel();
 			return;
 		}
-		return async ({ result }: { result: ActionResult }) => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			if (result.type === 'success') {
 				reset();
 				onsuccess?.();
 			}
+			await update();
 		};
-	}
+	};
 
 	export function submit() {
 		formEl?.requestSubmit();
