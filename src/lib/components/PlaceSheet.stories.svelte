@@ -2,16 +2,28 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import PlaceSheet from './PlaceSheet.svelte';
 	import type { VisitWithUser } from '$lib/schemas/visit';
+	import { SavedPlaceType, type SavedPlace } from '$lib/schemas/saved-place';
 
 	const { Story } = defineMeta({
 		tags: ['autodocs'],
 		argTypes: {
-			open: { control: 'boolean' },
-			placeName: { control: 'text' }
+			open: { control: 'boolean' }
 		}
 	});
 
 	const now = new Date('2026-03-20T12:00:00Z');
+
+	const baseSavedPlace: SavedPlace = {
+		id: 1n,
+		name: 'Franklin Barbecue',
+		lat: 30.2702,
+		lng: -97.7312,
+		formatted_address: '900 E 11th St, Austin, TX 78702',
+		google_place_id: 'ChIJ_place_franklin',
+		type: SavedPlaceType.Restaurant,
+		submitted_by: 1n,
+		created_at: now
+	};
 
 	const baseVisit = {
 		user_id: 1n,
@@ -69,7 +81,7 @@
 <Story name="With Visits">
 	<PlaceSheet
 		open={true}
-		placeName="Franklin Barbecue"
+		place={baseSavedPlace}
 		visits={Promise.resolve(visits)}
 		onaddvisit={() => {}}
 	/>
@@ -80,7 +92,7 @@
 <Story name="No Visits">
 	<PlaceSheet
 		open={true}
-		placeName="Franklin Barbecue"
+		place={baseSavedPlace}
 		visits={Promise.resolve([])}
 		onaddvisit={() => {}}
 	/>
@@ -91,7 +103,7 @@
 <Story name="Many Visits">
 	<PlaceSheet
 		open={true}
-		placeName="Franklin Barbecue"
+		place={baseSavedPlace}
 		visits={Promise.resolve(manyVisits)}
 		onaddvisit={() => {}}
 	/>
@@ -102,7 +114,7 @@
 <Story name="Long Place Name">
 	<PlaceSheet
 		open={true}
-		placeName="The Salt Lick BBQ – Driftwood, Texas"
+		place={{ ...baseSavedPlace, name: 'The Salt Lick BBQ – Driftwood, Texas' }}
 		visits={Promise.resolve(visits)}
 		onaddvisit={() => {}}
 	/>

@@ -62,7 +62,10 @@
 	});
 
 	$effect(() => {
-		if (marker) marker.map = visible ? map : null;
+		if (marker) {
+			marker.map = visible ? map : null;
+			marker.content = buildContent(place);
+		}
 	});
 
 	onDestroy(() => {

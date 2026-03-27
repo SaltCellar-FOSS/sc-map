@@ -131,6 +131,35 @@ export const actions = {
 		return { success: true };
 	},
 
+	editPlace: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		const placeIdResult = z.coerce.bigint().safeParse(data.get('placeId')?.toString());
+		if (!placeIdResult.success) return fail(400, { error: 'Invalid placeId' });
+		const placeId = placeIdResult.data;
+
+		try {
+			await savedPlacesDao.retrieveSavedPlace(placeId);
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
+
+		const type = data.get('type')?.toString();
+		if (!type) return fail(400, { error: 'Missing type' });
+		if (!isSavedPlaceType(type)) return fail(400, { error: 'Invalid type' });
+
+		await savedPlacesDao.updateSavedPlace(placeId, { type });
+
+		return { success: true };
+	},
+
 	deleteVisit: async ({ request, cookies }) => {
 		const cookie = cookies.get(SESSION_COOKIE_NAME);
 		if (!cookie) return fail(401, { error: 'Unauthorized' });

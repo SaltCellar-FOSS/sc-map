@@ -5,7 +5,7 @@ export type SheetVariant = 'standard' | 'modal';
 export interface SheetProps {
 	variant?: SheetVariant;
 	open?: boolean;
-	title?: string;
+	title?: Snippet;
 	onclose?: () => void;
 	children?: Snippet;
 	headerActions?: Snippet;
