@@ -14,7 +14,8 @@
 </script>
 
 <Story name="Modal Open">
-	<BottomSheet open={true} title="Share">
+	<BottomSheet open={true}>
+		{#snippet title()}Share{/snippet}
 		<p style="padding: 0 1rem 1rem;">This is a modal bottom sheet.</p>
 	</BottomSheet>
 </Story>
@@ -26,7 +27,8 @@
 </Story>
 
 <Story name="Modal No Drag Handle">
-	<BottomSheet open={true} title="No Handle" showDragHandle={false}>
+	<BottomSheet open={true} showDragHandle={false}>
+		{#snippet title()}No Handle{/snippet}
 		<p style="padding: 0 1rem 1rem;">This sheet has no drag handle.</p>
 	</BottomSheet>
 </Story>
@@ -38,7 +40,8 @@
 		<main style="flex:1; padding:1rem; overflow:auto;">
 			<p>Main content area above the sheet.</p>
 		</main>
-		<BottomSheet variant="standard" open={true} title="Now Playing">
+		<BottomSheet variant="standard" open={true}>
+			{#snippet title()}Now Playing{/snippet}
 			<p style="padding: 0 1rem 1rem;">Playback controls go here.</p>
 		</BottomSheet>
 	</div>

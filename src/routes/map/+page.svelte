@@ -69,6 +69,13 @@
 		}
 	}
 
+	async function handlePlaceEdited() {
+		await invalidate('app:places');
+		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			selectedPlace = data.savedPlaces[selectedPlace.google_place_id] ?? selectedPlace;
+		}
+	}
+
 	const fetchAutocompleteResults = async (
 		query: string
 	): Promise<(AutocompleteSuggestion | SavedPlace)[]> => {
@@ -100,13 +107,14 @@
 
 {#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
 	<PlaceSheet
-		placeName={selectedPlace.name}
+		place={selectedPlace}
 		visits={visitsResult}
 		currentUserId={data.user?.id}
 		bind:open={sheetOpen}
 		onaddvisit={handleOnAddVisit}
 		oneditvisit={handleOnEditVisit}
 		ondeletevisit={handleOnDeleteVisit}
+		oneditplace={handlePlaceEdited}
 	/>
 {/if}
 
