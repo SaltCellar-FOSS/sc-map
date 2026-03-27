@@ -13,6 +13,8 @@
 	import arrowFillIcon from '$lib/icons/ArrowFillIcon.svg?url';
 	import discordIcon from '$lib/icons/DiscordIcon.svg?url';
 	import reviewIcon from '$lib/icons/ReviewIcon.svg?url';
+	import editIcon from '$lib/icons/EditIcon.svg?url';
+	import deleteIcon from '$lib/icons/DeleteIcon.svg?url';
 
 	type IconName =
 		| 'bar'
@@ -28,7 +30,9 @@
 		| 'search'
 		| 'arrowFill'
 		| 'discord'
-		| 'addReview';
+		| 'addReview'
+		| 'edit'
+		| 'delete';
 
 	type Props = {
 		name: IconName;
@@ -47,6 +51,8 @@
 		arrowFill: arrowFillIcon,
 		discord: discordIcon,
 		addReview: reviewIcon,
+		edit: editIcon,
+		delete: deleteIcon,
 		cafe: cafeIcon,
 		deli: deliIcon,
 		dessert: dessertIcon,
