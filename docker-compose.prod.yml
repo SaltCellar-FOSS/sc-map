@@ -49,7 +49,7 @@ services:
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
 
   backup:
-    image: postgres:17
+    image: postgres:17-alpine
     restart: unless-stopped
     networks:
       - internal
