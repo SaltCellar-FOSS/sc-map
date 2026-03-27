@@ -66,7 +66,25 @@
 		if (!res.ok) return [];
 		const results: PlaceSearchResult[] = await res.json();
 
-		return results.map((result) => data.savedPlaces[result.osm_place_id] ?? result);
+		// Check if each search result corresponds to an existing saved place
+		return results.map((result) => {
+			// First try OSM ID lookup
+			if (result.osm_place_id in data.savedPlaces) {
+				return data.savedPlaces[result.osm_place_id];
+			}
+
+			// If no OSM match, check if any saved place matches by name/location
+			// This handles cases where search returns a place that was saved with Google ID
+			const savedPlaceMatch = Object.values(data.savedPlaces).find((savedPlace) => {
+				const distance = Math.sqrt(
+					Math.pow(savedPlace.lat - result.lat, 2) + Math.pow(savedPlace.lng - result.lng, 2)
+				);
+				// Check if within ~10 meters and name is similar
+				return distance < 0.0001 && savedPlace.name.toLowerCase().includes(result.name.toLowerCase().slice(0, 5));
+			});
+
+			return savedPlaceMatch ?? result;
+		});
 	};
 
 	const handleSearchResultClick = async (osmPlaceId: string, closeSearchResults: () => void) => {
@@ -151,9 +169,6 @@
 					onsearchresultclick={(result) => handleSearchResultClick(result, close)}
 				/>
 			{:then places}
-				{#if places.length > 0}
-					<hr class="md-search-view__divider" aria-hidden="true" />
-				{/if}
 				<SearchResults
 					results={places}
 					onsearchresultclick={(result) => handleSearchResultClick(result, close)}

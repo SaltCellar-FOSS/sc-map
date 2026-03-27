@@ -20,3 +20,8 @@ export const isSavedPlace = (place: Place): place is SavedPlace => {
 export function getExternalPlaceId(place: Place): string {
 	return place.osm_place_id ?? place.google_place_id ?? '';
 }
+
+/** Returns the appropriate ID for indexing/lookup, preferring OSM but falling back to Google or database ID. */
+export function normalizePlaceIdForLookup(place: Place): string {
+	return place.osm_place_id ?? place.google_place_id ?? String((place as any).id ?? '');
+}

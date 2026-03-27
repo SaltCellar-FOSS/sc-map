@@ -50,7 +50,7 @@ export const actions = {
 			let placeId: bigint;
 
 			try {
-				const existing = await savedPlacesDao.retrieveSavedPlaceByOsmPlaceId(osmPlaceId);
+				const existing = await savedPlacesDao.retrieveSavedPlaceByExternalId(osmPlaceId);
 
 				placeId = existing.id;
 			} catch (error) {

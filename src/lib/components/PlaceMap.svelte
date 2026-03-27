@@ -90,18 +90,33 @@
 		});
 	};
 
-	export const handlePlaceSelected = async (osmPlaceId: string) => {
-		if (osmPlaceId in savedPlaces) {
+	export const handlePlaceSelected = async (externalPlaceId: string) => {
+		// First check if it's a direct match in savedPlaces (works for both OSM and Google IDs due to indexing)
+		if (externalPlaceId in savedPlaces) {
 			clearCurrentMarker();
 			clearCurrentPopup();
-			const saved = savedPlaces[osmPlaceId];
+			const saved = savedPlaces[externalPlaceId];
 			onplacechange(saved);
 			if (map) map.setView([saved.lat, saved.lng], 15);
 			return;
 		}
 
+		// If not found directly, try to find a saved place that has this as its external ID
+		const savedPlaceMatch = Object.values(savedPlaces).find((savedPlace) => {
+			return savedPlace.osm_place_id === externalPlaceId || savedPlace.google_place_id === externalPlaceId;
+		});
+
+		if (savedPlaceMatch) {
+			clearCurrentMarker();
+			clearCurrentPopup();
+			onplacechange(savedPlaceMatch);
+			if (map) map.setView([savedPlaceMatch.lat, savedPlaceMatch.lng], 15);
+			return;
+		}
+
+		// If still not found, assume it's an OSM ID and try to fetch from OSM
 		const { getPlaceById } = await import('$lib/place-search');
-		const place = await getPlaceById(osmPlaceId);
+		const place = await getPlaceById(externalPlaceId);
 		if (!place) return;
 
 		const unsaved: Place = {
