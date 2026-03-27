@@ -171,7 +171,6 @@
 }
 
 .md-bottom-sheet-root--open .md-bottom-sheet {
-	transform: translateY(0);
 	animation: md-bottom-sheet-enter
 		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-bottom-sheet-enter-duration))
 		var(--md-comp-bottom-sheet-enter-easing) forwards;
