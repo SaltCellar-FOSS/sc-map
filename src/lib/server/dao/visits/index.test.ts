@@ -184,4 +184,18 @@ describe('VisitsDao', () => {
 			});
 		});
 	});
+
+	describe('countContributors', () => {
+		test('returns the count as a number', async () => {
+			const dao = new VisitsDao(createMockSQL([{ count: '42' }]));
+			const count = await dao.countContributors();
+			expect(count).toBe(42);
+		});
+
+		test('returns 0 when there are no visits', async () => {
+			const dao = new VisitsDao(createMockSQL([{ count: '0' }]));
+			const count = await dao.countContributors();
+			expect(count).toBe(0);
+		});
+	});
 });

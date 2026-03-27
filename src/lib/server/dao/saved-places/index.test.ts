@@ -135,6 +135,20 @@ describe('SavedPlacesDao', () => {
 		});
 	});
 
+	describe('countPins', () => {
+		test('returns the count as a number', async () => {
+			const dao = new SavedPlacesDao(createMockSQL([{ count: '275' }]));
+			const count = await dao.countPins();
+			expect(count).toBe(275);
+		});
+
+		test('returns 0 when there are no saved places', async () => {
+			const dao = new SavedPlacesDao(createMockSQL([{ count: '0' }]));
+			const count = await dao.countPins();
+			expect(count).toBe(0);
+		});
+	});
+
 	describe('updateSavedPlace', () => {
 		describe('success', () => {
 			let dao: SavedPlacesDao;
