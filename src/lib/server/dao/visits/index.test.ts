@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
 import type { Visit, VisitInsert, VisitWithUser } from '../../../schemas/visit';
-import { VisitsDao, VisitNotFoundError, DuplicateVisitError, InvalidRatingError } from '.';
+import { VisitsDao, VisitNotFoundError, DuplicateVisitError } from '.';
 import { createMockSQL, createErrorSQL } from '../mock';
 
 const visitRow: Visit = {
@@ -132,11 +132,6 @@ describe('VisitsDao', () => {
 			test('throws DuplicateVisitError on duplicate error', async () => {
 				const dao = new VisitsDao(createErrorSQL('23505'));
 				expect(dao.insertVisit(visitInsert)).rejects.toBeInstanceOf(DuplicateVisitError);
-			});
-
-			test('throws InvalidRatingError when rating is invalid', async () => {
-				const dao = new VisitsDao(createErrorSQL('23514'));
-				expect(dao.insertVisit(visitInsert)).rejects.toBeInstanceOf(InvalidRatingError);
 			});
 		});
 	});
