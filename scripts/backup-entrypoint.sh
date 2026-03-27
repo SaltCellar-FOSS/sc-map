@@ -14,11 +14,13 @@ do_backup() {
   # aws s3 cp "$dest" "s3://your-bucket/sc-map/$(basename "$dest")"
 }
 
-echo "[backup] service started — fires daily at 02:17 UTC"
-while true; do
-  if [[ "$(date -u +%H%M)" == "0217" ]]; then
-    do_backup
-    sleep 61  # skip remainder of this minute to avoid double-run
-  fi
-  sleep 55
-done
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  echo "[backup] service started — fires daily at 02:17 UTC"
+  while true; do
+    if [[ "$(date -u +%H%M)" == "0217" ]]; then
+      do_backup
+      sleep 61  # skip remainder of this minute to avoid double-run
+    fi
+    sleep 55
+  done
+fi
