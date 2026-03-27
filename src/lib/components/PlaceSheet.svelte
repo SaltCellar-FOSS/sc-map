@@ -26,14 +26,13 @@
 		oneditvisit
 	}: Props = $props();
 
-	let isDesktop = $state(false);
+	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
 
 	function checkViewport() {
 		isDesktop = window.innerWidth >= 768;
 	}
 
 	$effect(() => {
-		checkViewport();
 		window.addEventListener('resize', checkViewport);
 		return () => window.removeEventListener('resize', checkViewport);
 	});
