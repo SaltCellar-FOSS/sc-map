@@ -180,6 +180,7 @@
 			center: DEFAULT_MAP_CENTER,
 			zoom: DEFAULT_MAP_ZOOM,
 			mapId: MAP_ID,
+			colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,
 			mapTypeControl: false,
 			streetViewControl: false,
 			fullscreenControl: false
