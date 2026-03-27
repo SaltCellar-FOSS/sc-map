@@ -11,8 +11,6 @@
 
 	import type { ComponentProps } from 'svelte';
 	import Icon from './ui/icon/Icon.svelte';
-	import { untrack } from 'svelte';
-
 	const savedPlaceTypeMap: Record<
 		SavedPlaceType,
 		{
@@ -60,7 +58,7 @@
 
 	let rating = $state(0);
 	let review = $state('');
-	let visitDate = $state<string>(untrack(today));
+	let visitDate = $state<string>(today());
 	let selectedType = $state<SavedPlaceType | null>(null);
 	let submitted = $state(false);
 
@@ -77,14 +75,6 @@
 			: {}
 	);
 
-	function reset() {
-		submitted = false;
-		rating = 0;
-		review = '';
-		visitDate = today();
-		selectedType = null;
-	}
-
 	const enhanceVisit: SubmitFunction = ({ cancel }) => {
 		submitted = true;
 		const result = AddVisitClientSchema.safeParse({
@@ -98,7 +88,6 @@
 		}
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			if (result.type === 'success') {
-				reset();
 				onsuccess?.();
 			}
 			await update();
