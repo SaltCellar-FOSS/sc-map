@@ -15,7 +15,6 @@ const VisitInsertWithoutPlaceSchema = VisitInsertSchema.omit({ place_id: true })
 
 const EditableFieldsSchema = VisitUpdateSchema.pick({
 	summary: true,
-	rating: true,
 	visited_at: true
 }).strict();
 
