@@ -116,4 +116,9 @@ export class SavedPlacesDao {
 		`;
 		return results.map((row: unknown) => SavedPlaceSchema.parse(row));
 	}
+
+	public async countPins(): Promise<number> {
+		const [result] = await this.sql`SELECT COUNT(*) AS count FROM saved_places`;
+		return Number(result.count);
+	}
 }
