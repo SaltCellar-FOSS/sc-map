@@ -1,5 +1,6 @@
 <script lang="ts">
 	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
+	import EditVisitDialog from '$lib/components/EditVisitDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -11,6 +12,8 @@
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import type { PlaceSearchResult } from '$lib/place-search';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
+	import type { VisitWithUser } from '$lib/schemas/visit';
+	import { invalidate } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -18,6 +21,8 @@
 
 	let selectedPlace = $state<Place | null>(null);
 	let dialogOpen = $state(false);
+	let editDialogOpen = $state(false);
+	let visitBeingEdited = $state<VisitWithUser | null>(null);
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
@@ -41,8 +46,14 @@
 		dialogOpen = true;
 	}
 
+	function handleOnEditVisit(visit: VisitWithUser) {
+		visitBeingEdited = visit;
+		editDialogOpen = true;
+	}
+
 	async function handleVisitAdded() {
 		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			invalidate('app:places');
 			await getVisitsForPlace(selectedPlace.id).refresh();
 			visitsResult = getVisitsForPlace(selectedPlace.id);
 		}
@@ -80,15 +91,19 @@
 		<PlaceSheet
 			placeName={selectedPlace.name}
 			visits={[]}
+			currentUserId={data.user?.id}
 			bind:open={sheetOpen}
 			onaddvisit={handleOnAddVisit}
+			oneditvisit={handleOnEditVisit}
 		/>
 	{:then visits}
 		<PlaceSheet
 			placeName={selectedPlace.name}
 			{visits}
+			currentUserId={data.user?.id}
 			bind:open={sheetOpen}
 			onaddvisit={handleOnAddVisit}
+			oneditvisit={handleOnEditVisit}
 		/>
 	{/await}
 {/if}
@@ -154,6 +169,15 @@
 		placeName={selectedPlace.name}
 		osmPlaceId={getExternalPlaceId(selectedPlace)}
 		isSavedPlace={isSavedPlace(selectedPlace)}
+		onsuccess={handleVisitAdded}
+	/>
+{/if}
+
+{#if visitBeingEdited && selectedPlace}
+	<EditVisitDialog
+		bind:open={editDialogOpen}
+		placeName={selectedPlace.name}
+		visit={visitBeingEdited}
 		onsuccess={handleVisitAdded}
 	/>
 {/if}

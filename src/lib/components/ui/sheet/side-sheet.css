@@ -161,7 +161,6 @@
 }
 
 .md-side-sheet-root--open .md-side-sheet {
-	transform: translateX(0);
 	animation: md-side-sheet-enter
 		calc(var(--md-sys-motion-duration-scale, 1) * var(--md-comp-side-sheet-enter-duration))
 		var(--md-comp-side-sheet-enter-easing) forwards;
