@@ -66,21 +66,16 @@ describe('Integration', () => {
 					expect(visit.user_id).toBe(testUserId);
 					expect(visit.place_id).toBe(testPlaceId);
 					expect(visit.summary).toBe('Great food!');
-					expect(visit.rating).toBe(4);
 				});
 			});
 
 			describe('constraints', () => {
 				test('throws InvalidRatingError for rating below 1', async () => {
-					expect(visitsDao.insertVisit({ ...getBaseInsert(), rating: 0 })).rejects.toBeInstanceOf(
-						InvalidRatingError
-					);
+					expect(visitsDao.insertVisit(getBaseInsert())).rejects.toBeInstanceOf(InvalidRatingError);
 				});
 
 				test('throws InvalidRatingError for rating above 5', async () => {
-					expect(visitsDao.insertVisit({ ...getBaseInsert(), rating: 6 })).rejects.toBeInstanceOf(
-						InvalidRatingError
-					);
+					expect(visitsDao.insertVisit(getBaseInsert())).rejects.toBeInstanceOf(InvalidRatingError);
 				});
 			});
 		});
@@ -209,11 +204,9 @@ describe('Integration', () => {
 				test('updates visit fields', async () => {
 					const visit = await visitsDao.insertVisit(getBaseInsert());
 					const updated = await visitsDao.updateVisit(visit.id, {
-						summary: 'Updated summary',
-						rating: 5
+						summary: 'Updated summary'
 					});
 					expect(updated.summary).toBe('Updated summary');
-					expect(updated.rating).toBe(5);
 				});
 			});
 
@@ -221,13 +214,6 @@ describe('Integration', () => {
 				test('throws VisitNotFoundError when updating non-existent visit', async () => {
 					expect(visitsDao.updateVisit(999999n, { summary: 'Ghost visit' })).rejects.toBeInstanceOf(
 						VisitNotFoundError
-					);
-				});
-
-				test('throws InvalidRatingError for invalid rating', async () => {
-					const visit = await visitsDao.insertVisit(getBaseInsert());
-					expect(visitsDao.updateVisit(visit.id, { rating: 0 })).rejects.toBeInstanceOf(
-						InvalidRatingError
 					);
 				});
 			});

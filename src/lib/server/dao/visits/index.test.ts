@@ -8,7 +8,6 @@ const visitRow: Visit = {
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	rating: 5,
 	visited_at: new Date('2024-01-01'),
 	created_at: new Date('2024-01-01'),
 	updated_at: new Date('2024-01-01')
@@ -25,7 +24,6 @@ const visitInsert: VisitInsert = {
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	rating: 5,
 	visited_at: '2024-01-01'
 };
 
@@ -167,11 +165,6 @@ describe('VisitsDao', () => {
 				expect(dao.updateVisit(1n, { summary: 'test' })).rejects.toBeInstanceOf(
 					DuplicateVisitError
 				);
-			});
-
-			test('throws InvalidRatingError when constraint is violated', async () => {
-				const dao = new VisitsDao(createErrorSQL('23514'));
-				expect(dao.updateVisit(1n, { rating: 10 })).rejects.toBeInstanceOf(InvalidRatingError);
 			});
 		});
 	});
