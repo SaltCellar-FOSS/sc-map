@@ -9,4 +9,9 @@ type IconCategoryConfig = {
 	color: string;
 };
 
-export type CategoryConfig = GlyphCategoryConfig | IconCategoryConfig;
+export type CategoryConfig = GlyphCategoryConfig | IconCategoryConfig | {
+	label: string;
+	color: string;
+	glyphText: string;
+	iconName: string;
+};

@@ -5,28 +5,43 @@ export const CATEGORIES: Record<SavedPlaceType, CategoryConfig> = {
 	[SavedPlaceType.Restaurant]: {
 		label: 'Restaurants',
 		color: '#E8472A',
-		glyphText: '🍽️'
+		glyphText: '🍽️',
+		iconName: 'restaurant'
 	},
-	[SavedPlaceType.Bar]: { label: 'Bars', color: '#87B100', glyphText: '🍸' },
-	[SavedPlaceType.Bakery]: { label: 'Bakeries', color: '#C0914F', glyphText: '🥐' },
+	[SavedPlaceType.Bar]: {
+		label: 'Bars',
+		color: '#87B100',
+		glyphText: '🍸',
+		iconName: 'bar'
+	},
+	[SavedPlaceType.Bakery]: {
+		label: 'Bakeries',
+		color: '#C0914F',
+		glyphText: '🥐',
+		iconName: 'bakery'
+	},
 	[SavedPlaceType.Deli]: {
 		label: 'Delis',
 		color: '#A09700',
-		glyphText: '🥪'
+		glyphText: '🥪',
+		iconName: 'deli'
 	},
 	[SavedPlaceType.FoodTruck]: {
 		label: 'Food Trucks',
 		color: '#7050BA',
-		glyphText: '🚛'
+		glyphText: '🚛',
+		iconName: 'foodTruck'
 	},
 	[SavedPlaceType.Dessert]: {
 		label: 'Desserts',
 		color: '#007FA1',
-		glyphText: '🍨'
+		glyphText: '🍨',
+		iconName: 'dessert'
 	},
 	[SavedPlaceType.OtherDestination]: {
 		label: 'Other Destinations',
 		color: '#00A146',
-		glyphText: '◆'
+		glyphText: '◆',
+		iconName: 'otherDestination'
 	}
 };

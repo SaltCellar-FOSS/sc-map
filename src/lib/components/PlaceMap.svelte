@@ -7,6 +7,16 @@
 	import { getExternalPlaceId } from '$lib/schemas/place';
 	import { CATEGORIES } from '$lib/categories';
 
+	// Import SVG icons
+	import restaurantIcon from '$lib/icons/outlined/restaurant.svg?url';
+	import barIcon from '$lib/icons/outlined/bar.svg?url';
+	import bakeryIcon from '$lib/icons/outlined/bakery.svg?url';
+	import deliIcon from '$lib/icons/outlined/deli.svg?url';
+	import dessertIcon from '$lib/icons/outlined/dessert.svg?url';
+	import foodTruckIcon from '$lib/icons/outlined/food-truck.svg?url';
+	import otherDestinationIcon from '$lib/icons/outlined/other-destination.svg?url';
+	import tempMarkerIcon from '$lib/icons/outlined/other-destination.svg?url';
+
 	type Props = {
 		savedPlaces: { [osmPlaceId: string]: SavedPlace };
 		onsaveplace: (place: Place) => void;
@@ -42,7 +52,16 @@
 		clearCurrentMarker();
 		clearCurrentPopup();
 
-		currentMarker = L.marker([place.lat, place.lng]).addTo(map);
+		// Create custom icon for temporary marker
+		const tempIcon = L.divIcon({
+			html: `<img src="${tempMarkerIcon}" style="width:32px;height:32px;" alt="Location pin">`,
+			className: '',
+			iconSize: [32, 32],
+			iconAnchor: [16, 16],
+			popupAnchor: [0, -18]
+		});
+
+		currentMarker = L.marker([place.lat, place.lng], { icon: tempIcon }).addTo(map);
 
 		const container = document.createElement('div');
 		container.style.maxWidth = '200px';
@@ -102,15 +121,31 @@
 		const L = await import('leaflet');
 		const category = CATEGORIES[place.type];
 
+		// Map of icon names to imported URLs
+		const iconUrls: Record<string, string> = {
+			restaurant: restaurantIcon,
+			bar: barIcon,
+			bakery: bakeryIcon,
+			deli: deliIcon,
+			dessert: dessertIcon,
+			foodTruck: foodTruckIcon,
+			otherDestination: otherDestinationIcon
+		};
+
 		const icon = document.createElement('div');
 		icon.style.cssText = `
 			width:32px;height:32px;border-radius:50%;
 			background:${category.color};
 			display:flex;align-items:center;justify-content:center;
-			font-size:14px;border:2px solid rgba(0,0,0,0.2);
+			border:2px solid rgba(0,0,0,0.2);
 			cursor:pointer;
 		`;
-		icon.textContent = category.glyphText;
+
+		const img = document.createElement('img');
+		img.src = iconUrls[category.iconName];
+		img.style.cssText = 'width:30px;height:30px;';
+		img.alt = category.label;
+		icon.appendChild(img);
 
 		return L.divIcon({
 			html: icon.outerHTML,

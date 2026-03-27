@@ -37,7 +37,7 @@
 
 .md-search-view__bar {
 	position: relative;
-	z-index: 1; /* sits above the panel so shadows read correctly */
+	z-index: 3; /* sits above the panel so shadows read correctly */
 	width: 100%;
 }
 
