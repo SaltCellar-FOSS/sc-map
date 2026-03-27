@@ -1,32 +1,50 @@
 <script lang="ts">
 	import BottomSheet from './ui/sheet/BottomSheet.svelte';
 	import SideSheet from './ui/sheet/SideSheet.svelte';
-	import VisitList from './VisitList.svelte';
+	import VisitCard from './VisitCard.svelte';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import Button from './ui/button/Button.svelte';
 	import Icon from './ui/icon/Icon.svelte';
+	import { SavedPlaceType, type SavedPlace } from '$lib/schemas/saved-place';
+	import EditPlaceDialog from './EditPlaceDialog.svelte';
+	import type { ComponentProps } from 'svelte';
+
+	const placeTypeIconMap: Record<SavedPlaceType, ComponentProps<typeof Icon>['name']> = {
+		[SavedPlaceType.Restaurant]: 'restaurant',
+		[SavedPlaceType.Bar]: 'bar',
+		[SavedPlaceType.Bakery]: 'bakery',
+		[SavedPlaceType.Cafe]: 'cafe',
+		[SavedPlaceType.Deli]: 'deli',
+		[SavedPlaceType.FoodTruck]: 'foodTruck',
+		[SavedPlaceType.Dessert]: 'dessert',
+		[SavedPlaceType.OtherDestination]: 'otherDestination'
+	};
 
 	type Props = {
 		open?: boolean;
-		placeName: string;
+		place: SavedPlace;
 		visits: Promise<VisitWithUser[]>;
 		currentUserId?: bigint;
 		onclose?: () => void;
 		onaddvisit: () => void;
 		oneditvisit?: (visit: VisitWithUser) => void;
 		ondeletevisit?: (visit: VisitWithUser) => void;
+		oneditplace?: () => void;
 	};
 
 	let {
 		open = $bindable(false),
-		placeName,
+		place,
 		visits,
 		currentUserId,
 		onclose,
 		onaddvisit,
 		oneditvisit,
-		ondeletevisit
+		ondeletevisit,
+		oneditplace
 	}: Props = $props();
+
+	let editPlaceOpen = $state(false);
 
 	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
 
@@ -40,51 +58,87 @@
 	});
 </script>
 
-{#snippet ActionBar()}
-	<div class="action-bar">
-		<Button variant="tonal" onclick={onaddvisit}>
-			{#snippet icon()}
-				<Icon name="addReview" />
-			{/snippet}
-
-			Write a review
-		</Button>
+{#snippet sheetContent(contentClass: string)}
+	<div class:contentClass>
+		{#await visits}
+			<p class="empty-state">Loading...</p>
+		{:then resolvedVisits}
+			{#if resolvedVisits.length === 0}
+				<p class="empty-state">No visits yet.</p>
+			{:else}
+				<div class="visit-list">
+					{#each resolvedVisits as visit (visit.id)}
+						<VisitCard {visit} {currentUserId} {oneditvisit} {ondeletevisit} />
+					{/each}
+				</div>
+			{/if}
+		{/await}
 	</div>
 {/snippet}
 
-{#if isDesktop}
-	<SideSheet variant="standard" bind:open {onclose}>
-		{@render ActionBar()}
+{#snippet headerActions()}
+	<Button variant="text" onclick={onaddvisit}>
+		{#snippet icon()}
+			<Icon name="addReview" />
+		{/snippet}
+	</Button>
+{/snippet}
 
-		<VisitList {visits} {currentUserId} {oneditvisit} {ondeletevisit} />
+{#snippet title()}
+	<div class="icon-title">
+		<Button variant="text" onclick={() => (editPlaceOpen = true)}>
+			{#snippet icon()}
+				<Icon name={placeTypeIconMap[place.type]} size={32} />
+			{/snippet}
+		</Button>
+		<h2>{place.name}</h2>
+	</div>
+{/snippet}
+
+<EditPlaceDialog bind:open={editPlaceOpen} savedPlace={place} onsuccess={oneditplace} />
+
+{#if isDesktop}
+	<SideSheet variant="standard" bind:open {onclose} {headerActions} {title}>
+		{@render sheetContent('md-side-sheet__content')}
 	</SideSheet>
 {:else}
-	<BottomSheet bind:open {onclose}>
-		<h2 class="place-name">{placeName}</h2>
-		{@render ActionBar()}
-
-		<VisitList {visits} {currentUserId} {oneditvisit} {ondeletevisit} />
+	<BottomSheet variant="modal" bind:open {onclose} {headerActions} {title}>
+		{@render sheetContent('md-bottom-sheet__content')}
 	</BottomSheet>
 {/if}
 
 <style>
-	.place-name {
-		margin: 0 0 4px;
-		font-size: 2rem;
-		font-weight: 400;
-		line-height: 1.2;
-		color: var(--md-sys-color-on-surface);
-	}
-
-	.action-bar {
+	.visit-list {
 		display: flex;
-		justify-content: stretch;
-		align-items: stretch;
-		padding-block: 8px;
-		margin-bottom: 8px;
+		flex-direction: column;
+		gap: 12px;
+		padding: 4px 2px;
 	}
 
-	.action-bar :global(button) {
-		width: 100%;
+	.empty-state {
+		text-align: center;
+		color: var(--md-sys-color-on-surface-variant);
+		padding: 24px 0;
+		margin: 0;
+	}
+
+	:global(.md-side-sheet__header) {
+		margin-top: 100px;
+		margin-inline: 8px;
+	}
+
+	.icon-title {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.icon-title :global(button) {
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		border-radius: 50%;
+		padding: 0;
 	}
 </style>
