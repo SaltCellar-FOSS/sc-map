@@ -16,8 +16,8 @@ const SavedPlaceBaseSchema = z.object({
 	lat: z.number(),
 	lng: z.number(),
 	formatted_address: z.string(),
-	google_place_id: z.string().optional(),
-	osm_place_id: z.string().optional(),
+	google_place_id: z.string().nullable(),
+	osm_place_id: z.string().nullable(),
 	type: z.enum(SavedPlaceType),
 	submitted_by: z.coerce.bigint(),
 	created_at: z.coerce.date()

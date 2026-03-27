@@ -8,7 +8,7 @@ if (!sqlUrl) {
 	process.exit(1);
 }
 
-const sql = new SQL(sqlUrl);
+const sql = new SQL({ url: sqlUrl, max: 1 });
 const migrationsDir = join(import.meta.dir, '../src/lib/db/migrations');
 
 await sql`

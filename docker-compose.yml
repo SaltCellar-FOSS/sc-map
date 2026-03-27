@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: sc_map
       POSTGRES_DB: sc_map
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./db_data:/var/lib/postgresql/data
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:
       - internal
@@ -42,5 +42,3 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
 
-volumes:
-  db_data:

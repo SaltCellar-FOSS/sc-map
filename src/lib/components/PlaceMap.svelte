@@ -167,8 +167,13 @@
 		map = L.map(mapEl, {
 			center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
 			zoom: DEFAULT_MAP_ZOOM,
-			zoomControl: true
+			zoomControl: false
 		});
+
+		// Add zoom control to bottom right
+		L.control.zoom({
+			position: 'bottomright'
+		}).addTo(map);
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

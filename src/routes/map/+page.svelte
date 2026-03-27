@@ -163,6 +163,7 @@
 		position: absolute;
 		width: 100vw;
 		height: 100vh;
+		z-index: 1;
 	}
 
 	.controls {
@@ -174,6 +175,7 @@
 		padding-top: 1rem;
 		box-sizing: border-box;
 		pointer-events: none;
+		z-index: 2;
 	}
 
 	.controls :global(.search-view) {
