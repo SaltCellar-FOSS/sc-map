@@ -18,7 +18,14 @@
 		{
 			iconName: Extract<
 				ComponentProps<typeof Icon>['name'],
-				'restaurant' | 'bar' | 'bakery' | 'deli' | 'foodTruck' | 'dessert' | 'otherDestination'
+				| 'restaurant'
+				| 'bar'
+				| 'bakery'
+				| 'cafe'
+				| 'deli'
+				| 'foodTruck'
+				| 'dessert'
+				| 'otherDestination'
 			>;
 			label: string;
 		}
@@ -26,6 +33,7 @@
 		[SavedPlaceType.Restaurant]: { iconName: 'restaurant', label: 'Restaurant' },
 		[SavedPlaceType.Bar]: { iconName: 'bar', label: 'Bar' },
 		[SavedPlaceType.Bakery]: { iconName: 'bakery', label: 'Bakery' },
+		[SavedPlaceType.Cafe]: { iconName: 'cafe', label: 'Cafe' },
 		[SavedPlaceType.Deli]: { iconName: 'deli', label: 'Deli' },
 		[SavedPlaceType.FoodTruck]: { iconName: 'foodTruck', label: 'Food Truck' },
 		[SavedPlaceType.Dessert]: { iconName: 'dessert', label: 'Dessert' },
