@@ -30,7 +30,9 @@
 <Dialog {open} onclose={handleClose}>
 	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
 	<div class="dialog-body">
-		<EditVisitForm bind:this={formRef} {visit} onsuccess={handleSuccess} />
+		{#key visit.id}
+			<EditVisitForm bind:this={formRef} {visit} onsuccess={handleSuccess} />
+		{/key}
 		<div class="md-dialog__actions">
 			<Button variant="text" onclick={handleClose}>Cancel</Button>
 			<Button variant="text" onclick={() => formRef?.submit()}>Save</Button>
