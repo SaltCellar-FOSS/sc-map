@@ -6,6 +6,7 @@ do_backup() {
   ts=$(date -u +%Y%m%dT%H%M%S)
   dest="/backups/sc_map_${ts}.sql.gz"
   pg_dump | gzip -9 > "$dest"
+  chmod 644 "$dest"
   echo "[backup] $ts complete ($(du -sh "$dest" | cut -f1))"
   find /backups -name "sc_map_*.sql.gz" -mtime +"${KEEP_DAYS:-7}" -delete
   # -- Remote upload hook (uncomment + configure when ready) --
