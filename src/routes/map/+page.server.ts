@@ -131,5 +131,38 @@ export const actions = {
 		await visitsDao.updateVisit(visitId, parseResult.data);
 
 		return { success: true };
+	},
+
+	deleteVisit: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		let existing;
+		try {
+			existing = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		if (existing.user_id !== userId) return fail(403, { error: 'Forbidden' });
+
+		try {
+			await visitsDao.deleteVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		return { success: true };
 	}
 };
