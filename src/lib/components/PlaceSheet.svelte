@@ -14,6 +14,7 @@
 		onclose?: () => void;
 		onaddvisit: () => void;
 		oneditvisit?: (visit: VisitWithUser) => void;
+		ondeletevisit?: (visit: VisitWithUser) => void;
 	};
 
 	let {
@@ -23,7 +24,8 @@
 		currentUserId,
 		onclose,
 		onaddvisit,
-		oneditvisit
+		oneditvisit,
+		ondeletevisit
 	}: Props = $props();
 
 	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
@@ -54,14 +56,14 @@
 	<SideSheet variant="standard" bind:open {onclose}>
 		{@render ActionBar()}
 
-		<VisitList {visits} {currentUserId} {oneditvisit} />
+		<VisitList {visits} {currentUserId} {oneditvisit} {ondeletevisit} />
 	</SideSheet>
 {:else}
 	<BottomSheet bind:open {onclose}>
 		<h2 class="place-name">{placeName}</h2>
 		{@render ActionBar()}
 
-		<VisitList {visits} {currentUserId} {oneditvisit} />
+		<VisitList {visits} {currentUserId} {oneditvisit} {ondeletevisit} />
 	</BottomSheet>
 {/if}
 

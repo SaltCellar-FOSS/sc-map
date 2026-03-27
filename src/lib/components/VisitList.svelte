@@ -1,14 +1,17 @@
 <script lang="ts">
 	import Card from './ui/card/Card.svelte';
+	import Button from './ui/button/Button.svelte';
+	import Icon from './ui/icon/Icon.svelte';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 
 	type Props = {
 		visits: Promise<VisitWithUser[]>;
 		currentUserId?: bigint;
 		oneditvisit?: (visit: VisitWithUser) => void;
+		ondeletevisit?: (visit: VisitWithUser) => void;
 	};
 
-	const { visits, currentUserId, oneditvisit }: Props = $props();
+	const { visits, currentUserId, oneditvisit, ondeletevisit }: Props = $props();
 
 	function formatDate(date: Date): string {
 		return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -47,17 +50,24 @@
 							</div>
 							<div class="header-actions">
 								{#if currentUserId !== undefined && visit.user_id === currentUserId}
-									<button
-										class="edit-btn"
+									<Button
+										variant="text"
 										aria-label="Edit visit"
 										onclick={() => oneditvisit?.(visit)}
 									>
-										<svg viewBox="0 0 24 24" aria-hidden="true">
-											<path
-												d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
-											/>
-										</svg>
-									</button>
+										{#snippet icon()}
+											<Icon name="edit" class="md-btn__icon" />
+										{/snippet}
+									</Button>
+									<Button
+										variant="text"
+										aria-label="Delete visit"
+										onclick={() => ondeletevisit?.(visit)}
+									>
+										{#snippet icon()}
+											<Icon name="delete" class="md-btn__icon" />
+										{/snippet}
+									</Button>
 								{/if}
 							</div>
 						</div>
@@ -94,7 +104,7 @@
 		margin: 0;
 	}
 
-	/* Header row: info left, stars right */
+	/* Header row: info left, actions right */
 	.header-row {
 		display: flex;
 		align-items: flex-start;
@@ -114,31 +124,6 @@
 		align-items: center;
 		gap: 4px;
 		flex-shrink: 0;
-	}
-
-	.edit-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 32px;
-		height: 32px;
-		border: none;
-		background: none;
-		cursor: pointer;
-		color: var(--md-sys-color-on-surface-variant);
-		border-radius: var(--md-sys-shape-corner-full);
-		padding: 0;
-	}
-
-	.edit-btn:hover {
-		background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 8%, transparent);
-	}
-
-	.edit-btn svg {
-		width: 18px;
-		height: 18px;
-		fill: currentColor;
-		display: block;
 	}
 
 	/* Avatar initial */
