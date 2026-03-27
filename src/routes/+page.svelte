@@ -19,8 +19,11 @@
 <div class="container">
 	<img src="/salt-cellar-map.svg" alt="Salt Cellar Map" class="title" />
 	<div class="stats">
-		{@render StatsChip('otherDestination', '275 Pins')}
-		{@render StatsChip('foodTruck', '48 Contributors')}
+		{@render StatsChip('otherDestination', `${data.pins} ${data.pins === 1 ? 'Pin' : 'Pins'}`)}
+		{@render StatsChip(
+			'foodTruck',
+			`${data.contributors} ${data.contributors === 1 ? 'Contributor' : 'Contributors'}`
+		)}
 	</div>
 	<div class="cta">
 		{#if !data.user}
