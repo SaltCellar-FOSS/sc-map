@@ -48,6 +48,25 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
 
+  backup:
+    image: postgres:17
+    restart: unless-stopped
+    networks:
+      - internal
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup-entrypoint.sh:/entrypoint.sh:ro
+    environment:
+      PGHOST: db
+      PGDATABASE: sc_map
+      PGUSER: sc_map
+      PGPASSWORD: sc_map
+      KEEP_DAYS: '7'
+    entrypoint: ['/bin/bash', '/entrypoint.sh']
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
