@@ -91,25 +91,14 @@
 </div>
 
 {#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
-	{#await visitsResult}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			visits={[]}
-			currentUserId={data.user?.id}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-			oneditvisit={handleOnEditVisit}
-		/>
-	{:then visits}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			{visits}
-			currentUserId={data.user?.id}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-			oneditvisit={handleOnEditVisit}
-		/>
-	{/await}
+	<PlaceSheet
+		placeName={selectedPlace.name}
+		visits={visitsResult}
+		currentUserId={data.user?.id}
+		bind:open={sheetOpen}
+		onaddvisit={handleOnAddVisit}
+		oneditvisit={handleOnEditVisit}
+	/>
 {/if}
 
 <div class="controls">
