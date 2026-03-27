@@ -13,6 +13,7 @@
 	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
+	import { invalidate } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 
@@ -54,6 +55,7 @@
 
 	async function handleVisitAdded() {
 		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			invalidate('app:places');
 			await getVisitsForPlace(selectedPlace.id).refresh();
 			visitsResult = getVisitsForPlace(selectedPlace.id);
 		}
