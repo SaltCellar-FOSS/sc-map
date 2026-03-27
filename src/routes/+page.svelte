@@ -17,18 +17,18 @@
 {/snippet}
 
 <div class="container">
-	<div class="header">
-		<img src="/salt-cellar-map.svg" alt="Salt Cellar Map" class="title" />
-		<div class="stats">
-			{@render StatsChip('otherDestination', '275 Pins')}
-			{@render StatsChip('foodTruck', '48 Contributors')}
-		</div>
+	<img src="/salt-cellar-map.svg" alt="Salt Cellar Map" class="title" />
+	<div class="stats">
+		{@render StatsChip('otherDestination', '275 Pins')}
+		{@render StatsChip('foodTruck', '48 Contributors')}
 	</div>
-	{#if !data.user}
-		<LoginWithDiscord />
-	{:else if !data.user.is_current_server_member && !data.user.has_lifetime_access}
-		<p>Looks like you've left the Salt Cellar! We're sorry to see you go 😭</p>
-	{/if}
+	<div class="cta">
+		{#if !data.user}
+			<LoginWithDiscord />
+		{:else if !data.user.is_current_server_member && !data.user.has_lifetime_access}
+			<p>Looks like you've left the Salt Cellar! We're sorry to see you go 😭</p>
+		{/if}
+	</div>
 
 	<span class="attribution"
 		>Made with🧂by The Salt Cellar • <a
@@ -52,23 +52,16 @@
 	}
 
 	.container {
-		justify-content: center;
 		align-self: center;
 		aspect-ratio: 1.12/1;
 		background-color: white;
-		padding: 1.5rem 1.5rem 1rem 1.5rem;
+		padding: 24px 24px 16px 24px;
 		border-radius: var(--md-sys-shape-corner-large);
 		border: solid;
 		border-color: black;
 		display: flex;
 		flex-direction: column;
-		justify-content: space-between;
-	}
-
-	.header {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
+		justify-content: flex-start;
 	}
 
 	.stats {
@@ -76,13 +69,14 @@
 		flex-direction: row;
 		justify-content: center;
 		gap: 12px;
+		margin-top: 24px;
 	}
 
 	.stats-chip {
-		padding-left: 0.75rem;
-		padding-right: 0.75rem;
-		padding-top: 0.125rem;
-		padding-bottom: 0.125rem;
+		padding-left: 12px;
+		padding-right: 12px;
+		padding-top: 6px;
+		padding-bottom: 6px;
 		border-radius: var(--md-sys-shape-corner-extra-large);
 		border: solid;
 		border-width: 2px;
@@ -96,8 +90,14 @@
 		box-sizing: border-box;
 	}
 
+	.cta {
+		margin-top: auto;
+	}
+
 	.attribution {
+		text-align: center;
 		font-family: 'VCHenrietta', sans-serif;
+		margin-top: auto;
 
 		a {
 			text-decoration: underline;
@@ -106,81 +106,29 @@
 
 	@media (min-width: 768px) {
 		.container {
-			padding: 2rem 2rem 1.25rem 2rem;
-		}
-
-		.title {
-			width: 320px;
-		}
-
-		.stats-chip {
-			font-size: 14px;
-			padding-left: 1.5rem;
-			padding-right: 1.5rem;
-			gap: 10px;
-		}
-
-		.stats {
-			gap: 16px;
-		}
-
-		.attribution {
-			text-align: center;
-			font-size: 14px;
-		}
-	}
-
-	@media (min-width: 1024px) {
-		.container {
-			padding: 2.5rem 2.5rem 1.5rem 2.5rem;
-		}
-
-		.title {
-			width: 400px;
-		}
-
-		.stats-chip {
-			font-size: 16px;
-			padding-left: 1.25rem;
-			padding-right: 1.25rem;
-			gap: 12px;
-		}
-
-		.stats {
-			gap: 20px;
-		}
-
-		.attribution {
-			font-size: 16px;
-		}
-	}
-
-	@media (min-width: 1280px) {
-		.container {
-			padding: 3rem 3rem 2rem 3rem;
-		}
-
-		.title {
-			width: 480px;
-		}
-
-		.stats-chip {
-			font-size: 1.5rem;
-			padding-left: 1.5rem;
-			padding-right: 1.5rem;
-			gap: 14px;
-		}
-
-		.stats-chip :global(svg) {
-			size: 62px;
+			padding: 45px 60px 20px 60px;
+			justify-content: space-between;
 		}
 
 		.stats {
 			gap: 24px;
+			margin-top: 0;
+		}
+
+		.cta {
+			margin-top: 0;
 		}
 
 		.attribution {
-			font-size: 18px;
+			margin-top: 0;
+		}
+		.stats-chip {
+			font-size: 1.25em;
+		}
+
+		.stats-chip :global(img) {
+			width: 32px;
+			height: 32px;
 		}
 	}
 </style>
