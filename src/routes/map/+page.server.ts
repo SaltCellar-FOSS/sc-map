@@ -120,7 +120,6 @@ export const actions = {
 
 		const parseResult = EditableFieldsSchema.safeParse({
 			summary: data.get('summary')?.toString(),
-			rating: data.get('rating')?.toString(),
 			visited_at: data.get('visitDate')?.toString()
 		});
 
