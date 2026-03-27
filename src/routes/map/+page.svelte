@@ -1,6 +1,7 @@
 <script lang="ts">
 	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
 	import EditVisitDialog from '$lib/components/EditVisitDialog.svelte';
+	import DeleteVisitConfirmationDialog from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -23,6 +24,8 @@
 	let dialogOpen = $state(false);
 	let editDialogOpen = $state(false);
 	let visitBeingEdited = $state<VisitWithUser | null>(null);
+	let deleteDialogOpen = $state(false);
+	let visitBeingDeleted = $state<VisitWithUser | null>(null);
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
@@ -51,6 +54,11 @@
 	function handleOnEditVisit(visit: VisitWithUser) {
 		visitBeingEdited = visit;
 		editDialogOpen = true;
+	}
+
+	function handleOnDeleteVisit(visit: VisitWithUser) {
+		visitBeingDeleted = visit;
+		deleteDialogOpen = true;
 	}
 
 	async function handleVisitAdded() {
@@ -98,6 +106,7 @@
 		bind:open={sheetOpen}
 		onaddvisit={handleOnAddVisit}
 		oneditvisit={handleOnEditVisit}
+		ondeletevisit={handleOnDeleteVisit}
 	/>
 {/if}
 
@@ -171,6 +180,14 @@
 		bind:open={editDialogOpen}
 		placeName={selectedPlace.name}
 		visit={visitBeingEdited}
+		onsuccess={handleVisitAdded}
+	/>
+{/if}
+
+{#if visitBeingDeleted}
+	<DeleteVisitConfirmationDialog
+		bind:open={deleteDialogOpen}
+		visitId={visitBeingDeleted.id}
 		onsuccess={handleVisitAdded}
 	/>
 {/if}

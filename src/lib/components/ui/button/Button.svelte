@@ -39,8 +39,8 @@
 		/** Additional classes merged onto the root element. */
 		class?: string;
 
-		/** Label content (required). */
-		children: Snippet;
+		/** Label content. */
+		children?: Snippet;
 
 		/**
 		 * Optional leading icon snippet.
@@ -149,7 +149,7 @@
 	>
 		<span class="md-btn__state-layer" aria-hidden="true"></span>
 		{#if icon}{@render icon()}{/if}
-		<span class="md-btn__label">{@render children()}</span>
+		{#if children}<span class="md-btn__label">{@render children()}</span>{/if}
 		{#if trailingIcon}{@render trailingIcon()}{/if}
 	</a>
 {:else}
@@ -163,7 +163,7 @@
 	>
 		<span class="md-btn__state-layer" aria-hidden="true"></span>
 		{#if icon}{@render icon()}{/if}
-		<span class="md-btn__label">{@render children()}</span>
+		{#if children}<span class="md-btn__label">{@render children()}</span>{/if}
 		{#if trailingIcon}{@render trailingIcon()}{/if}
 	</button>
 {/if}
