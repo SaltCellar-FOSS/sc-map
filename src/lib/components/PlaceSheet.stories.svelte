@@ -59,7 +59,6 @@
 		discord_handle: `@user${i + 1}`,
 		avatar_url: null,
 		summary: `Visit number ${i + 1}. Great food as always.`,
-		rating: ((i % 5) + 1) as 1 | 2 | 3 | 4 | 5,
 		visited_at: new Date(2026, 2, 20 - i),
 		photo_urls: []
 	}));

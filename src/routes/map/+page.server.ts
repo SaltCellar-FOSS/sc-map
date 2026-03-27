@@ -35,7 +35,6 @@ export const actions = {
 		const parseResult = VisitInsertWithoutPlaceSchema.safeParse({
 			user_id: userId,
 			summary: data.get('review')?.toString(),
-			rating: data.get('rating')?.toString(),
 			visited_at: data.get('visitDate')?.toString()
 		});
 
