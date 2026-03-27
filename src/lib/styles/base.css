@@ -5,6 +5,20 @@
    No component styles here. No utility classes here.
    ============================================================================= */
 
+@font-face {
+	font-family: 'VCHenrietta';
+	src: url('/VCHenrietta-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'VCHenrietta';
+	src: url('/VCHenriettaCondensed-Bold.woff') format('woff');
+	font-weight: bold;
+	font-style: normal;
+}
+
 /* --- Box model --- */
 *,
 *::before,
@@ -25,7 +39,6 @@ html {
 /* --- Body defaults — use M3 surface + body-medium as baseline --- */
 body {
 	margin: 0;
-	background-color: var(--md-sys-color-background);
 	color: var(--md-sys-color-on-background);
 	font-family: var(--md-sys-typescale-body-large-font);
 	font-size: var(--md-sys-typescale-body-large-size);
