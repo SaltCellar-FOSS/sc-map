@@ -27,7 +27,6 @@
 			discord_handle: '@netshaq',
 			avatar_url: null,
 			summary: 'If you pee pee when you poo poo, why do you not poo poo when you pee pee',
-			rating: 1,
 			visited_at: now,
 			photo_urls: [
 				'https://picsum.photos/seed/v1a/400/400',
@@ -40,7 +39,6 @@
 			discord_handle: '@smokes',
 			avatar_url: null,
 			summary: 'Best brisket in Austin. The line was worth every minute.',
-			rating: 5,
 			visited_at: new Date('2026-03-15T12:00:00Z'),
 			photo_urls: ['https://picsum.photos/seed/v2a/400/400']
 		},
@@ -50,7 +48,6 @@
 			discord_handle: '@pitmaster',
 			avatar_url: null,
 			summary: 'Sold out by 11am. Arrived at 9 and barely made it.',
-			rating: 4,
 			visited_at: new Date('2026-02-28T12:00:00Z'),
 			photo_urls: []
 		}

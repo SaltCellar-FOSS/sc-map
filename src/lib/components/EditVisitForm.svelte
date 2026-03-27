@@ -1,6 +1,5 @@
 <script lang="ts">
 	import TextField from './ui/text-field/TextField.svelte';
-	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
 	import type { VisitWithUser } from '$lib/schemas/visit';
@@ -10,7 +9,6 @@
 
 	const EditClientSchema = VisitUpdateSchema.pick({
 		summary: true,
-		rating: true,
 		visited_at: true
 	});
 
@@ -29,7 +27,6 @@
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
-	let rating = $state(untrack(() => visit.rating ?? 0));
 	let summary = $state(untrack(() => visit.summary ?? ''));
 	let visitDate = $state<string>(toDateString(untrack(() => visit.visited_at)));
 	let submitted = $state(false);
@@ -37,7 +34,7 @@
 
 	const validationResult = $derived.by(() => {
 		if (!submitted) return null;
-		return EditClientSchema.safeParse({ rating, summary, visited_at: visitDate });
+		return EditClientSchema.safeParse({ summary, visited_at: visitDate });
 	});
 
 	const fieldErrors = $derived(
@@ -49,7 +46,7 @@
 	function enhanceEdit({ cancel }: { cancel: () => void }) {
 		submitted = true;
 		formError = '';
-		const result = EditClientSchema.safeParse({ rating, summary, visited_at: visitDate });
+		const result = EditClientSchema.safeParse({ summary, visited_at: visitDate });
 		if (!result.success) {
 			cancel();
 			return;
@@ -76,14 +73,6 @@
 	action="/map?/editVisit"
 >
 	<input type="hidden" name="visitId" value={visit.id.toString()} />
-	<input type="hidden" name="rating" value={rating} />
-
-	<div class="rating-field">
-		<StarRating bind:value={rating} />
-		{#if fieldErrors.rating?.[0]}
-			<p class="field-error" role="alert">{fieldErrors.rating[0]}</p>
-		{/if}
-	</div>
 
 	<div class="field-row">
 		<TextField
@@ -124,18 +113,5 @@
 
 	.field-row {
 		width: 100%;
-	}
-
-	.rating-field {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.field-error {
-		margin: 0;
-		font-size: 0.75rem;
-		color: var(--md-sys-color-error, #b3261e);
 	}
 </style>
