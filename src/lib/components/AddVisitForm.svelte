@@ -1,6 +1,5 @@
 <script lang="ts">
 	import TextField from './ui/text-field/TextField.svelte';
-	import StarRating from './ui/star-rating/StarRating.svelte';
 	import ChipSet from './ui/chip/ChipSet.svelte';
 	import { Chip } from './ui/chip';
 	import { enhance } from '$app/forms';
@@ -38,9 +37,7 @@
 		[SavedPlaceType.OtherDestination]: { iconName: 'otherDestination', label: 'Other Destination' }
 	};
 
-	const AddVisitClientSchema = VisitInsertSchema.omit({ place_id: true, user_id: true }).extend({
-		rating: z.coerce.number().min(1).max(5)
-	});
+	const AddVisitClientSchema = VisitInsertSchema.omit({ place_id: true, user_id: true });
 
 	const formatter = Intl.DateTimeFormat('en-CA');
 
@@ -56,7 +53,6 @@
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
-	let rating = $state(0);
 	let review = $state('');
 	let visitDate = $state<string>(today());
 	let selectedType = $state<SavedPlaceType | null>(null);
@@ -66,7 +62,7 @@
 
 	const validationResult = $derived.by(() => {
 		if (!submitted) return null;
-		return AddVisitClientSchema.safeParse({ rating, summary: review, visited_at: visitDate });
+		return AddVisitClientSchema.safeParse({ summary: review, visited_at: visitDate });
 	});
 
 	const fieldErrors = $derived(
@@ -78,7 +74,6 @@
 	const enhanceVisit: SubmitFunction = ({ cancel }) => {
 		submitted = true;
 		const result = AddVisitClientSchema.safeParse({
-			rating,
 			summary: review,
 			visited_at: visitDate
 		});
@@ -107,15 +102,7 @@
 	action="/map?/addVisit"
 >
 	<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
-	<input type="hidden" name="rating" value={rating} />
 	<input type="hidden" name="selectedType" value={selectedType} />
-
-	<div class="rating-field">
-		<StarRating bind:value={rating} />
-		{#if fieldErrors.rating?.[0]}
-			<p class="field-error" role="alert">{fieldErrors.rating[0]}</p>
-		{/if}
-	</div>
 
 	<div class="field-row">
 		<TextField
@@ -171,19 +158,6 @@
 
 	.field-row {
 		width: 100%;
-	}
-
-	.rating-field {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.field-error {
-		margin: 0;
-		font-size: 0.75rem;
-		color: var(--md-sys-color-error, #b3261e);
 	}
 
 	:global(.type-toggle) {
