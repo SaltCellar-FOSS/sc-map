@@ -95,4 +95,9 @@ export class VisitsDao {
 		if (!result) throw new VisitNotFoundError(String(visitId));
 		return VisitSchema.parse(result);
 	}
+
+	public async countContributors(): Promise<number> {
+		const [result] = await this.sql`SELECT COUNT(DISTINCT user_id) AS count FROM visits`;
+		return Number(result.count);
+	}
 }
