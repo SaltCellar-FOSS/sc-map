@@ -1,13 +1,14 @@
 import { z } from 'zod';
 
 export enum SavedPlaceType {
-	Restaurant = 'RESTAURANT',
 	Bar = 'BAR',
 	Bakery = 'BAKERY',
+	Cafe = 'CAFE',
 	Deli = 'DELI',
-	FoodTruck = 'FOOD_TRUCK',
 	Dessert = 'DESSERT',
-	OtherDestination = 'OTHER_DESTINATION'
+	FoodTruck = 'FOOD_TRUCK',
+	OtherDestination = 'OTHER_DESTINATION',
+	Restaurant = 'RESTAURANT'
 }
 
 export const SavedPlaceSchema = z.object({
