@@ -17,7 +17,7 @@ export const VisitInsertSchema = VisitSchema.omit({
 	created_at: true,
 	updated_at: true
 }).extend({
-	visited_at: z.iso.date()
+	visited_at: z.coerce.date()
 });
 
 export const VisitUpdateSchema = VisitSchema.omit({
@@ -26,7 +26,7 @@ export const VisitUpdateSchema = VisitSchema.omit({
 	updated_at: true
 })
 	.extend({
-		visited_at: z.iso.date()
+		visited_at: z.coerce.date()
 	})
 	.partial();
 

@@ -24,7 +24,7 @@ const visitInsert: VisitInsert = {
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	visited_at: '2024-01-01'
+	visited_at: new Date('2024-01-01')
 };
 
 describe('VisitsDao', () => {

@@ -1,11 +1,9 @@
 <script lang="ts">
 	import Dialog from './ui/dialog/Dialog.svelte';
 	import Button from './ui/button/Button.svelte';
-	import AddVisitForm from './AddVisitForm.svelte';
-	import EditVisitForm from './EditVisitForm.svelte';
+	import VisitForm from './VisitForm.svelte';
 	import type { Place } from '$lib/schemas/place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { isSavedPlace } from '$lib/schemas/place';
 
 	type BaseProps = {
 		open: boolean;
@@ -28,7 +26,7 @@
 
 	let { open = $bindable(false), place, mode, visit, onclose, onsuccess }: Props = $props();
 
-	let formRef = $state<AddVisitForm | EditVisitForm | null>(null);
+	let formRef = $state<VisitForm | null>(null);
 
 	function handleClose() {
 		onclose?.();
@@ -46,16 +44,11 @@
 	<div class="dialog-body">
 		{#if mode === 'add'}
 			{#key place.google_place_id}
-				<AddVisitForm
-					bind:this={formRef}
-					googlePlaceId={place.google_place_id}
-					isSavedPlace={isSavedPlace(place)}
-					onsuccess={handleSuccess}
-				/>
+				<VisitForm bind:this={formRef} {mode} {place} onsuccess={handleSuccess} />
 			{/key}
 		{:else if mode === 'edit' && visit}
 			{#key visit.id}
-				<EditVisitForm bind:this={formRef} {visit} onsuccess={handleSuccess} />
+				<VisitForm bind:this={formRef} {mode} {visit} onsuccess={handleSuccess} />
 			{/key}
 		{/if}
 		<div class="md-dialog__actions">

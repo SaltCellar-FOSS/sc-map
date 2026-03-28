@@ -4,9 +4,11 @@
 	import Card from './ui/card/Card.svelte';
 	import Icon from './ui/icon/Icon.svelte';
 
-	function formatDate(date: Date): string {
-		return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-	}
+	const formatDate = Intl.DateTimeFormat('en-US', {
+		month: 'long',
+		day: 'numeric',
+		timeZone: 'UTC'
+	}).format;
 
 	function getInitial(handle: string | null): string {
 		const cleaned = handle?.replace(/^@/, '') ?? '';
