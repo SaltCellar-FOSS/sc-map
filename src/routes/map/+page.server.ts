@@ -1,12 +1,13 @@
 import { fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
 import { z } from 'zod';
 import { sql } from '$lib/db';
 import { SavedPlaceNotFoundError, SavedPlacesDao } from '$lib/server/dao/saved-places';
 import { VisitNotFoundError, VisitsDao } from '$lib/server/dao/visits';
 import { getGooglePlaceById } from '$lib/google-places';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
-import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
+import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$lib/server/guards';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
@@ -18,13 +19,16 @@ const EditableFieldsSchema = VisitUpdateSchema.pick({
 	visited_at: true
 }).strict();
 
-export const actions = {
+export const actions: Actions = {
 	addVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+			await requireActiveUser(userId);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -95,11 +99,13 @@ export const actions = {
 	},
 
 	editVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -115,7 +121,8 @@ export const actions = {
 			throw e;
 		}
 
-		if (existing.user_id !== userId) return fail(401, { error: 'Unauthorized' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
 		const parseResult = EditableFieldsSchema.safeParse({
 			summary: data.get('summary')?.toString(),
@@ -132,11 +139,14 @@ export const actions = {
 	},
 
 	editPlace: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+			await requireActiveUser(userId);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -161,11 +171,13 @@ export const actions = {
 	},
 
 	deleteVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -181,7 +193,8 @@ export const actions = {
 			throw e;
 		}
 
-		if (existing.user_id !== userId) return fail(403, { error: 'Forbidden' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
 		try {
 			await visitsDao.deleteVisit(visitId);
