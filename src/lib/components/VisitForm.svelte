@@ -40,7 +40,7 @@
 
 	let summary = $state(untrack(() => (visit && visit.summary) ?? ''));
 	let visitDate = $state<string>(
-		untrack(() => (visit && visit.visited_at.toString()) ?? Temporal.Now.plainDateISO().toString())
+		untrack(() => (visit ? visit.visited_at.toString() : Temporal.Now.plainDateISO().toString()))
 	);
 	let selectedType = $state<SavedPlaceType | undefined>();
 	let submitted = $state(false);
