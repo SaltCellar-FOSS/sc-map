@@ -1,16 +1,8 @@
-import { SavedPlaceSchema, type SavedPlace } from '$lib/schemas/saved-place';
-import { z } from 'zod';
+import type { SavedPlace } from '$lib/schemas/saved-place';
 
-const BasePlaceSchema = SavedPlaceSchema.omit({
-	id: true,
-	submitted_by: true,
-	created_at: true,
-	type: true
-});
+type BasePlace = Pick<SavedPlace, 'name' | 'lat' | 'lng' | 'formatted_address' | 'google_place_id'>;
 
-export const PlaceSchema = z.union([SavedPlaceSchema, BasePlaceSchema]);
-
-export type Place = z.infer<typeof PlaceSchema>;
+export type Place = SavedPlace | BasePlace;
 
 export const isSavedPlace = (place: Place): place is SavedPlace => {
 	return 'id' in place;

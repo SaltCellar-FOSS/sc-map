@@ -3,14 +3,7 @@
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { VisitUpdateSchema } from '$lib/schemas/visit';
-	import { z } from 'zod';
 	import { untrack } from 'svelte';
-
-	const EditClientSchema = VisitUpdateSchema.pick({
-		summary: true,
-		visited_at: true
-	});
 
 	type Props = {
 		visit: VisitWithUser;
@@ -32,22 +25,29 @@
 	let submitted = $state(false);
 	let formError = $state('');
 
-	const validationResult = $derived.by(() => {
-		if (!submitted) return null;
-		return EditClientSchema.safeParse({ summary, visited_at: visitDate });
-	});
+	type FieldErrors = { summary?: string[]; visited_at?: string[] };
 
-	const fieldErrors = $derived(
-		validationResult && !validationResult.success
-			? z.flattenError(validationResult.error).fieldErrors
-			: {}
-	);
+	function validate(s: string, visitedAt: string): FieldErrors {
+		const errors: FieldErrors = {};
+		if (s.length > 2000) {
+			errors.summary = ['Must be 2000 characters or less'];
+		}
+		if (!visitedAt || !/^\d{4}-\d{2}-\d{2}$/.test(visitedAt)) {
+			errors.visited_at = ['Must be a valid date'];
+		}
+		return errors;
+	}
+
+	const fieldErrors = $derived.by((): FieldErrors => {
+		if (!submitted) return {};
+		return validate(summary, visitDate);
+	});
 
 	function enhanceEdit({ cancel }: { cancel: () => void }) {
 		submitted = true;
 		formError = '';
-		const result = EditClientSchema.safeParse({ summary, visited_at: visitDate });
-		if (!result.success) {
+		const errors = validate(summary, visitDate);
+		if (Object.keys(errors).length > 0) {
 			cancel();
 			return;
 		}
