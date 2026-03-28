@@ -21,7 +21,7 @@ const GuildMemberSchema = z.object({
 	roles: z.array(z.string())
 });
 
-export type TokenResponse = z.infer<typeof TokenResponseSchema>;
+type TokenResponse = z.infer<typeof TokenResponseSchema>;
 export type DiscordUser = z.infer<typeof DiscordUserSchema>;
 export type GuildMember = z.infer<typeof GuildMemberSchema>;
 

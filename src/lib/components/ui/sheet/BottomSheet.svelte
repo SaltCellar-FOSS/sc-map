@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SheetProps } from '$lib/components/ui/sheet';
+	import type { SheetProps } from './types';
 
 	type Props = SheetProps & {
 		/**

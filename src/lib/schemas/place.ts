@@ -1,7 +1,7 @@
 import { SavedPlaceSchema, type SavedPlace } from '$lib/schemas/saved-place';
 import { z } from 'zod';
 
-export const BasePlaceSchema = SavedPlaceSchema.omit({
+const BasePlaceSchema = SavedPlaceSchema.omit({
 	id: true,
 	submitted_by: true,
 	created_at: true,

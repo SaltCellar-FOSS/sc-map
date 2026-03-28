@@ -7,10 +7,6 @@ export class UserNotFoundError extends Error {}
 export class DuplicateExternalIdError extends Error {}
 export class NoIdentityError extends Error {}
 
-export type InsertUserError = DuplicateExternalIdError | NoIdentityError;
-export type UpdateUserError = UserNotFoundError | DuplicateExternalIdError | NoIdentityError;
-export type DeleteUserError = UserNotFoundError;
-
 export class UsersDao {
 	constructor(private readonly sql: SQL) {}
 
