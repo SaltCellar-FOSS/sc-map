@@ -18,7 +18,7 @@
 	import editIcon from '$lib/icons/EditIcon.svg?raw';
 	import deleteIcon from '$lib/icons/DeleteIcon.svg?raw';
 
-	type IconName =
+	export type IconName =
 		| 'bar'
 		| 'bakery'
 		| 'cafe'
