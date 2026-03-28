@@ -1,7 +1,4 @@
 <script lang="ts">
-	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
-	import EditVisitDialog from '$lib/components/EditVisitDialog.svelte';
-	import DeleteVisitConfirmationDialog from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -15,6 +12,9 @@
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import { invalidate } from '$app/navigation';
+	import type AddVisitDialogType from '$lib/components/AddVisitDialog.svelte';
+	import type EditVisitDialogType from '$lib/components/EditVisitDialog.svelte';
+	import type DeleteVisitConfirmationDialogType from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -32,6 +32,11 @@
 
 	let sessionToken: string | null = null;
 
+	// Dialog components — lazily loaded on first use
+	let AddVisitDialog = $state<typeof AddVisitDialogType | null>(null);
+	let EditVisitDialog = $state<typeof EditVisitDialogType | null>(null);
+	let DeleteVisitConfirmationDialog = $state<typeof DeleteVisitConfirmationDialogType | null>(null);
+
 	function handlePlaceSelect(place: Place | null) {
 		selectedPlace = place;
 		if (place === null) {
@@ -47,17 +52,28 @@
 		}
 	}
 
-	function handleOnAddVisit() {
+	async function handleOnAddVisit() {
+		if (!AddVisitDialog) {
+			AddVisitDialog = (await import('$lib/components/AddVisitDialog.svelte')).default;
+		}
 		dialogOpen = true;
 	}
 
-	function handleOnEditVisit(visit: VisitWithUser) {
+	async function handleOnEditVisit(visit: VisitWithUser) {
 		visitBeingEdited = visit;
+		if (!EditVisitDialog) {
+			EditVisitDialog = (await import('$lib/components/EditVisitDialog.svelte')).default;
+		}
 		editDialogOpen = true;
 	}
 
-	function handleOnDeleteVisit(visit: VisitWithUser) {
+	async function handleOnDeleteVisit(visit: VisitWithUser) {
 		visitBeingDeleted = visit;
+		if (!DeleteVisitConfirmationDialog) {
+			DeleteVisitConfirmationDialog = (
+				await import('$lib/components/DeleteVisitConfirmationDialog.svelte')
+			).default;
+		}
 		deleteDialogOpen = true;
 	}
 
@@ -99,7 +115,7 @@
 		bind:this={placeMap}
 		savedPlaces={data.savedPlaces}
 		onsaveplace={() => {
-			dialogOpen = true;
+			handleOnAddVisit();
 		}}
 		onplacechange={handlePlaceSelect}
 	/>
@@ -173,7 +189,7 @@
 	</SearchView>
 </div>
 
-{#if selectedPlace}
+{#if selectedPlace && AddVisitDialog}
 	<AddVisitDialog
 		bind:open={dialogOpen}
 		placeName={selectedPlace.name}
@@ -183,7 +199,7 @@
 	/>
 {/if}
 
-{#if visitBeingEdited && selectedPlace}
+{#if visitBeingEdited && selectedPlace && EditVisitDialog}
 	<EditVisitDialog
 		bind:open={editDialogOpen}
 		placeName={selectedPlace.name}
@@ -192,7 +208,7 @@
 	/>
 {/if}
 
-{#if visitBeingDeleted}
+{#if visitBeingDeleted && DeleteVisitConfirmationDialog}
 	<DeleteVisitConfirmationDialog
 		bind:open={deleteDialogOpen}
 		visitId={visitBeingDeleted.id}
