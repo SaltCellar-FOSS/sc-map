@@ -168,7 +168,6 @@ When adding a component to `ui/`:
 
 - [ ] `ComponentName.svelte` — component logic and markup
 - [ ] `component-name.css` — styles using `--md-sys-*` tokens only
-- [ ] `index.ts` — named exports (`export { default as ComponentName } from './ComponentName.svelte'`)
 - [ ] `ComponentName.stories.svelte` — Storybook stories
 - [ ] Add `@import` to `src/lib/styles/theme.css`
 

@@ -13,10 +13,6 @@ import { PG_ERRORS } from '$lib/db/errors';
 export class VisitNotFoundError extends Error {}
 export class DuplicateVisitError extends Error {}
 
-export type InsertVisitError = DuplicateVisitError;
-export type UpdateVisitError = VisitNotFoundError | DuplicateVisitError;
-export type DeleteVisitError = VisitNotFoundError;
-
 export class VisitsDao {
 	constructor(private readonly sql: SQL) {}
 
