@@ -84,6 +84,7 @@
 		border: solid;
 		border-width: 2px;
 		border-color: black;
+		color: var(--md-ref-palette-neutral10);
 		display: flex;
 		flex-direction: row;
 		gap: 8px;
@@ -101,6 +102,7 @@
 		text-align: center;
 		font-family: 'VCHenrietta', sans-serif;
 		margin-top: auto;
+		color: var(--md-ref-palette-neutral10);
 
 		a {
 			text-decoration: underline;
