@@ -4,12 +4,6 @@
 	import Card from './ui/card/Card.svelte';
 	import Icon from './ui/icon/Icon.svelte';
 
-	const formatDate = Intl.DateTimeFormat('en-US', {
-		month: 'long',
-		day: 'numeric',
-		timeZone: 'UTC'
-	}).format;
-
 	function getInitial(handle: string | null): string {
 		const cleaned = handle?.replace(/^@/, '') ?? '';
 		return cleaned[0]?.toUpperCase() ?? '?';
@@ -40,7 +34,12 @@
 		<div class="header-row">
 			<div class="header-info">
 				<span class="md-card__title">{visit.discord_handle ?? 'Unknown'}</span>
-				<span class="md-card__subhead">{formatDate(visit.visited_at)}</span>
+				<span class="md-card__subhead"
+					>{visit.visited_at.toLocaleString('en-US', {
+						month: 'long',
+						day: 'numeric'
+					})}</span
+				>
 			</div>
 			<div class="header-actions">
 				{#if currentUserId !== undefined && visit.user_id === currentUserId}

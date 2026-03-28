@@ -8,10 +8,7 @@
 	import { SavedPlaceType } from '$lib/schemas/saved-place';
 	import { isSavedPlace } from '$lib/schemas/place';
 	import { untrack } from 'svelte';
-
-	const formatter = Intl.DateTimeFormat('en-CA');
-
-	const today = (): string => formatter.format(new Date());
+	import { Temporal } from '@js-temporal/polyfill';
 
 	type BaseProps = {
 		onsuccess?: () => void;
@@ -43,7 +40,7 @@
 
 	let summary = $state(untrack(() => (visit && visit.summary) ?? ''));
 	let visitDate = $state<string>(
-		untrack(() => (visit && formatter.format(visit.visited_at)) ?? today())
+		untrack(() => (visit && visit.visited_at.toString()) ?? Temporal.Now.plainDateISO().toString())
 	);
 	let selectedType = $state<SavedPlaceType | undefined>();
 	let submitted = $state(false);

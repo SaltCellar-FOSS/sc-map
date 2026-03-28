@@ -1,13 +1,14 @@
 <script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import VisitDialog from './VisitDialog.svelte';
+	import { Temporal } from '@js-temporal/polyfill';
 
 	const sampleVisit = {
 		id: 1n,
 		user_id: 42n,
 		place_id: 7n,
 		summary: 'Amazing brisket. The line was long but absolutely worth it.',
-		visited_at: new Date('2024-06-15'),
+		visited_at: Temporal.PlainDate.from('2024-06-15'),
 		created_at: new Date('2024-06-15'),
 		updated_at: new Date('2024-06-15'),
 		discord_handle: '@foodie',

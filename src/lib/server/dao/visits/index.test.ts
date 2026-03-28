@@ -2,13 +2,14 @@ import { describe, expect, test, beforeEach } from 'bun:test';
 import type { Visit, VisitInsert, VisitWithUser } from '../../../schemas/visit';
 import { VisitsDao, VisitNotFoundError, DuplicateVisitError } from '.';
 import { createMockSQL, createErrorSQL } from '../mock';
+import { Temporal } from '@js-temporal/polyfill';
 
 const visitRow: Visit = {
 	id: 1n,
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	visited_at: new Date('2024-01-01'),
+	visited_at: Temporal.PlainDate.from('2024-01-01'),
 	created_at: new Date('2024-01-01'),
 	updated_at: new Date('2024-01-01')
 };
@@ -24,7 +25,7 @@ const visitInsert: VisitInsert = {
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	visited_at: new Date('2024-01-01')
+	visited_at: Temporal.PlainDate.from('2024-01-01')
 };
 
 describe('VisitsDao', () => {
