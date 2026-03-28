@@ -3,6 +3,7 @@
 	import PlaceSheet from './PlaceSheet.svelte';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import { SavedPlaceType, type SavedPlace } from '$lib/schemas/saved-place';
+	import { Temporal } from '@js-temporal/polyfill';
 
 	const { Story } = defineMeta({
 		tags: ['autodocs'],
@@ -11,6 +12,7 @@
 		}
 	});
 
+	const today = Temporal.PlainDate.from('2026-03-20');
 	const now = new Date('2026-03-20T12:00:00Z');
 
 	const baseSavedPlace: SavedPlace = {
@@ -39,7 +41,7 @@
 			discord_handle: '@netshaq',
 			avatar_url: null,
 			summary: 'If you pee pee when you poo poo, why do you not poo poo when you pee pee',
-			visited_at: now,
+			visited_at: today,
 			photo_urls: [
 				'https://picsum.photos/seed/v1a/400/400',
 				'https://picsum.photos/seed/v1b/400/400'
@@ -51,7 +53,7 @@
 			discord_handle: '@smokes',
 			avatar_url: null,
 			summary: 'Best brisket in Austin. The line was worth every minute.',
-			visited_at: new Date('2026-03-15T12:00:00Z'),
+			visited_at: today,
 			photo_urls: ['https://picsum.photos/seed/v2a/400/400']
 		},
 		{
@@ -60,7 +62,7 @@
 			discord_handle: '@pitmaster',
 			avatar_url: null,
 			summary: 'Sold out by 11am. Arrived at 9 and barely made it.',
-			visited_at: new Date('2026-02-28T12:00:00Z'),
+			visited_at: today,
 			photo_urls: []
 		}
 	];
@@ -71,7 +73,7 @@
 		discord_handle: `@user${i + 1}`,
 		avatar_url: null,
 		summary: `Visit number ${i + 1}. Great food as always.`,
-		visited_at: new Date(2026, 2, 20 - i),
+		visited_at: Temporal.PlainDate.from({ year: 2026, month: 2, day: 20 - i }),
 		photo_urls: []
 	}));
 </script>

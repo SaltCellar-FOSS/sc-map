@@ -1,13 +1,18 @@
 import { z } from 'zod';
+import { Temporal } from '@js-temporal/polyfill';
 
 const MAX_SUMMARY_CHARS = 2_000;
+
+const TemporalPlainDateSchema = z.coerce
+	.date()
+	.transform((s) => Temporal.PlainDate.from(s.toISOString().split('T')[0]));
 
 export const VisitSchema = z.object({
 	id: z.coerce.bigint(),
 	user_id: z.coerce.bigint(),
 	place_id: z.coerce.bigint(),
 	summary: z.string().max(MAX_SUMMARY_CHARS),
-	visited_at: z.coerce.date(),
+	visited_at: TemporalPlainDateSchema,
 	created_at: z.coerce.date(),
 	updated_at: z.coerce.date()
 });
@@ -17,7 +22,7 @@ export const VisitInsertSchema = VisitSchema.omit({
 	created_at: true,
 	updated_at: true
 }).extend({
-	visited_at: z.iso.date()
+	visited_at: TemporalPlainDateSchema
 });
 
 export const VisitUpdateSchema = VisitSchema.omit({
@@ -26,7 +31,7 @@ export const VisitUpdateSchema = VisitSchema.omit({
 	updated_at: true
 })
 	.extend({
-		visited_at: z.iso.date()
+		visited_at: TemporalPlainDateSchema
 	})
 	.partial();
 

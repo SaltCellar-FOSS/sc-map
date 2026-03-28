@@ -12,8 +12,7 @@
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import { invalidate } from '$app/navigation';
-	import type AddVisitDialogType from '$lib/components/AddVisitDialog.svelte';
-	import type EditVisitDialogType from '$lib/components/EditVisitDialog.svelte';
+	import type VisitDialogType from '$lib/components/VisitDialog.svelte';
 	import type DeleteVisitConfirmationDialogType from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 
 	let { data }: PageProps = $props();
@@ -33,8 +32,7 @@
 	let sessionToken: string | null = null;
 
 	// Dialog components — lazily loaded on first use
-	let AddVisitDialog = $state<typeof AddVisitDialogType | null>(null);
-	let EditVisitDialog = $state<typeof EditVisitDialogType | null>(null);
+	let VisitDialog = $state<typeof VisitDialogType | null>(null);
 	let DeleteVisitConfirmationDialog = $state<typeof DeleteVisitConfirmationDialogType | null>(null);
 
 	function handlePlaceSelect(place: Place | null) {
@@ -53,16 +51,16 @@
 	}
 
 	async function handleOnAddVisit() {
-		if (!AddVisitDialog) {
-			AddVisitDialog = (await import('$lib/components/AddVisitDialog.svelte')).default;
+		if (!VisitDialog) {
+			VisitDialog = (await import('$lib/components/VisitDialog.svelte')).default;
 		}
 		dialogOpen = true;
 	}
 
 	async function handleOnEditVisit(visit: VisitWithUser) {
 		visitBeingEdited = visit;
-		if (!EditVisitDialog) {
-			EditVisitDialog = (await import('$lib/components/EditVisitDialog.svelte')).default;
+		if (!VisitDialog) {
+			VisitDialog = (await import('$lib/components/VisitDialog.svelte')).default;
 		}
 		editDialogOpen = true;
 	}
@@ -189,20 +187,20 @@
 	</SearchView>
 </div>
 
-{#if selectedPlace && AddVisitDialog}
-	<AddVisitDialog
+{#if selectedPlace && VisitDialog}
+	<VisitDialog
+		mode="add"
 		bind:open={dialogOpen}
-		placeName={selectedPlace.name}
-		googlePlaceId={selectedPlace.google_place_id}
-		isSavedPlace={isSavedPlace(selectedPlace)}
+		place={selectedPlace}
 		onsuccess={handleVisitAdded}
 	/>
 {/if}
 
-{#if visitBeingEdited && selectedPlace && EditVisitDialog}
-	<EditVisitDialog
+{#if visitBeingEdited && selectedPlace && VisitDialog}
+	<VisitDialog
+		mode="edit"
 		bind:open={editDialogOpen}
-		placeName={selectedPlace.name}
+		place={selectedPlace}
 		visit={visitBeingEdited}
 		onsuccess={handleVisitAdded}
 	/>
