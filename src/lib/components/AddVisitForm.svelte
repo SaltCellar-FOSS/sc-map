@@ -5,10 +5,6 @@
 	import { enhance } from '$app/forms';
 	import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
 	import { SavedPlaceType } from '$lib/schemas/saved-place';
-	import { VisitInsertSchema } from '$lib/schemas/visit';
-	import { z } from 'zod';
-
-	const AddVisitClientSchema = VisitInsertSchema.omit({ place_id: true, user_id: true });
 
 	const formatter = Intl.DateTimeFormat('en-CA');
 
@@ -31,24 +27,28 @@
 
 	const MAX_REVIEW_LENGTH = 2000;
 
-	const validationResult = $derived.by(() => {
-		if (!submitted) return null;
-		return AddVisitClientSchema.safeParse({ summary: review, visited_at: visitDate });
-	});
+	type FieldErrors = { summary?: string[]; visited_at?: string[] };
 
-	const fieldErrors = $derived(
-		validationResult && !validationResult.success
-			? z.flattenError(validationResult.error).fieldErrors
-			: {}
-	);
+	function validate(summary: string, visitedAt: string): FieldErrors {
+		const errors: FieldErrors = {};
+		if (summary.length > MAX_REVIEW_LENGTH) {
+			errors.summary = [`Must be ${MAX_REVIEW_LENGTH} characters or less`];
+		}
+		if (!visitedAt || !/^\d{4}-\d{2}-\d{2}$/.test(visitedAt)) {
+			errors.visited_at = ['Must be a valid date'];
+		}
+		return errors;
+	}
+
+	const fieldErrors = $derived.by((): FieldErrors => {
+		if (!submitted) return {};
+		return validate(review, visitDate);
+	});
 
 	const enhanceVisit: SubmitFunction = ({ cancel }) => {
 		submitted = true;
-		const result = AddVisitClientSchema.safeParse({
-			summary: review,
-			visited_at: visitDate
-		});
-		if (!result.success) {
+		const errors = validate(review, visitDate);
+		if (Object.keys(errors).length > 0) {
 			cancel();
 			return;
 		}
