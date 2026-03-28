@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ChipSelector from './ChipSelector.svelte';
+	import ImageUpload from './ImageUpload.svelte';
 
 	import TextField from './ui/text-field/TextField.svelte';
 	import { enhance } from '$app/forms';
@@ -23,6 +24,7 @@
 	let review = $state('');
 	let visitDate = $state<string>(today());
 	let selectedType = $state<SavedPlaceType | undefined>();
+	let selectedImages = $state<File[]>([]);
 	let submitted = $state(false);
 
 	const MAX_REVIEW_LENGTH = 2000;
@@ -45,13 +47,23 @@
 		return validate(review, visitDate);
 	});
 
-	const enhanceVisit: SubmitFunction = ({ cancel }) => {
+	function handleFilesChange(files: File[]) {
+		selectedImages = files;
+	}
+
+	const enhanceVisit: SubmitFunction = ({ cancel, formData }) => {
 		submitted = true;
 		const errors = validate(review, visitDate);
 		if (Object.keys(errors).length > 0) {
 			cancel();
 			return;
 		}
+
+		// Append selected images to the FormData BEFORE the form submits
+		for (const file of selectedImages) {
+			formData.append('images', file);
+		}
+
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			if (result.type === 'success') {
 				onsuccess?.();
@@ -70,7 +82,8 @@
 	use:enhance={enhanceVisit}
 	class="form-body"
 	method="POST"
-	action="/map?/addVisit"
+	action="?/addVisit"
+	enctype="multipart/form-data"
 >
 	<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
 	<input type="hidden" name="selectedType" value={selectedType} />
@@ -103,6 +116,14 @@
 	{#if !isSavedPlace}
 		<ChipSelector bind:selectedType></ChipSelector>
 	{/if}
+
+	<div class="field-row">
+		<ImageUpload
+			maxImages={3}
+			currentImages={[]}
+			onFilesChange={handleFilesChange}
+		/>
+	</div>
 </form>
 
 <style>

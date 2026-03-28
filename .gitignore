@@ -25,3 +25,4 @@ deploy.sh
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 db_data/
+images/

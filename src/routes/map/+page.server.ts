@@ -7,6 +7,8 @@ import { getGooglePlaceById } from '$lib/google-places';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
 import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
+import { processImage } from '$lib/image-processor';
+import { saveImage, deleteImage } from '$lib/server/image-storage';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
@@ -43,6 +45,8 @@ export const actions = {
 				error: parseResult.error.issues[0]?.message ?? 'Invalid input'
 			});
 		}
+
+		let visitId: bigint | undefined;
 
 		await sql.begin(async (tx) => {
 			let placeId: bigint;
@@ -82,14 +86,42 @@ export const actions = {
 				placeId = place.id;
 			}
 
-			await visitsDao.insertVisit(
+			const visit = await visitsDao.insertVisit(
 				{
 					place_id: placeId,
 					...parseResult.data
 				},
 				tx
 			);
+			visitId = visit.id;
 		});
+
+		// Handle image uploads after visit creation
+		if (visitId) {
+			const imageFiles = data.getAll('images') as File[];
+			for (const file of imageFiles) {
+				if (!(file instanceof File) || file.size === 0) continue;
+
+				const processedImage = await processImage(file);
+				if (!processedImage.ok) {
+					console.error('Failed to process image:', processedImage.error);
+					continue;
+				}
+
+				const savedImage = await saveImage(processedImage.value.buffer, processedImage.value.filename);
+				if (!savedImage.ok) {
+					console.error('Failed to save image:', savedImage.error);
+					continue;
+				}
+
+				try {
+					await visitsDao.insertVisitPhoto(visitId, savedImage.value);
+				} catch (error) {
+					await deleteImage(savedImage.value);
+					console.error('Failed to save image URL to database:', error);
+				}
+			}
+		}
 
 		return { success: true };
 	},
@@ -188,6 +220,118 @@ export const actions = {
 		} catch (e) {
 			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
 			throw e;
+		}
+
+		return { success: true };
+	},
+
+	uploadPhoto: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		// For new visits, we don't have a visitId yet, so we need to create a temporary visit
+		// The frontend should handle this by creating the visit first, then uploading photos
+		const visitIdResult = z.coerce.bigint().optional().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		if (!visitId) {
+			return fail(400, { error: 'visitId is required for photo uploads' });
+		}
+
+		// Verify the user owns this visit
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		if (visit.user_id !== userId) return fail(403, { error: 'Forbidden' });
+
+		// Check current photo count
+		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (currentPhotos.length >= 3) {
+			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
+		}
+
+		// Get the uploaded file
+		const file = data.get('images') as File;
+		if (!file || !(file instanceof File)) {
+			return fail(400, { error: 'No file uploaded' });
+		}
+
+		// Process the image
+		const processedImage = await processImage(file);
+		if (!processedImage.ok) {
+			return fail(400, { error: processedImage.error });
+		}
+
+		// Save the image to disk
+		const savedImage = await saveImage(processedImage.value.buffer, processedImage.value.filename);
+		if (!savedImage.ok) {
+			return fail(500, { error: savedImage.error });
+		}
+
+		// Save the URL to the database
+		try {
+			await visitsDao.insertVisitPhoto(visitId, savedImage.value);
+		} catch (error) {
+			// If database insert fails, try to clean up the saved file
+			await deleteImage(savedImage.value);
+			throw error;
+		}
+
+		return { success: true, imageUrl: savedImage.value };
+	},
+
+	deletePhoto: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		const imageUrl = data.get('imageUrl')?.toString();
+		if (!imageUrl) return fail(400, { error: 'Missing imageUrl' });
+
+		// Verify the user owns this visit
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		if (visit.user_id !== userId) return fail(403, { error: 'Forbidden' });
+
+		// Check if the image belongs to this visit
+		const visitPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (!visitPhotos.includes(imageUrl)) {
+			return fail(404, { error: 'Image not found for this visit' });
+		}
+
+		// Delete from database first
+		await visitsDao.deleteVisitPhoto(visitId, imageUrl);
+
+		// Then delete from file system
+		const deleteResult = await deleteImage(imageUrl);
+		if (!deleteResult.ok) {
+			// Log the error but don't fail the request since the DB record is gone
+			console.error('Failed to delete image file:', deleteResult.error);
 		}
 
 		return { success: true };
