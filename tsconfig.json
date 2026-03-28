@@ -2,6 +2,7 @@
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"rewriteRelativeImportExtensions": true,
+		"types": ["google.maps"],
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,

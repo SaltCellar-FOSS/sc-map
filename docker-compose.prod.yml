@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: sc_map
       POSTGRES_DB: sc_map
     volumes:
-      - ./db_data:/var/lib/postgresql/data
+      - ${DB_DATA_PATH:-./db_data}:/var/lib/postgresql/data
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:
       - internal
@@ -47,6 +47,25 @@ services:
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
+
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ${BACKUP_PATH:-./backups}:/backups
+      - ./scripts/backup-entrypoint.sh:/entrypoint.sh:ro
+    environment:
+      PGHOST: db
+      PGDATABASE: sc_map
+      PGUSER: sc_map
+      PGPASSWORD: sc_map
+      KEEP_DAYS: '7'
+    entrypoint: ['/bin/bash', '/entrypoint.sh']
 
   cloudflared:
     image: cloudflare/cloudflared:latest

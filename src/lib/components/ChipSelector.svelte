@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChipSet from './ui/chip/ChipSet.svelte';
-	import { Chip } from './ui/chip';
+	import Chip from './ui/chip/Chip.svelte';
 	import { SavedPlaceType } from '$lib/schemas/saved-place';
 
 	import type { ComponentProps } from 'svelte';
