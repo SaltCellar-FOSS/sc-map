@@ -13,17 +13,6 @@ export class InvalidPlaceTypeError extends Error {}
 export class UserNotFoundError extends Error {}
 export class SavedPlaceNotFoundError extends Error {}
 
-export type InsertSavedPlaceError =
-	| DuplicateGooglePlaceIdError
-	| InvalidPlaceTypeError
-	| UserNotFoundError;
-
-export type DeleteSavedPlaceError = SavedPlaceNotFoundError;
-export type UpdateSavedPlaceError =
-	| SavedPlaceNotFoundError
-	| InvalidPlaceTypeError
-	| UserNotFoundError;
-
 export class SavedPlacesDao {
 	constructor(private readonly sql: SQL) {}
 

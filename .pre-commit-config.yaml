@@ -13,6 +13,12 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]
+      - id: knip
+        name: Knip (unused code)
+        entry: bun knip
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
       - id: verify-migrations
         name: Verify migrations have down files
         entry: ./scripts/verify-migrations.sh

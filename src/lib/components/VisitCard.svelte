@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { Button } from './ui/button';
-	import { Card } from './ui/card';
+	import Button from './ui/button/Button.svelte';
+	import Card from './ui/card/Card.svelte';
 	import Icon from './ui/icon/Icon.svelte';
 
 	function formatDate(date: Date): string {

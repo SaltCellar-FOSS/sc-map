@@ -23,7 +23,7 @@ import type { Attachment } from 'svelte/attachments';
 // Types
 // ---------------------------------------------------------------------------
 
-export interface RippleOptions {
+interface RippleOptions {
 	/** Suppress the ripple entirely. Pass a reactive expression for reactivity. */
 	disabled?: boolean;
 
