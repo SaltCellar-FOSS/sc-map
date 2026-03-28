@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SheetProps } from '$lib/components/ui/sheet';
+	import type { SheetProps } from './types';
 
 	type Props = SheetProps & {
 		/**
@@ -341,7 +341,6 @@
 		class={sheetClasses}
 		role={variant === 'modal' ? 'dialog' : 'complementary'}
 		aria-modal={variant === 'modal' ? 'true' : undefined}
-		aria-label={title}
 		tabindex="-1"
 		bind:this={sheetEl}
 	>
@@ -371,7 +370,7 @@
 		{#if title || headerActions}
 			<div class="md-bottom-sheet__header">
 				{#if title}
-					<span class="md-bottom-sheet__title">{title}</span>
+					<span class="md-bottom-sheet__title">{@render title()}</span>
 				{/if}
 				{#if headerActions}
 					{@render headerActions()}

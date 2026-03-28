@@ -1,119 +1,144 @@
 <script lang="ts">
 	import BottomSheet from './ui/sheet/BottomSheet.svelte';
 	import SideSheet from './ui/sheet/SideSheet.svelte';
-	import VisitList from './VisitList.svelte';
+	import VisitCard from './VisitCard.svelte';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import Button from './ui/button/Button.svelte';
 	import Icon from './ui/icon/Icon.svelte';
+	import { SavedPlaceType, type SavedPlace } from '$lib/schemas/saved-place';
+	import EditPlaceDialog from './EditPlaceDialog.svelte';
+	import type { ComponentProps } from 'svelte';
+
+	const placeTypeIconMap: Record<SavedPlaceType, ComponentProps<typeof Icon>['name']> = {
+		[SavedPlaceType.Restaurant]: 'restaurant',
+		[SavedPlaceType.Bar]: 'bar',
+		[SavedPlaceType.Bakery]: 'bakery',
+		[SavedPlaceType.Cafe]: 'cafe',
+		[SavedPlaceType.Deli]: 'deli',
+		[SavedPlaceType.FoodTruck]: 'foodTruck',
+		[SavedPlaceType.Dessert]: 'dessert',
+		[SavedPlaceType.OtherDestination]: 'otherDestination'
+	};
 
 	type Props = {
 		open?: boolean;
-		placeName: string;
-		visits: VisitWithUser[];
+		place: SavedPlace;
+		visits: Promise<VisitWithUser[]>;
 		currentUserId?: bigint;
 		onclose?: () => void;
 		onaddvisit: () => void;
 		oneditvisit?: (visit: VisitWithUser) => void;
+		ondeletevisit?: (visit: VisitWithUser) => void;
+		oneditplace?: () => void;
 	};
 
 	let {
 		open = $bindable(false),
-		placeName,
+		place,
 		visits,
 		currentUserId,
 		onclose,
 		onaddvisit,
-		oneditvisit
+		oneditvisit,
+		ondeletevisit,
+		oneditplace
 	}: Props = $props();
 
-	let isDesktop = $state(false);
+	let editPlaceOpen = $state(false);
+
+	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
 
 	function checkViewport() {
 		isDesktop = window.innerWidth >= 768;
 	}
 
 	$effect(() => {
-		checkViewport();
 		window.addEventListener('resize', checkViewport);
 		return () => window.removeEventListener('resize', checkViewport);
 	});
 </script>
 
+{#snippet sheetContent(contentClass: string)}
+	<div class:contentClass>
+		{#await visits}
+			<p class="empty-state">Loading...</p>
+		{:then resolvedVisits}
+			{#if resolvedVisits.length === 0}
+				<p class="empty-state">No visits yet.</p>
+			{:else}
+				<div class="visit-list">
+					{#each resolvedVisits as visit (visit.id)}
+						<VisitCard {visit} {currentUserId} {oneditvisit} {ondeletevisit} />
+					{/each}
+				</div>
+			{/if}
+		{/await}
+	</div>
+{/snippet}
+
+{#snippet headerActions()}
+	<Button variant="text" onclick={onaddvisit}>
+		{#snippet icon()}
+			<Icon name="addReview" />
+		{/snippet}
+	</Button>
+{/snippet}
+
+{#snippet title()}
+	<div class="icon-title">
+		<Button variant="text" onclick={() => (editPlaceOpen = true)}>
+			{#snippet icon()}
+				<Icon name={placeTypeIconMap[place.type]} size={32} />
+			{/snippet}
+		</Button>
+		<h2>{place.name}</h2>
+	</div>
+{/snippet}
+
+<EditPlaceDialog bind:open={editPlaceOpen} savedPlace={place} onsuccess={oneditplace} />
+
 {#if isDesktop}
-	<SideSheet variant="standard" bind:open {onclose}>
-		<div class="action-bar">
-			<Button variant="tonal" onclick={onaddvisit}>
-				{#snippet icon()}
-					<Icon name="addReview" />
-				{/snippet}
-
-				Write a review
-			</Button>
-		</div>
-
-		<VisitList {visits} {currentUserId} {oneditvisit} />
+	<SideSheet variant="standard" bind:open {onclose} {headerActions} {title}>
+		{@render sheetContent('md-side-sheet__content')}
 	</SideSheet>
 {:else}
-	<BottomSheet bind:open {onclose}>
-		<h2 class="place-name">{placeName}</h2>
-
-		<div class="action-bar">
-			<button class="icon-btn" aria-label="Write a review" onclick={onaddvisit}>
-				<svg viewBox="0 0 24 24" aria-hidden="true">
-					<path
-						d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"
-					/>
-				</svg>
-			</button>
-		</div>
-
-		<VisitList {visits} {currentUserId} {oneditvisit} />
+	<BottomSheet variant="modal" bind:open {onclose} {headerActions} {title}>
+		{@render sheetContent('md-bottom-sheet__content')}
 	</BottomSheet>
 {/if}
 
 <style>
-	.place-name {
-		margin: 0 0 4px;
-		font-size: 2rem;
-		font-weight: 400;
-		line-height: 1.2;
-		color: var(--md-sys-color-on-surface);
-	}
-
-	.action-bar {
+	.visit-list {
 		display: flex;
-		justify-content: stretch;
-		align-items: stretch;
-		padding-block: 8px;
-		margin-bottom: 8px;
+		flex-direction: column;
+		gap: 12px;
+		padding: 4px 2px;
 	}
 
-	.action-bar :global(button) {
-		width: 100%;
-	}
-
-	.icon-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 40px;
-		height: 40px;
-		border: none;
-		background: none;
-		cursor: pointer;
+	.empty-state {
+		text-align: center;
 		color: var(--md-sys-color-on-surface-variant);
-		border-radius: var(--md-sys-shape-corner-full);
+		padding: 24px 0;
+		margin: 0;
+	}
+
+	:global(.md-side-sheet__header) {
+		margin-top: 100px;
+		margin-inline: 8px;
+	}
+
+	.icon-title {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.icon-title :global(button) {
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		border-radius: 50%;
 		padding: 0;
-	}
-
-	.icon-btn:hover {
-		background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 8%, transparent);
-	}
-
-	.icon-btn svg {
-		width: 24px;
-		height: 24px;
-		fill: currentColor;
-		display: block;
 	}
 </style>

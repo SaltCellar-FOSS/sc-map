@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SheetProps } from '$lib/components/ui/sheet';
+	import type { SheetProps } from './types';
 
 	let {
 		variant = 'modal',
@@ -172,13 +172,12 @@
 	<div
 		class={sheetClasses}
 		role={variant === 'modal' ? 'dialog' : 'complementary'}
-		aria-label={title}
 		aria-modal={variant === 'modal' ? 'true' : undefined}
 	>
 		<!-- Header -->
 		<div class="md-side-sheet__header">
 			{#if title}
-				<span class="md-side-sheet__title">{title}</span>
+				<span class="md-side-sheet__title">{@render title()}</span>
 			{/if}
 
 			{#if headerActions}

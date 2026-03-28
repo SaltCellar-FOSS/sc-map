@@ -1,18 +1,22 @@
 <script lang="ts">
-	import barIcon from '$lib/icons/outlined/bar.svg?url';
-	import bakeryIcon from '$lib/icons/outlined/bakery.svg?url';
-	import cafeIcon from '$lib/icons/outlined/cafe.svg?url';
-	import deliIcon from '$lib/icons/outlined/deli.svg?url';
-	import dessertIcon from '$lib/icons/outlined/dessert.svg?url';
-	import foodTruckIcon from '$lib/icons/outlined/food-truck.svg?url';
-	import otherDestinationIcon from '$lib/icons/outlined/other-destination.svg?url';
-	import restaurantIcon from '$lib/icons/outlined/restaurant.svg?url';
-	import pinIcon from '$lib/icons/PinIcon.svg?url';
-	import closeIcon from '$lib/icons/CloseIcon.svg?url';
-	import searchIcon from '$lib/icons/SearchIcon.svg?url';
-	import arrowFillIcon from '$lib/icons/ArrowFillIcon.svg?url';
-	import discordIcon from '$lib/icons/DiscordIcon.svg?url';
-	import reviewIcon from '$lib/icons/ReviewIcon.svg?url';
+	/* eslint-disable svelte/no-at-html-tags */
+
+	import barIcon from '$lib/icons/outlined/bar.svg?raw';
+	import bakeryIcon from '$lib/icons/outlined/bakery.svg?raw';
+	import cafeIcon from '$lib/icons/outlined/cafe.svg?raw';
+	import deliIcon from '$lib/icons/outlined/deli.svg?raw';
+	import dessertIcon from '$lib/icons/outlined/dessert.svg?raw';
+	import foodTruckIcon from '$lib/icons/outlined/food-truck.svg?raw';
+	import otherDestinationIcon from '$lib/icons/outlined/other-destination.svg?raw';
+	import restaurantIcon from '$lib/icons/outlined/restaurant.svg?raw';
+	import pinIcon from '$lib/icons/PinIcon.svg?raw';
+	import closeIcon from '$lib/icons/CloseIcon.svg?raw';
+	import searchIcon from '$lib/icons/SearchIcon.svg?raw';
+	import arrowFillIcon from '$lib/icons/ArrowFillIcon.svg?raw';
+	import discordIcon from '$lib/icons/DiscordIcon.svg?raw';
+	import reviewIcon from '$lib/icons/ReviewIcon.svg?raw';
+	import editIcon from '$lib/icons/EditIcon.svg?raw';
+	import deleteIcon from '$lib/icons/DeleteIcon.svg?raw';
 
 	type IconName =
 		| 'bar'
@@ -28,7 +32,9 @@
 		| 'search'
 		| 'arrowFill'
 		| 'discord'
-		| 'addReview';
+		| 'addReview'
+		| 'edit'
+		| 'delete';
 
 	type Props = {
 		name: IconName;
@@ -47,6 +53,8 @@
 		arrowFill: arrowFillIcon,
 		discord: discordIcon,
 		addReview: reviewIcon,
+		edit: editIcon,
+		delete: deleteIcon,
 		cafe: cafeIcon,
 		deli: deliIcon,
 		dessert: dessertIcon,
@@ -60,7 +68,28 @@
 </script>
 
 {#if ariaLabel}
-	<img {src} alt={ariaLabel} width={size} height={size} class={className} />
+	<span
+		role="img"
+		aria-label={ariaLabel}
+		class={className}
+		style="width: {size}px; height: {size}px;"
+	>
+		{@html src}
+	</span>
 {:else}
-	<img {src} alt="" width={size} height={size} class={className} aria-hidden="true" />
+	<span aria-hidden="true" class={className} style="width: {size}px; height: {size}px;">
+		{@html src}
+	</span>
 {/if}
+
+<style>
+	span {
+		display: inline-flex;
+		flex-shrink: 0;
+	}
+
+	span :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+</style>

@@ -6,6 +6,7 @@
 	import restaurantIcon from '$lib/icons/outlined/restaurant.svg?raw';
 	import barIcon from '$lib/icons/outlined/bar.svg?raw';
 	import bakeryIcon from '$lib/icons/outlined/bakery.svg?raw';
+	import cafeIcon from '$lib/icons/outlined/cafe.svg?raw';
 	import deliIcon from '$lib/icons/outlined/deli.svg?raw';
 	import foodTruckIcon from '$lib/icons/outlined/food-truck.svg?raw';
 	import dessertIcon from '$lib/icons/outlined/dessert.svg?raw';
@@ -26,6 +27,7 @@
 		[SavedPlaceType.Restaurant]: restaurantIcon,
 		[SavedPlaceType.Bar]: barIcon,
 		[SavedPlaceType.Bakery]: bakeryIcon,
+		[SavedPlaceType.Cafe]: cafeIcon,
 		[SavedPlaceType.Deli]: deliIcon,
 		[SavedPlaceType.FoodTruck]: foodTruckIcon,
 		[SavedPlaceType.Dessert]: dessertIcon,
@@ -60,7 +62,10 @@
 	});
 
 	$effect(() => {
-		if (marker) marker.map = visible ? map : null;
+		if (marker) {
+			marker.map = visible ? map : null;
+			marker.content = buildContent(place);
+		}
 	});
 
 	onDestroy(() => {

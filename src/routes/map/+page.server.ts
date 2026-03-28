@@ -15,7 +15,6 @@ const VisitInsertWithoutPlaceSchema = VisitInsertSchema.omit({ place_id: true })
 
 const EditableFieldsSchema = VisitUpdateSchema.pick({
 	summary: true,
-	rating: true,
 	visited_at: true
 }).strict();
 
@@ -36,7 +35,6 @@ export const actions = {
 		const parseResult = VisitInsertWithoutPlaceSchema.safeParse({
 			user_id: userId,
 			summary: data.get('review')?.toString(),
-			rating: data.get('rating')?.toString(),
 			visited_at: data.get('visitDate')?.toString()
 		});
 
@@ -121,7 +119,6 @@ export const actions = {
 
 		const parseResult = EditableFieldsSchema.safeParse({
 			summary: data.get('summary')?.toString(),
-			rating: data.get('rating')?.toString(),
 			visited_at: data.get('visitDate')?.toString()
 		});
 
@@ -130,6 +127,68 @@ export const actions = {
 		}
 
 		await visitsDao.updateVisit(visitId, parseResult.data);
+
+		return { success: true };
+	},
+
+	editPlace: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		const placeIdResult = z.coerce.bigint().safeParse(data.get('placeId')?.toString());
+		if (!placeIdResult.success) return fail(400, { error: 'Invalid placeId' });
+		const placeId = placeIdResult.data;
+
+		try {
+			await savedPlacesDao.retrieveSavedPlace(placeId);
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
+
+		const type = data.get('type')?.toString();
+		if (!type) return fail(400, { error: 'Missing type' });
+		if (!isSavedPlaceType(type)) return fail(400, { error: 'Invalid type' });
+
+		await savedPlacesDao.updateSavedPlace(placeId, { type });
+
+		return { success: true };
+	},
+
+	deleteVisit: async ({ request, cookies }) => {
+		const cookie = cookies.get(SESSION_COOKIE_NAME);
+		if (!cookie) return fail(401, { error: 'Unauthorized' });
+
+		const userId = await verifySessionCookie(cookie);
+		if (!userId) return fail(401, { error: 'Unauthorized' });
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		let existing;
+		try {
+			existing = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		if (existing.user_id !== userId) return fail(403, { error: 'Forbidden' });
+
+		try {
+			await visitsDao.deleteVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
 
 		return { success: true };
 	}

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import AddVisitDialog from '$lib/components/AddVisitDialog.svelte';
-	import EditVisitDialog from '$lib/components/EditVisitDialog.svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -13,6 +11,10 @@
 	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
+	import { invalidate } from '$app/navigation';
+	import type AddVisitDialogType from '$lib/components/AddVisitDialog.svelte';
+	import type EditVisitDialogType from '$lib/components/EditVisitDialog.svelte';
+	import type DeleteVisitConfirmationDialogType from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -22,11 +24,18 @@
 	let dialogOpen = $state(false);
 	let editDialogOpen = $state(false);
 	let visitBeingEdited = $state<VisitWithUser | null>(null);
+	let deleteDialogOpen = $state(false);
+	let visitBeingDeleted = $state<VisitWithUser | null>(null);
 	let sheetOpen = $state(false);
 	let searchQuery = $state('');
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
 
 	let sessionToken: string | null = null;
+
+	// Dialog components — lazily loaded on first use
+	let AddVisitDialog = $state<typeof AddVisitDialogType | null>(null);
+	let EditVisitDialog = $state<typeof EditVisitDialogType | null>(null);
+	let DeleteVisitConfirmationDialog = $state<typeof DeleteVisitConfirmationDialogType | null>(null);
 
 	function handlePlaceSelect(place: Place | null) {
 		selectedPlace = place;
@@ -43,19 +52,43 @@
 		}
 	}
 
-	function handleOnAddVisit() {
+	async function handleOnAddVisit() {
+		if (!AddVisitDialog) {
+			AddVisitDialog = (await import('$lib/components/AddVisitDialog.svelte')).default;
+		}
 		dialogOpen = true;
 	}
 
-	function handleOnEditVisit(visit: VisitWithUser) {
+	async function handleOnEditVisit(visit: VisitWithUser) {
 		visitBeingEdited = visit;
+		if (!EditVisitDialog) {
+			EditVisitDialog = (await import('$lib/components/EditVisitDialog.svelte')).default;
+		}
 		editDialogOpen = true;
+	}
+
+	async function handleOnDeleteVisit(visit: VisitWithUser) {
+		visitBeingDeleted = visit;
+		if (!DeleteVisitConfirmationDialog) {
+			DeleteVisitConfirmationDialog = (
+				await import('$lib/components/DeleteVisitConfirmationDialog.svelte')
+			).default;
+		}
+		deleteDialogOpen = true;
 	}
 
 	async function handleVisitAdded() {
 		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			invalidate('app:places');
 			await getVisitsForPlace(selectedPlace.id).refresh();
 			visitsResult = getVisitsForPlace(selectedPlace.id);
+		}
+	}
+
+	async function handlePlaceEdited() {
+		await invalidate('app:places');
+		if (selectedPlace && isSavedPlace(selectedPlace)) {
+			selectedPlace = data.savedPlaces[selectedPlace.google_place_id] ?? selectedPlace;
 		}
 	}
 
@@ -82,32 +115,23 @@
 		bind:this={placeMap}
 		savedPlaces={data.savedPlaces}
 		onsaveplace={() => {
-			dialogOpen = true;
+			handleOnAddVisit();
 		}}
 		onplacechange={handlePlaceSelect}
 	/>
 </div>
 
 {#if selectedPlace && isSavedPlace(selectedPlace) && visitsResult}
-	{#await visitsResult}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			visits={[]}
-			currentUserId={data.user?.id}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-			oneditvisit={handleOnEditVisit}
-		/>
-	{:then visits}
-		<PlaceSheet
-			placeName={selectedPlace.name}
-			{visits}
-			currentUserId={data.user?.id}
-			bind:open={sheetOpen}
-			onaddvisit={handleOnAddVisit}
-			oneditvisit={handleOnEditVisit}
-		/>
-	{/await}
+	<PlaceSheet
+		place={selectedPlace}
+		visits={visitsResult}
+		currentUserId={data.user?.id}
+		bind:open={sheetOpen}
+		onaddvisit={handleOnAddVisit}
+		oneditvisit={handleOnEditVisit}
+		ondeletevisit={handleOnDeleteVisit}
+		oneditplace={handlePlaceEdited}
+	/>
 {/if}
 
 <div class="controls">
@@ -165,7 +189,7 @@
 	</SearchView>
 </div>
 
-{#if selectedPlace}
+{#if selectedPlace && AddVisitDialog}
 	<AddVisitDialog
 		bind:open={dialogOpen}
 		placeName={selectedPlace.name}
@@ -175,11 +199,19 @@
 	/>
 {/if}
 
-{#if visitBeingEdited && selectedPlace}
+{#if visitBeingEdited && selectedPlace && EditVisitDialog}
 	<EditVisitDialog
 		bind:open={editDialogOpen}
 		placeName={selectedPlace.name}
 		visit={visitBeingEdited}
+		onsuccess={handleVisitAdded}
+	/>
+{/if}
+
+{#if visitBeingDeleted && DeleteVisitConfirmationDialog}
+	<DeleteVisitConfirmationDialog
+		bind:open={deleteDialogOpen}
+		visitId={visitBeingDeleted.id}
 		onsuccess={handleVisitAdded}
 	/>
 {/if}

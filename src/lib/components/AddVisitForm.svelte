@@ -1,40 +1,10 @@
 <script lang="ts">
+	import ChipSelector from './ChipSelector.svelte';
+
 	import TextField from './ui/text-field/TextField.svelte';
-	import StarRating from './ui/star-rating/StarRating.svelte';
-	import ChipSet from './ui/chip/ChipSet.svelte';
-	import { Chip } from './ui/chip';
 	import { enhance } from '$app/forms';
-	import type { ActionResult } from '@sveltejs/kit';
+	import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
 	import { SavedPlaceType } from '$lib/schemas/saved-place';
-	import { VisitInsertSchema } from '$lib/schemas/visit';
-	import { z } from 'zod';
-
-	import type { ComponentProps } from 'svelte';
-	import Icon from './ui/icon/Icon.svelte';
-	import { untrack } from 'svelte';
-
-	const savedPlaceTypeMap: Record<
-		SavedPlaceType,
-		{
-			iconName: Extract<
-				ComponentProps<typeof Icon>['name'],
-				'restaurant' | 'bar' | 'bakery' | 'deli' | 'foodTruck' | 'dessert' | 'otherDestination'
-			>;
-			label: string;
-		}
-	> = {
-		[SavedPlaceType.Restaurant]: { iconName: 'restaurant', label: 'Restaurant' },
-		[SavedPlaceType.Bar]: { iconName: 'bar', label: 'Bar' },
-		[SavedPlaceType.Bakery]: { iconName: 'bakery', label: 'Bakery' },
-		[SavedPlaceType.Deli]: { iconName: 'deli', label: 'Deli' },
-		[SavedPlaceType.FoodTruck]: { iconName: 'foodTruck', label: 'Food Truck' },
-		[SavedPlaceType.Dessert]: { iconName: 'dessert', label: 'Dessert' },
-		[SavedPlaceType.OtherDestination]: { iconName: 'otherDestination', label: 'Other Destination' }
-	};
-
-	const AddVisitClientSchema = VisitInsertSchema.omit({ place_id: true, user_id: true }).extend({
-		rating: z.coerce.number().min(1).max(5)
-	});
 
 	const formatter = Intl.DateTimeFormat('en-CA');
 
@@ -50,51 +20,45 @@
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
-	let rating = $state(0);
 	let review = $state('');
-	let visitDate = $state<string>(untrack(today));
-	let selectedType = $state<SavedPlaceType | null>(null);
+	let visitDate = $state<string>(today());
+	let selectedType = $state<SavedPlaceType | undefined>();
 	let submitted = $state(false);
 
 	const MAX_REVIEW_LENGTH = 2000;
 
-	const validationResult = $derived.by(() => {
-		if (!submitted) return null;
-		return AddVisitClientSchema.safeParse({ rating, summary: review, visited_at: visitDate });
-	});
+	type FieldErrors = { summary?: string[]; visited_at?: string[] };
 
-	const fieldErrors = $derived(
-		validationResult && !validationResult.success
-			? z.flattenError(validationResult.error).fieldErrors
-			: {}
-	);
-
-	function reset() {
-		submitted = false;
-		rating = 0;
-		review = '';
-		visitDate = today();
-		selectedType = null;
+	function validate(summary: string, visitedAt: string): FieldErrors {
+		const errors: FieldErrors = {};
+		if (summary.length > MAX_REVIEW_LENGTH) {
+			errors.summary = [`Must be ${MAX_REVIEW_LENGTH} characters or less`];
+		}
+		if (!visitedAt || !/^\d{4}-\d{2}-\d{2}$/.test(visitedAt)) {
+			errors.visited_at = ['Must be a valid date'];
+		}
+		return errors;
 	}
 
-	function enhanceVisit({ cancel }: { cancel: () => void }) {
+	const fieldErrors = $derived.by((): FieldErrors => {
+		if (!submitted) return {};
+		return validate(review, visitDate);
+	});
+
+	const enhanceVisit: SubmitFunction = ({ cancel }) => {
 		submitted = true;
-		const result = AddVisitClientSchema.safeParse({
-			rating,
-			summary: review,
-			visited_at: visitDate
-		});
-		if (!result.success) {
+		const errors = validate(review, visitDate);
+		if (Object.keys(errors).length > 0) {
 			cancel();
 			return;
 		}
-		return async ({ result }: { result: ActionResult }) => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			if (result.type === 'success') {
-				reset();
 				onsuccess?.();
 			}
+			await update();
 		};
-	}
+	};
 
 	export function submit() {
 		formEl?.requestSubmit();
@@ -109,15 +73,7 @@
 	action="/map?/addVisit"
 >
 	<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
-	<input type="hidden" name="rating" value={rating} />
 	<input type="hidden" name="selectedType" value={selectedType} />
-
-	<div class="rating-field">
-		<StarRating bind:value={rating} />
-		{#if fieldErrors.rating?.[0]}
-			<p class="field-error" role="alert">{fieldErrors.rating[0]}</p>
-		{/if}
-	</div>
 
 	<div class="field-row">
 		<TextField
@@ -145,22 +101,7 @@
 	</div>
 
 	{#if !isSavedPlace}
-		<div class="field-row">
-			<ChipSet>
-				{#each Object.values(SavedPlaceType) as savedPlaceType (savedPlaceType)}
-					<Chip
-						type="filter"
-						label={savedPlaceTypeMap[savedPlaceType].label}
-						onchange={() => (selectedType = savedPlaceType)}
-						selected={selectedType === savedPlaceType}
-					>
-						{#snippet icon()}
-							<Icon name={savedPlaceTypeMap[savedPlaceType].iconName} />
-						{/snippet}
-					</Chip>
-				{/each}
-			</ChipSet>
-		</div>
+		<ChipSelector bind:selectedType></ChipSelector>
 	{/if}
 </form>
 
@@ -173,19 +114,6 @@
 
 	.field-row {
 		width: 100%;
-	}
-
-	.rating-field {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.field-error {
-		margin: 0;
-		font-size: 0.75rem;
-		color: var(--md-sys-color-error, #b3261e);
 	}
 
 	:global(.type-toggle) {

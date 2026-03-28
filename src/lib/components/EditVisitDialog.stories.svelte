@@ -6,7 +6,6 @@
 		id: 1n,
 		user_id: 42n,
 		place_id: 7n,
-		rating: 4,
 		summary: 'Amazing brisket. The line was long but absolutely worth it.',
 		visited_at: new Date('2024-06-15'),
 		created_at: new Date('2024-06-15'),

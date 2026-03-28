@@ -13,17 +13,6 @@ export class InvalidPlaceTypeError extends Error {}
 export class UserNotFoundError extends Error {}
 export class SavedPlaceNotFoundError extends Error {}
 
-export type InsertSavedPlaceError =
-	| DuplicateGooglePlaceIdError
-	| InvalidPlaceTypeError
-	| UserNotFoundError;
-
-export type DeleteSavedPlaceError = SavedPlaceNotFoundError;
-export type UpdateSavedPlaceError =
-	| SavedPlaceNotFoundError
-	| InvalidPlaceTypeError
-	| UserNotFoundError;
-
 export class SavedPlacesDao {
 	constructor(private readonly sql: SQL) {}
 
@@ -115,5 +104,10 @@ export class SavedPlacesDao {
 			WHERE to_tsvector('simple', name) @@ plainto_tsquery('simple', ${q})
 		`;
 		return results.map((row: unknown) => SavedPlaceSchema.parse(row));
+	}
+
+	public async countPins(): Promise<number> {
+		const [result] = await this.sql`SELECT COUNT(*) AS count FROM saved_places`;
+		return Number(result.count);
 	}
 }

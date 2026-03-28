@@ -1,18 +1,9 @@
 <script lang="ts">
 	import TextField from './ui/text-field/TextField.svelte';
-	import StarRating from './ui/star-rating/StarRating.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult } from '@sveltejs/kit';
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { VisitUpdateSchema } from '$lib/schemas/visit';
-	import { z } from 'zod';
 	import { untrack } from 'svelte';
-
-	const EditClientSchema = VisitUpdateSchema.pick({
-		summary: true,
-		rating: true,
-		visited_at: true
-	});
 
 	type Props = {
 		visit: VisitWithUser;
@@ -29,28 +20,34 @@
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
-	let rating = $state(untrack(() => visit.rating ?? 0));
 	let summary = $state(untrack(() => visit.summary ?? ''));
 	let visitDate = $state<string>(toDateString(untrack(() => visit.visited_at)));
 	let submitted = $state(false);
 	let formError = $state('');
 
-	const validationResult = $derived.by(() => {
-		if (!submitted) return null;
-		return EditClientSchema.safeParse({ rating, summary, visited_at: visitDate });
-	});
+	type FieldErrors = { summary?: string[]; visited_at?: string[] };
 
-	const fieldErrors = $derived(
-		validationResult && !validationResult.success
-			? z.flattenError(validationResult.error).fieldErrors
-			: {}
-	);
+	function validate(s: string, visitedAt: string): FieldErrors {
+		const errors: FieldErrors = {};
+		if (s.length > 2000) {
+			errors.summary = ['Must be 2000 characters or less'];
+		}
+		if (!visitedAt || !/^\d{4}-\d{2}-\d{2}$/.test(visitedAt)) {
+			errors.visited_at = ['Must be a valid date'];
+		}
+		return errors;
+	}
+
+	const fieldErrors = $derived.by((): FieldErrors => {
+		if (!submitted) return {};
+		return validate(summary, visitDate);
+	});
 
 	function enhanceEdit({ cancel }: { cancel: () => void }) {
 		submitted = true;
 		formError = '';
-		const result = EditClientSchema.safeParse({ rating, summary, visited_at: visitDate });
-		if (!result.success) {
+		const errors = validate(summary, visitDate);
+		if (Object.keys(errors).length > 0) {
 			cancel();
 			return;
 		}
@@ -76,14 +73,6 @@
 	action="/map?/editVisit"
 >
 	<input type="hidden" name="visitId" value={visit.id.toString()} />
-	<input type="hidden" name="rating" value={rating} />
-
-	<div class="rating-field">
-		<StarRating bind:value={rating} />
-		{#if fieldErrors.rating?.[0]}
-			<p class="field-error" role="alert">{fieldErrors.rating[0]}</p>
-		{/if}
-	</div>
 
 	<div class="field-row">
 		<TextField
@@ -124,18 +113,5 @@
 
 	.field-row {
 		width: 100%;
-	}
-
-	.rating-field {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.field-error {
-		margin: 0;
-		font-size: 0.75rem;
-		color: var(--md-sys-color-error, #b3261e);
 	}
 </style>

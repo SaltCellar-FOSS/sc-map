@@ -37,7 +37,9 @@
 <Dialog {open} onclose={handleClose}>
 	{#snippet headline()}<span class="headline-centered">{placeName}</span>{/snippet}
 	<div class="dialog-body">
-		<AddVisitForm bind:this={formRef} {googlePlaceId} {isSavedPlace} onsuccess={handleSuccess} />
+		{#key googlePlaceId}
+			<AddVisitForm bind:this={formRef} {googlePlaceId} {isSavedPlace} onsuccess={handleSuccess} />
+		{/key}
 		<div class="md-dialog__actions">
 			<Button variant="text" onclick={handleClose}>Cancel</Button>
 			<Button variant="text" onclick={() => formRef?.submit()}>Post</Button>

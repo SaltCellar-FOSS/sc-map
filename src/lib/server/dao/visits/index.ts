@@ -12,11 +12,6 @@ import { PG_ERRORS } from '$lib/db/errors';
 
 export class VisitNotFoundError extends Error {}
 export class DuplicateVisitError extends Error {}
-export class InvalidRatingError extends Error {}
-
-export type InsertVisitError = DuplicateVisitError | InvalidRatingError;
-export type UpdateVisitError = VisitNotFoundError | DuplicateVisitError | InvalidRatingError;
-export type DeleteVisitError = VisitNotFoundError;
 
 export class VisitsDao {
 	constructor(private readonly sql: SQL) {}
@@ -66,7 +61,6 @@ export class VisitsDao {
 		} catch (e) {
 			if (isPostgresError(e)) {
 				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateVisitError();
-				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new InvalidRatingError();
 			}
 			throw e;
 		}
@@ -86,7 +80,6 @@ export class VisitsDao {
 		} catch (e) {
 			if (isPostgresError(e)) {
 				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateVisitError();
-				if (e.errno === PG_ERRORS.CHECK_VIOLATION) throw new InvalidRatingError();
 			}
 			throw e;
 		}
@@ -97,5 +90,10 @@ export class VisitsDao {
 		const [result] = await sql`DELETE FROM visits WHERE id = ${visitId} RETURNING *`;
 		if (!result) throw new VisitNotFoundError(String(visitId));
 		return VisitSchema.parse(result);
+	}
+
+	public async countContributors(): Promise<number> {
+		const [result] = await this.sql`SELECT COUNT(DISTINCT user_id) AS count FROM visits`;
+		return Number(result.count);
 	}
 }
