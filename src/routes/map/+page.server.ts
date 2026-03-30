@@ -7,6 +7,8 @@ import { VisitNotFoundError, VisitsDao } from '$lib/server/dao/visits';
 import { getGooglePlaceById } from '$lib/google-places';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
 import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
+import { processImage } from '$lib/image-processor';
+import { saveImage, deleteImage } from '$lib/server/image-storage';
 import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$lib/server/guards';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
@@ -48,6 +50,16 @@ export const actions: Actions = {
 			});
 		}
 
+		// Validate selectedType up front — returning fail() inside sql.begin() only
+		// returns from the callback, not from the action handler.
+		const rawSelectedType = data.get('selectedType')?.toString() ?? '';
+		if (!isSavedPlaceType(rawSelectedType)) {
+			return fail(400, { error: 'Missing or invalid selectedType' });
+		}
+		const selectedType = rawSelectedType;
+
+		let visitId: bigint | undefined;
+
 		await sql.begin(async (tx) => {
 			let placeId: bigint;
 
@@ -62,14 +74,6 @@ export const actions: Actions = {
 
 				const googlePlace = await getGooglePlaceById(googlePlaceId);
 				if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
-
-				const selectedType = data.get('selectedType')?.toString();
-				if (!selectedType) {
-					return fail(400, { error: 'Missing selectedType' });
-				}
-				if (!isSavedPlaceType(selectedType)) {
-					return fail(400, { error: 'Received selectedType value was invalid.' });
-				}
 
 				const place = await savedPlacesDao.insertSavedPlace(
 					{
@@ -86,14 +90,33 @@ export const actions: Actions = {
 				placeId = place.id;
 			}
 
-			await visitsDao.insertVisit(
+			const visit = await visitsDao.insertVisit(
 				{
 					place_id: placeId,
 					...parseResult.data
 				},
 				tx
 			);
+			visitId = visit.id;
 		});
+
+		// Handle image uploads after visit creation
+		// Result values are awaitable (PromiseLike): success resolves, failure rejects
+		if (visitId) {
+			// Server-side enforcement: max 3 photos per visit
+			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
+			for (const file of imageFiles) {
+				if (!(file instanceof File) || file.size === 0) continue;
+
+				try {
+					const processed = await processImage(file);
+					const url = await saveImage(processed.buffer, processed.filename);
+					await visitsDao.insertVisitPhoto(visitId, url);
+				} catch (e) {
+					console.error('Failed to process/save image:', e instanceof Error ? e.message : e);
+				}
+			}
+		}
 
 		return { success: true };
 	},
@@ -196,11 +219,136 @@ export const actions: Actions = {
 		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
 		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
+		// Capture photo URLs before deletion so we can clean up files afterward
+		const photoUrls = await visitsDao.listVisitPhotos(visitId);
+
 		try {
 			await visitsDao.deleteVisit(visitId);
 		} catch (e) {
 			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
 			throw e;
+		}
+
+		// Delete image files after DB deletion succeeds (DB rows are cascade-deleted)
+		for (const url of photoUrls) {
+			try {
+				await deleteImage(url);
+			} catch (e) {
+				console.error(
+					'Failed to delete image file during visit deletion:',
+					e instanceof Error ? e.message : e
+				);
+			}
+		}
+
+		return { success: true };
+	},
+
+	uploadPhoto: async ({ request, cookies }) => {
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().optional().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		if (!visitId) {
+			return fail(400, { error: 'visitId is required for photo uploads' });
+		}
+
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
+
+		// Check current photo count
+		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (currentPhotos.length >= 3) {
+			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
+		}
+
+		const file = data.get('images') as File;
+		if (!file || !(file instanceof File)) {
+			return fail(400, { error: 'No file uploaded' });
+		}
+
+		let imageUrl: string;
+		try {
+			const processed = await processImage(file);
+			imageUrl = await saveImage(processed.buffer, processed.filename);
+		} catch (e) {
+			const message = e instanceof Error ? e.message : 'Image processing failed';
+			return fail(400, { error: message });
+		}
+
+		try {
+			await visitsDao.insertVisitPhoto(visitId, imageUrl);
+		} catch (e) {
+			// DB insert failed — clean up the saved file
+			try {
+				await deleteImage(imageUrl);
+			} catch {
+				/* best-effort */
+			}
+			throw e;
+		}
+
+		return { success: true, imageUrl };
+	},
+
+	deletePhoto: async ({ request, cookies }) => {
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		const imageUrl = data.get('imageUrl')?.toString();
+		if (!imageUrl) return fail(400, { error: 'Missing imageUrl' });
+
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
+
+		const visitPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (!visitPhotos.includes(imageUrl)) {
+			return fail(404, { error: 'Image not found for this visit' });
+		}
+
+		await visitsDao.deleteVisitPhoto(visitId, imageUrl);
+
+		try {
+			await deleteImage(imageUrl);
+		} catch (e) {
+			console.error('Failed to delete image file:', e instanceof Error ? e.message : e);
 		}
 
 		return { success: true };

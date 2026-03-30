@@ -38,6 +38,9 @@ services:
       db:
         condition: service_healthy
 
+    volumes:
+      - ${IMAGES_PATH:-./images}:/app/images
+
     environment:
       SQL_URL: postgres://sc_map:sc_map@db:5432/sc_map
       ORIGIN: ${ORIGIN}

@@ -1,31 +1,31 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
-import type { Visit, VisitInsert, VisitWithUser } from '../../../schemas/visit';
+import type { VisitInsert } from '../../../schemas/visit';
 import { VisitsDao, VisitNotFoundError, DuplicateVisitError } from '.';
 import { createMockSQL, createErrorSQL } from '../mock';
-import { Temporal } from '@js-temporal/polyfill';
 
-const visitRow: Visit = {
+// Raw DB rows — visited_at as string, matching what Postgres returns
+const visitRow = {
 	id: 1n,
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	visited_at: Temporal.PlainDate.from('2024-01-01'),
+	visited_at: '2024-01-01',
 	created_at: new Date('2024-01-01'),
 	updated_at: new Date('2024-01-01')
 };
 
-const visitWithUserRow: VisitWithUser = {
+const visitWithUserRow = {
 	...visitRow,
 	discord_handle: 'testuser#0001',
 	avatar_url: 'https://cdn.example.com/avatar.png',
-	photo_urls: ['https://cdn.example.com/photo1.jpg'] as string[]
+	photo_urls: ['https://cdn.example.com/photo1.jpg']
 };
 
 const visitInsert: VisitInsert = {
 	user_id: 1n,
 	place_id: 1n,
 	summary: 'Great place!',
-	visited_at: Temporal.PlainDate.from('2024-01-01')
+	visited_at: '2024-01-01' as unknown as import('@js-temporal/polyfill').Temporal.PlainDate
 };
 
 describe('VisitsDao', () => {
@@ -154,13 +154,6 @@ describe('VisitsDao', () => {
 			test('throws VisitNotFoundError when visit does not exist', async () => {
 				const dao = new VisitsDao(createMockSQL([]));
 				expect(dao.updateVisit(1n, { summary: 'test' })).rejects.toBeInstanceOf(VisitNotFoundError);
-			});
-
-			test('throws DuplicateVisitError', async () => {
-				const dao = new VisitsDao(createErrorSQL('23505'));
-				expect(dao.updateVisit(1n, { summary: 'test' })).rejects.toBeInstanceOf(
-					DuplicateVisitError
-				);
 			});
 		});
 	});

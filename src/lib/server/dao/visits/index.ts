@@ -102,4 +102,18 @@ export class VisitsDao extends BaseDao<Visit, VisitInsert, VisitUpdate> {
 		const [result] = await this.sql`SELECT COUNT(DISTINCT user_id) AS count FROM visits`;
 		return Number(result.count);
 	}
+
+	public async insertVisitPhoto(visitId: bigint, url: string): Promise<void> {
+		await this.sql`INSERT INTO visit_photos (visit_id, url) VALUES (${visitId}, ${url})`;
+	}
+
+	public async deleteVisitPhoto(visitId: bigint, url: string): Promise<void> {
+		await this.sql`DELETE FROM visit_photos WHERE visit_id = ${visitId} AND url = ${url}`;
+	}
+
+	public async listVisitPhotos(visitId: bigint): Promise<string[]> {
+		const results = await this
+			.sql`SELECT url FROM visit_photos WHERE visit_id = ${visitId} ORDER BY created_at`;
+		return results.map((row: { url: string }) => row.url);
+	}
 }

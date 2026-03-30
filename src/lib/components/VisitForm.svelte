@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ChipSelector from './ChipSelector.svelte';
+	import ImageUpload from './ImageUpload.svelte';
 	import TextField from './ui/text-field/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
@@ -43,6 +44,7 @@
 		untrack(() => (visit ? visit.visited_at.toString() : Temporal.Now.plainDateISO().toString()))
 	);
 	let selectedType = $state<SavedPlaceType | undefined>();
+	let selectedImages = $state<File[]>([]);
 	let submitted = $state(false);
 	let formError = $state('');
 
@@ -66,7 +68,11 @@
 		return validate(summary, visitDate);
 	});
 
-	const enhanceForm: SubmitFunction = ({ cancel }) => {
+	function handleFilesChange(files: File[]) {
+		selectedImages = files;
+	}
+
+	const enhanceForm: SubmitFunction = ({ cancel, formData }) => {
 		submitted = true;
 		formError = '';
 		const errors = validate(summary, visitDate);
@@ -74,6 +80,14 @@
 			cancel();
 			return;
 		}
+
+		// Append selected images to FormData for add mode
+		if (isAddMode) {
+			for (const file of selectedImages) {
+				formData.append('images', file);
+			}
+		}
+
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			if (result.type === 'success') {
 				onsuccess?.();
@@ -93,6 +107,7 @@
 	class="form-body"
 	method="POST"
 	action="/map?/{isAddMode ? 'addVisit' : 'editVisit'}"
+	enctype="multipart/form-data"
 >
 	{#if isAddMode}
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
@@ -128,6 +143,12 @@
 
 	{#if showChipSelector}
 		<ChipSelector bind:selectedType></ChipSelector>
+	{/if}
+
+	{#if isAddMode}
+		<div class="field-row">
+			<ImageUpload maxImages={3} currentImages={[]} onFilesChange={handleFilesChange} />
+		</div>
 	{/if}
 
 	{#if formError}
