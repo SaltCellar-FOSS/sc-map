@@ -7,52 +7,62 @@ import {
 } from '$lib/schemas/saved-place';
 import { isPostgresError } from '$lib/db/utils';
 import { PG_ERRORS } from '$lib/db/errors';
+import { BaseDao } from '../base';
+import { NotFoundError } from '../errors';
+import { UserNotFoundError } from '../users';
+
+export { UserNotFoundError } from '../users';
+
+export class SavedPlaceNotFoundError extends NotFoundError {
+	constructor(id: string) {
+		super('saved_places', id);
+		this.name = 'SavedPlaceNotFoundError';
+	}
+}
 
 export class DuplicateGooglePlaceIdError extends Error {}
 export class InvalidPlaceTypeError extends Error {}
-export class UserNotFoundError extends Error {}
-export class SavedPlaceNotFoundError extends Error {}
 
-export class SavedPlacesDao {
-	constructor(private readonly sql: SQL) {}
-
-	public async retrieveSavedPlace(placeId: bigint) {
-		const [result] = await this.sql`SELECT * FROM saved_places WHERE id=${placeId}`;
-
-		if (!result) throw new SavedPlaceNotFoundError(String(placeId));
-
-		return SavedPlaceSchema.parse(result);
+export class SavedPlacesDao extends BaseDao<SavedPlace, SavedPlaceInsert, SavedPlaceUpdate> {
+	constructor(sql: SQL) {
+		super({
+			sql,
+			tableName: 'saved_places',
+			schema: SavedPlaceSchema,
+			notFoundError: SavedPlaceNotFoundError
+		});
 	}
 
-	public async retrieveSavedPlaceByGooglePlaceId(googlePlaceId: string) {
+	protected getUniqueViolationFields(): Record<string, string> {
+		return { google_place_id: 'google_place_id' };
+	}
+
+	protected getCheckConstraints(): Record<string, (value: unknown) => string> {
+		return { type: (v) => `Invalid place type: ${v}` };
+	}
+
+	public async retrieveSavedPlace(placeId: bigint): Promise<SavedPlace> {
+		return this.retrieve(placeId);
+	}
+
+	public async retrieveSavedPlaceByGooglePlaceId(googlePlaceId: string): Promise<SavedPlace> {
 		const [result] = await this
 			.sql`SELECT * FROM saved_places WHERE google_place_id = ${googlePlaceId}`;
-
-		if (!result) {
-			throw new SavedPlaceNotFoundError(String(googlePlaceId));
-		}
-
+		if (!result) throw new SavedPlaceNotFoundError(googlePlaceId);
 		return SavedPlaceSchema.parse(result);
 	}
 
-	public async listSavedPlaces() {
-		const results: unknown[] = await this.sql`
-        SELECT * FROM saved_places;
-    `;
-		return results.map((row: unknown) => SavedPlaceSchema.parse(row));
+	public async listSavedPlaces(): Promise<SavedPlace[]> {
+		return this.list();
 	}
 
 	public async insertSavedPlace(
 		placeInsert: SavedPlaceInsert,
 		tx?: TransactionSQL
 	): Promise<SavedPlace> {
-		const sql = tx ?? this.sql;
-
+		const db = tx ?? this.sql;
 		try {
-			const [result]: unknown[] = await sql`
-	            INSERT INTO saved_places ${sql(placeInsert)}
-	            RETURNING *
-	        `;
+			const [result] = await db`INSERT INTO saved_places ${db(placeInsert)} RETURNING *`;
 			return SavedPlaceSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
@@ -68,11 +78,7 @@ export class SavedPlacesDao {
 	}
 
 	public async deleteSavedPlace(placeId: bigint, tx?: TransactionSQL): Promise<SavedPlace> {
-		const sql = tx ?? this.sql;
-
-		const [result] = await sql`DELETE FROM saved_places WHERE id=${placeId} RETURNING *`;
-		if (!result) throw new SavedPlaceNotFoundError(String(placeId));
-		return SavedPlaceSchema.parse(result);
+		return this.delete(placeId, tx);
 	}
 
 	public async updateSavedPlace(
@@ -80,11 +86,10 @@ export class SavedPlacesDao {
 		placeUpdate: SavedPlaceUpdate,
 		tx?: TransactionSQL
 	): Promise<SavedPlace> {
-		const sql = tx ?? this.sql;
-
+		const db = tx ?? this.sql;
 		try {
 			const [result] =
-				await sql`UPDATE saved_places SET ${sql(placeUpdate)} WHERE id = ${placeId} RETURNING *`;
+				await db`UPDATE saved_places SET ${db(placeUpdate)} WHERE id = ${placeId} RETURNING *`;
 			if (!result) throw new SavedPlaceNotFoundError(String(placeId));
 			return SavedPlaceSchema.parse(result);
 		} catch (e) {
@@ -99,7 +104,7 @@ export class SavedPlacesDao {
 	}
 
 	public async searchSavedPlaces(q: string): Promise<SavedPlace[]> {
-		const results: unknown[] = await this.sql`
+		const results = await this.sql`
 			SELECT * FROM saved_places
 			WHERE to_tsvector('simple', name) @@ plainto_tsquery('simple', ${q})
 		`;

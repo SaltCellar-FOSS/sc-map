@@ -1,19 +1,40 @@
 import { type SQL, type TransactionSQL } from 'bun';
-import { UserSchema, type User, type UserInsert, type UserUpdate } from './types';
+import { type User, type UserInsert, type UserUpdate, UserSchema } from './types';
 import { isPostgresError } from '$lib/db/utils';
 import { PG_ERRORS } from '$lib/db/errors';
+import { BaseDao } from '../base';
+import { NotFoundError } from '../errors';
 
-export class UserNotFoundError extends Error {}
+export class UserNotFoundError extends NotFoundError {
+	constructor(id: string) {
+		super('users', id);
+		this.name = 'UserNotFoundError';
+	}
+}
+
 export class DuplicateExternalIdError extends Error {}
 export class NoIdentityError extends Error {}
 
-export class UsersDao {
-	constructor(private readonly sql: SQL) {}
+export class UsersDao extends BaseDao<User, UserInsert, UserUpdate> {
+	constructor(sql: SQL) {
+		super({
+			sql,
+			tableName: 'users',
+			schema: UserSchema,
+			notFoundError: UserNotFoundError
+		});
+	}
+
+	protected getUniqueViolationFields(): Record<string, string> {
+		return { discord_id: 'discord_id' };
+	}
+
+	protected getCheckConstraints(): Record<string, (value: unknown) => string> {
+		return {};
+	}
 
 	public async retrieveUser(userId: bigint): Promise<User> {
-		const [result] = await this.sql`SELECT * FROM users WHERE id = ${userId}`;
-		if (!result) throw new UserNotFoundError(String(userId));
-		return UserSchema.parse(result);
+		return this.retrieve(userId);
 	}
 
 	public async findByDiscordId(discordId: string): Promise<User | null> {
@@ -23,14 +44,13 @@ export class UsersDao {
 	}
 
 	public async listUsers(): Promise<User[]> {
-		const results = await this.sql`SELECT * FROM users`;
-		return results.map((row: unknown) => UserSchema.parse(row));
+		return this.list();
 	}
 
 	public async insertUser(userInsert: UserInsert, tx?: TransactionSQL): Promise<User> {
-		const sql = tx ?? this.sql;
+		const db = tx ?? this.sql;
 		try {
-			const [result] = await sql`INSERT INTO users ${sql(userInsert)} RETURNING *`;
+			const [result] = await db`INSERT INTO users ${db(userInsert)} RETURNING *`;
 			return UserSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
@@ -46,10 +66,10 @@ export class UsersDao {
 		userUpdate: UserUpdate,
 		tx?: TransactionSQL
 	): Promise<User> {
-		const sql = tx ?? this.sql;
+		const db = tx ?? this.sql;
 		try {
 			const [result] =
-				await sql`UPDATE users SET ${sql(userUpdate)} WHERE id = ${userId} RETURNING *`;
+				await db`UPDATE users SET ${db(userUpdate)} WHERE id = ${userId} RETURNING *`;
 			if (!result) throw new UserNotFoundError(String(userId));
 			return UserSchema.parse(result);
 		} catch (e) {
@@ -62,8 +82,8 @@ export class UsersDao {
 	}
 
 	public async deleteUser(userId: bigint, tx?: TransactionSQL): Promise<User> {
-		const sql = tx ?? this.sql;
-		const [result] = await sql`DELETE FROM users WHERE id = ${userId} RETURNING *`;
+		const db = tx ?? this.sql;
+		const [result] = await db`DELETE FROM users WHERE id = ${userId} RETURNING *`;
 		if (!result) throw new UserNotFoundError(String(userId));
 		return UserSchema.parse(result);
 	}

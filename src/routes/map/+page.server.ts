@@ -1,14 +1,15 @@
 import { fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
 import { z } from 'zod';
 import { sql } from '$lib/db';
 import { SavedPlaceNotFoundError, SavedPlacesDao } from '$lib/server/dao/saved-places';
 import { VisitNotFoundError, VisitsDao } from '$lib/server/dao/visits';
 import { getGooglePlaceById } from '$lib/google-places';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
-import { verifySessionCookie, SESSION_COOKIE_NAME } from '$lib/server/cookie';
 import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
 import { processImage } from '$lib/image-processor';
 import { saveImage, deleteImage } from '$lib/server/image-storage';
+import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$lib/server/guards';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
@@ -20,13 +21,16 @@ const EditableFieldsSchema = VisitUpdateSchema.pick({
 	visited_at: true
 }).strict();
 
-export const actions = {
+export const actions: Actions = {
 	addVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+			await requireActiveUser(userId);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -36,7 +40,7 @@ export const actions = {
 
 		const parseResult = VisitInsertWithoutPlaceSchema.safeParse({
 			user_id: userId,
-			summary: data.get('review')?.toString(),
+			summary: data.get('summary')?.toString(),
 			visited_at: data.get('visitDate')?.toString()
 		});
 
@@ -97,29 +101,19 @@ export const actions = {
 		});
 
 		// Handle image uploads after visit creation
+		// Result values are awaitable (PromiseLike): success resolves, failure rejects
 		if (visitId) {
 			// Server-side enforcement: max 3 photos per visit
 			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
 			for (const file of imageFiles) {
 				if (!(file instanceof File) || file.size === 0) continue;
 
-				const processedImage = await processImage(file);
-				if (!processedImage.ok) {
-					console.error('Failed to process image:', processedImage.error);
-					continue;
-				}
-
-				const savedImage = await saveImage(processedImage.value.buffer, processedImage.value.filename);
-				if (!savedImage.ok) {
-					console.error('Failed to save image:', savedImage.error);
-					continue;
-				}
-
 				try {
-					await visitsDao.insertVisitPhoto(visitId, savedImage.value);
-				} catch (error) {
-					await deleteImage(savedImage.value);
-					console.error('Failed to save image URL to database:', error);
+					const processed = await processImage(file);
+					const url = await saveImage(processed.buffer, processed.filename);
+					await visitsDao.insertVisitPhoto(visitId, url);
+				} catch (e) {
+					console.error('Failed to process/save image:', e instanceof Error ? e.message : e);
 				}
 			}
 		}
@@ -128,11 +122,13 @@ export const actions = {
 	},
 
 	editVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -148,7 +144,8 @@ export const actions = {
 			throw e;
 		}
 
-		if (existing.user_id !== userId) return fail(401, { error: 'Unauthorized' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
 		const parseResult = EditableFieldsSchema.safeParse({
 			summary: data.get('summary')?.toString(),
@@ -165,11 +162,14 @@ export const actions = {
 	},
 
 	editPlace: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+			await requireActiveUser(userId);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -194,11 +194,13 @@ export const actions = {
 	},
 
 	deleteVisit: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -214,7 +216,8 @@ export const actions = {
 			throw e;
 		}
 
-		if (existing.user_id !== userId) return fail(403, { error: 'Forbidden' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
 		// Capture photo URLs before deletion so we can clean up files afterward
 		const photoUrls = await visitsDao.listVisitPhotos(visitId);
@@ -228,9 +231,10 @@ export const actions = {
 
 		// Delete image files after DB deletion succeeds (DB rows are cascade-deleted)
 		for (const url of photoUrls) {
-			const result = await deleteImage(url);
-			if (!result.ok) {
-				console.error('Failed to delete image file during visit deletion:', result.error);
+			try {
+				await deleteImage(url);
+			} catch (e) {
+				console.error('Failed to delete image file during visit deletion:', e instanceof Error ? e.message : e);
 			}
 		}
 
@@ -238,11 +242,13 @@ export const actions = {
 	},
 
 	uploadPhoto: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -254,7 +260,6 @@ export const actions = {
 			return fail(400, { error: 'visitId is required for photo uploads' });
 		}
 
-		// Verify the user owns this visit
 		let visit;
 		try {
 			visit = await visitsDao.retrieveVisit(visitId);
@@ -263,7 +268,8 @@ export const actions = {
 			throw e;
 		}
 
-		if (visit.user_id !== userId) return fail(403, { error: 'Forbidden' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
 		// Check current photo count
 		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
@@ -271,41 +277,39 @@ export const actions = {
 			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
 		}
 
-		// Get the uploaded file
 		const file = data.get('images') as File;
 		if (!file || !(file instanceof File)) {
 			return fail(400, { error: 'No file uploaded' });
 		}
 
-		// Process the image
-		const processedImage = await processImage(file);
-		if (!processedImage.ok) {
-			return fail(400, { error: processedImage.error });
-		}
-
-		// Save the image to disk
-		const savedImage = await saveImage(processedImage.value.buffer, processedImage.value.filename);
-		if (!savedImage.ok) {
-			return fail(500, { error: savedImage.error });
-		}
-
-		// Save the URL to the database
+		let imageUrl: string;
 		try {
-			await visitsDao.insertVisitPhoto(visitId, savedImage.value);
-		} catch (error) {
-			await deleteImage(savedImage.value);
-			throw error;
+			const processed = await processImage(file);
+			imageUrl = await saveImage(processed.buffer, processed.filename);
+		} catch (e) {
+			const message = e instanceof Error ? e.message : 'Image processing failed';
+			return fail(400, { error: message });
 		}
 
-		return { success: true, imageUrl: savedImage.value };
+		try {
+			await visitsDao.insertVisitPhoto(visitId, imageUrl);
+		} catch (e) {
+			// DB insert failed — clean up the saved file
+			try { await deleteImage(imageUrl); } catch { /* best-effort */ }
+			throw e;
+		}
+
+		return { success: true, imageUrl };
 	},
 
 	deletePhoto: async ({ request, cookies }) => {
-		const cookie = cookies.get(SESSION_COOKIE_NAME);
-		if (!cookie) return fail(401, { error: 'Unauthorized' });
-
-		const userId = await verifySessionCookie(cookie);
-		if (!userId) return fail(401, { error: 'Unauthorized' });
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
 
 		const data = await request.formData();
 
@@ -316,7 +320,6 @@ export const actions = {
 		const imageUrl = data.get('imageUrl')?.toString();
 		if (!imageUrl) return fail(400, { error: 'Missing imageUrl' });
 
-		// Verify the user owns this visit
 		let visit;
 		try {
 			visit = await visitsDao.retrieveVisit(visitId);
@@ -325,21 +328,20 @@ export const actions = {
 			throw e;
 		}
 
-		if (visit.user_id !== userId) return fail(403, { error: 'Forbidden' });
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
-		// Check if the image belongs to this visit
 		const visitPhotos = await visitsDao.listVisitPhotos(visitId);
 		if (!visitPhotos.includes(imageUrl)) {
 			return fail(404, { error: 'Image not found for this visit' });
 		}
 
-		// Delete from database first
 		await visitsDao.deleteVisitPhoto(visitId, imageUrl);
 
-		// Then delete from file system
-		const deleteResult = await deleteImage(imageUrl);
-		if (!deleteResult.ok) {
-			console.error('Failed to delete image file:', deleteResult.error);
+		try {
+			await deleteImage(imageUrl);
+		} catch (e) {
+			console.error('Failed to delete image file:', e instanceof Error ? e.message : e);
 		}
 
 		return { success: true };

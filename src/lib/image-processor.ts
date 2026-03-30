@@ -1,11 +1,5 @@
 import sharp from 'sharp';
-import type { Result } from './result';
-import { err, ok } from './result';
-
-export interface ImageUpload {
-	file: File;
-	filename: string;
-}
+import { Result } from './result';
 
 export interface ImageProcessingOptions {
 	maxWidth: number;
@@ -32,35 +26,41 @@ const DEFAULT_PROCESSING_OPTIONS: ImageProcessingOptions = {
 /**
  * Validates an image file for type and size constraints
  */
-export async function validateImage(file: File): Promise<Result<void, string>> {
-	// Check file size
+export async function validateImage(file: File): Promise<Result<void, Error>> {
 	if (file.size > MAX_FILE_SIZE) {
-		return err(`File size ${file.size} bytes exceeds maximum allowed size of ${MAX_FILE_SIZE} bytes`);
+		return Result.failure(
+			new Error(`File size ${file.size} bytes exceeds maximum allowed size of ${MAX_FILE_SIZE} bytes`)
+		);
 	}
 
-	// Check MIME type
 	if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-		return err(`File type ${file.type} is not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`);
+		return Result.failure(
+			new Error(
+				`File type ${file.type} is not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`
+			)
+		);
 	}
 
-	// Additional validation: try to read the file as an image
 	try {
 		const buffer = Buffer.from(await file.arrayBuffer());
 		const metadata = await sharp(buffer).metadata();
 
 		if (!metadata.width || !metadata.height) {
-			return err('Invalid image file: could not determine dimensions');
+			return Result.failure(new Error('Invalid image file: could not determine dimensions'));
 		}
 
-		// Prevent extremely large images that could cause memory issues
 		if (metadata.width > 10000 || metadata.height > 10000) {
-			return err('Image dimensions too large (max 10000x10000 pixels)');
+			return Result.failure(new Error('Image dimensions too large (max 10000x10000 pixels)'));
 		}
 	} catch (error) {
-		return err(`Invalid image file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		return Result.failure(
+			new Error(
+				`Invalid image file: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
+		);
 	}
 
-	return ok(undefined);
+	return Result.success();
 }
 
 /**
@@ -69,11 +69,12 @@ export async function validateImage(file: File): Promise<Result<void, string>> {
 export async function processImage(
 	file: File,
 	options: Partial<ImageProcessingOptions> = {}
-): Promise<Result<ProcessedImage, string>> {
-	// First validate the image
-	const validation = await validateImage(file);
-	if (!validation.ok) {
-		return validation;
+): Promise<Result<ProcessedImage, Error>> {
+	// validateImage is PromiseLike — it rejects (throws) on failure, resolves on success
+	try {
+		await validateImage(file);
+	} catch (e) {
+		return Result.failure(e instanceof Error ? e : new Error(String(e)));
 	}
 
 	const processingOptions = { ...DEFAULT_PROCESSING_OPTIONS, ...options };
@@ -81,20 +82,20 @@ export async function processImage(
 	try {
 		const buffer = Buffer.from(await file.arrayBuffer());
 
-		// Generate unique filename with timestamp and random suffix
 		const timestamp = Date.now();
 		const randomSuffix = Math.random().toString(36).substring(2, 8);
 		const extension = processingOptions.format;
 		const filename = `${timestamp}-${randomSuffix}.${extension}`;
 
-		// Process the image with Sharp
-		let sharpInstance = sharp(buffer)
-			.resize(processingOptions.maxWidth, processingOptions.maxHeight, {
-				fit: 'inside', // Maintain aspect ratio
-				withoutEnlargement: true // Don't upscale smaller images
-			});
+		let sharpInstance = sharp(buffer).resize(
+			processingOptions.maxWidth,
+			processingOptions.maxHeight,
+			{
+				fit: 'inside',
+				withoutEnlargement: true
+			}
+		);
 
-		// Apply format-specific options
 		switch (processingOptions.format) {
 			case 'jpeg':
 				sharpInstance = sharpInstance.jpeg({ quality: processingOptions.quality });
@@ -110,12 +111,12 @@ export async function processImage(
 		const processedBuffer = await sharpInstance.toBuffer();
 		const mimeType = `image/${processingOptions.format}`;
 
-		return ok({
-			buffer: processedBuffer,
-			filename,
-			mimeType
-		});
+		return Result.success({ buffer: processedBuffer, filename, mimeType });
 	} catch (error) {
-		return err(`Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		return Result.failure(
+			new Error(
+				`Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
+		);
 	}
 }
