@@ -15,6 +15,9 @@
 		"migrate": "bun scripts/migrate.ts",
 		"test": "bun test .test.ts",
 		"test:integration": "SQL_URL=postgres://sc_map:sc_map@localhost:5432/sc_map_test bun --config=bunfig.integration.toml test .integration.spec.ts",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:headed": "playwright test --headed",
 		"storybook": "bunx --bun storybook dev -p 6006",
 		"build-storybook": "bunx --bun storybook build",
 		"knip": "knip"
@@ -22,6 +25,7 @@
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",
 		"@eslint/js": "^9.39.2",
+		"@playwright/test": "^1.58.2",
 		"@storybook/sveltekit": "10.3.0",
 		"@sveltejs/adapter-node": "^5.0.0",
 		"@sveltejs/kit": "^2.50.2",
@@ -29,6 +33,7 @@
 		"@types/bun": "^1.3.10",
 		"@types/google.maps": "^3.58.1",
 		"@types/node": "^25.5.0",
+		"dotenv": "^17.3.1",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",

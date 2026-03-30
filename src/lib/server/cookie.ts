@@ -1,15 +1,23 @@
-import { env } from '$env/dynamic/private';
-const { SESSION_SECRET } = env;
+function getSessionSecret(): string {
+	const fromImportMeta =
+		typeof import.meta !== 'undefined' &&
+		(import.meta as { env?: Record<string, string> }).env?.SESSION_SECRET;
+	if (fromImportMeta) return fromImportMeta;
+	const fromProcess = process.env.SESSION_SECRET;
+	if (fromProcess) return fromProcess;
+	throw new Error('SESSION_SECRET not found');
+}
 
 export const SESSION_COOKIE_NAME = 'session';
 
 export async function createSessionCookie(userId: bigint, maxAge: number): Promise<string> {
+	const secret = getSessionSecret();
 	const expiresAt = Math.floor(Date.now() / 1000) + maxAge;
 	const payload = `${userId}:${expiresAt}`;
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(
 		'raw',
-		encoder.encode(SESSION_SECRET),
+		encoder.encode(secret),
 		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['sign']
@@ -19,6 +27,7 @@ export async function createSessionCookie(userId: bigint, maxAge: number): Promi
 	return `${payload}.${sigB64}`;
 }
 export async function verifySessionCookie(cookie: string): Promise<bigint | null> {
+	const secret = getSessionSecret();
 	const dot = cookie.lastIndexOf('.');
 	if (dot === -1) return null;
 
@@ -28,7 +37,7 @@ export async function verifySessionCookie(cookie: string): Promise<bigint | null
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(
 		'raw',
-		encoder.encode(SESSION_SECRET),
+		encoder.encode(secret),
 		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['verify']
