@@ -14,6 +14,13 @@ import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$li
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
 
+class InvalidPlaceTypeError extends Error {
+	constructor() {
+		super('Missing or invalid selectedType');
+		this.name = 'InvalidPlaceTypeError';
+	}
+}
+
 const VisitInsertWithoutPlaceSchema = VisitInsertSchema.omit({ place_id: true });
 
 const EditableFieldsSchema = VisitUpdateSchema.pick({
@@ -50,55 +57,53 @@ export const actions: Actions = {
 			});
 		}
 
-		// Validate selectedType up front — returning fail() inside sql.begin() only
-		// returns from the callback, not from the action handler.
-		const rawSelectedType = data.get('selectedType')?.toString() ?? '';
-		if (!isSavedPlaceType(rawSelectedType)) {
-			return fail(400, { error: 'Missing or invalid selectedType' });
-		}
-		const selectedType = rawSelectedType;
-
 		let visitId: bigint | undefined;
 
-		await sql.begin(async (tx) => {
-			let placeId: bigint;
+		try {
+			await sql.begin(async (tx) => {
+				let placeId: bigint;
 
-			try {
-				const existing = await savedPlacesDao.retrieveSavedPlaceByGooglePlaceId(googlePlaceId);
+				try {
+					const existing = await savedPlacesDao.retrieveSavedPlaceByGooglePlaceId(googlePlaceId);
+					placeId = existing.id;
+				} catch (error) {
+					if (!(error instanceof SavedPlaceNotFoundError)) throw error;
 
-				placeId = existing.id;
-			} catch (error) {
-				if (!(error instanceof SavedPlaceNotFoundError)) {
-					throw error;
+					const googlePlace = await getGooglePlaceById(googlePlaceId);
+					if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
+
+					// selectedType is only required when creating a new place
+					const rawSelectedType = data.get('selectedType')?.toString() ?? '';
+					if (!isSavedPlaceType(rawSelectedType)) throw new InvalidPlaceTypeError();
+
+					const place = await savedPlacesDao.insertSavedPlace(
+						{
+							name: googlePlace.name,
+							lat: googlePlace.geometry.location.lat,
+							lng: googlePlace.geometry.location.lng,
+							formatted_address: googlePlace.formatted_address,
+							google_place_id: googlePlace.place_id,
+							type: rawSelectedType,
+							submitted_by: userId
+						},
+						tx
+					);
+					placeId = place.id;
 				}
 
-				const googlePlace = await getGooglePlaceById(googlePlaceId);
-				if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
-
-				const place = await savedPlacesDao.insertSavedPlace(
+				const visit = await visitsDao.insertVisit(
 					{
-						name: googlePlace.name,
-						lat: googlePlace.geometry.location.lat,
-						lng: googlePlace.geometry.location.lng,
-						formatted_address: googlePlace.formatted_address,
-						google_place_id: googlePlace.place_id,
-						type: selectedType,
-						submitted_by: userId
+						place_id: placeId,
+						...parseResult.data
 					},
 					tx
 				);
-				placeId = place.id;
-			}
-
-			const visit = await visitsDao.insertVisit(
-				{
-					place_id: placeId,
-					...parseResult.data
-				},
-				tx
-			);
-			visitId = visit.id;
-		});
+				visitId = visit.id;
+			});
+		} catch (e) {
+			if (e instanceof InvalidPlaceTypeError) return fail(400, { error: e.message });
+			throw e;
+		}
 
 		// Handle image uploads after visit creation
 		// Result values are awaitable (PromiseLike): success resolves, failure rejects
