@@ -29,7 +29,9 @@ const DEFAULT_PROCESSING_OPTIONS: ImageProcessingOptions = {
 export async function validateImage(file: File): Promise<Result<void, Error>> {
 	if (file.size > MAX_FILE_SIZE) {
 		return Result.failure(
-			new Error(`File size ${file.size} bytes exceeds maximum allowed size of ${MAX_FILE_SIZE} bytes`)
+			new Error(
+				`File size ${file.size} bytes exceeds maximum allowed size of ${MAX_FILE_SIZE} bytes`
+			)
 		);
 	}
 
@@ -54,9 +56,7 @@ export async function validateImage(file: File): Promise<Result<void, Error>> {
 		}
 	} catch (error) {
 		return Result.failure(
-			new Error(
-				`Invalid image file: ${error instanceof Error ? error.message : 'Unknown error'}`
-			)
+			new Error(`Invalid image file: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		);
 	}
 

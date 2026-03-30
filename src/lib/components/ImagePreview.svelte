@@ -48,12 +48,7 @@
 	<div class="lightbox-overlay" onclick={closeLightbox}>
 		<button class="lightbox-close" onclick={closeLightbox} aria-label="Close">✕</button>
 		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-		<img
-			class="lightbox-img"
-			src={lightboxImage}
-			alt=""
-			onclick={(e) => e.stopPropagation()}
-		/>
+		<img class="lightbox-img" src={lightboxImage} alt="" onclick={(e) => e.stopPropagation()} />
 	</div>
 {/if}
 
@@ -63,7 +58,11 @@
 		<div class="images-grid">
 			{#each images as imageUrl (imageUrl)}
 				<div class="image-item">
-					<button class="image-button" onclick={() => openLightbox(imageUrl)} aria-label="View image">
+					<button
+						class="image-button"
+						onclick={() => openLightbox(imageUrl)}
+						aria-label="View image"
+					>
 						<img src={imageUrl} alt="" loading="lazy" />
 					</button>
 
@@ -84,7 +83,9 @@
 								disabled={deletingImages.has(imageUrl)}
 							>
 								<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-									<path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+									<path
+										d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+									/>
 								</svg>
 							</button>
 						</form>
@@ -256,8 +257,12 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	@media (max-width: 640px) {

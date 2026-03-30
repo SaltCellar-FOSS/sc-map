@@ -40,11 +40,17 @@ export async function deleteImage(url: string): Promise<Result<void, Error>> {
 		return Result.success();
 	} catch (error) {
 		// If file doesn't exist, consider it successfully deleted
-		if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+		if (
+			error instanceof Error &&
+			'code' in error &&
+			(error as NodeJS.ErrnoException).code === 'ENOENT'
+		) {
 			return Result.success();
 		}
 		return Result.failure(
-			new Error(`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			new Error(
+				`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
 		);
 	}
 }

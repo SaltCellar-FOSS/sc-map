@@ -112,7 +112,8 @@ export class VisitsDao extends BaseDao<Visit, VisitInsert, VisitUpdate> {
 	}
 
 	public async listVisitPhotos(visitId: bigint): Promise<string[]> {
-		const results = await this.sql`SELECT url FROM visit_photos WHERE visit_id = ${visitId} ORDER BY created_at`;
+		const results = await this
+			.sql`SELECT url FROM visit_photos WHERE visit_id = ${visitId} ORDER BY created_at`;
 		return results.map((row: { url: string }) => row.url);
 	}
 }

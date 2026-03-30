@@ -21,7 +21,11 @@ class MockFile {
 
 describe('validateImage', () => {
 	it('should reject files over size limit', async () => {
-		const largeFile = new MockFile(new Uint8Array(15 * 1024 * 1024), 'large.png', 'image/png') as any;
+		const largeFile = new MockFile(
+			new Uint8Array(15 * 1024 * 1024),
+			'large.png',
+			'image/png'
+		) as any;
 		largeFile.size = 15 * 1024 * 1024; // 15MB
 
 		await expect(validateImage(largeFile)).rejects.toThrow('File size');

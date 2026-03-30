@@ -234,7 +234,10 @@ export const actions: Actions = {
 			try {
 				await deleteImage(url);
 			} catch (e) {
-				console.error('Failed to delete image file during visit deletion:', e instanceof Error ? e.message : e);
+				console.error(
+					'Failed to delete image file during visit deletion:',
+					e instanceof Error ? e.message : e
+				);
 			}
 		}
 
@@ -295,7 +298,11 @@ export const actions: Actions = {
 			await visitsDao.insertVisitPhoto(visitId, imageUrl);
 		} catch (e) {
 			// DB insert failed — clean up the saved file
-			try { await deleteImage(imageUrl); } catch { /* best-effort */ }
+			try {
+				await deleteImage(imageUrl);
+			} catch {
+				/* best-effort */
+			}
 			throw e;
 		}
 

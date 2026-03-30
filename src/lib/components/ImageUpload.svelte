@@ -5,11 +5,7 @@
 		onFilesChange?: (files: File[]) => void;
 	}
 
-	let {
-		maxImages = 3,
-		currentImages = [],
-		onFilesChange
-	}: Props = $props();
+	let { maxImages = 3, currentImages = [], onFilesChange }: Props = $props();
 
 	let files: File[] = $state([]);
 	let previews: string[] = $state([]);
@@ -30,7 +26,9 @@
 		// Validate file count
 		const totalImages = currentImages.length + selectedFiles.length;
 		if (totalImages > maxImages) {
-			errors = [`You can only upload up to ${maxImages} images total. You currently have ${currentImages.length} images.`];
+			errors = [
+				`You can only upload up to ${maxImages} images total. You currently have ${currentImages.length} images.`
+			];
 			input.value = '';
 			return;
 		}
@@ -64,7 +62,7 @@
 		files = validFiles;
 
 		// Create previews
-		previews = validFiles.map(file => URL.createObjectURL(file));
+		previews = validFiles.map((file) => URL.createObjectURL(file));
 
 		// Notify parent component
 		onFilesChange?.(files);
@@ -83,7 +81,9 @@
 		<div class="upload-section">
 			<label for="image-input" class="upload-button">
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-					<path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+					<path
+						d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+					/>
 				</svg>
 				Choose Images ({remainingSlots} remaining)
 			</label>
@@ -111,13 +111,7 @@
 			{#each previews as preview, index (index)}
 				<div class="preview-item">
 					<img src={preview} alt="Preview {index + 1}" />
-					<button
-						type="button"
-						class="remove-button"
-						onclick={() => removeFile(index)}
-					>
-						✕
-					</button>
+					<button type="button" class="remove-button" onclick={() => removeFile(index)}> ✕ </button>
 				</div>
 			{/each}
 		</div>
@@ -219,5 +213,4 @@
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
-
 </style>
