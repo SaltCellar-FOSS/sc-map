@@ -13,6 +13,7 @@
 
 	type BaseProps = {
 		onsuccess?: () => void;
+		submitting?: boolean;
 	};
 
 	type AddModeProps = BaseProps & {
@@ -29,7 +30,7 @@
 
 	type Props = AddModeProps | EditModeProps;
 
-	let { mode, place, visit, onsuccess }: Props = $props();
+	let { mode, place, visit, onsuccess, submitting = $bindable(false) }: Props = $props();
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
@@ -81,6 +82,8 @@
 			return;
 		}
 
+		submitting = true;
+
 		// Append selected images to FormData for add mode
 		if (isAddMode) {
 			for (const file of selectedImages) {
@@ -89,6 +92,7 @@
 		}
 
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			submitting = false;
 			if (result.type === 'success') {
 				onsuccess?.();
 			}
