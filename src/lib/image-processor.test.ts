@@ -25,14 +25,14 @@ describe('validateImage', () => {
 			new Uint8Array(15 * 1024 * 1024),
 			'large.png',
 			'image/png'
-		) as any;
+		) as unknown as File;
 		largeFile.size = 15 * 1024 * 1024; // 15MB
 
 		await expect(validateImage(largeFile)).rejects.toThrow('File size');
 	});
 
 	it('should reject invalid MIME types', async () => {
-		const textFile = new MockFile('not an image', 'test.txt', 'text/plain') as any;
+		const textFile = new MockFile('not an image', 'test.txt', 'text/plain') as unknown as File;
 
 		await expect(validateImage(textFile)).rejects.toThrow('not allowed');
 	});
@@ -40,7 +40,7 @@ describe('validateImage', () => {
 
 describe('processImage', () => {
 	it('should reject invalid input files', async () => {
-		const invalidFile = new MockFile('not an image', 'test.txt', 'text/plain') as any;
+		const invalidFile = new MockFile('not an image', 'test.txt', 'text/plain') as unknown as File;
 
 		await expect(processImage(invalidFile)).rejects.toThrow('not allowed');
 	});
