@@ -21,27 +21,23 @@ class MockFile {
 
 describe('validateImage', () => {
 	it('should reject files over size limit', async () => {
-		const largeFile = new MockFile(
-			new Uint8Array(15 * 1024 * 1024),
-			'large.png',
-			'image/png'
-		) as unknown as File;
+		const largeFile = new MockFile(new Uint8Array(15 * 1024 * 1024), 'large.png', 'image/png');
 		largeFile.size = 15 * 1024 * 1024; // 15MB
 
-		await expect(validateImage(largeFile)).rejects.toThrow('File size');
+		await expect(validateImage(largeFile as unknown as File)).rejects.toThrow('File size');
 	});
 
 	it('should reject invalid MIME types', async () => {
-		const textFile = new MockFile('not an image', 'test.txt', 'text/plain') as unknown as File;
+		const textFile = new MockFile('not an image', 'test.txt', 'text/plain');
 
-		await expect(validateImage(textFile)).rejects.toThrow('not allowed');
+		await expect(validateImage(textFile as unknown as File)).rejects.toThrow('not allowed');
 	});
 });
 
 describe('processImage', () => {
 	it('should reject invalid input files', async () => {
-		const invalidFile = new MockFile('not an image', 'test.txt', 'text/plain') as unknown as File;
+		const invalidFile = new MockFile('not an image', 'test.txt', 'text/plain');
 
-		await expect(processImage(invalidFile)).rejects.toThrow('not allowed');
+		await expect(processImage(invalidFile as unknown as File)).rejects.toThrow('not allowed');
 	});
 });
