@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 /// <reference types="node" />
 
 export default defineConfig({
+	globalSetup: './src/test/global-setup.ts',
 	testDir: './src/test/e2e',
 	fullyParallel: false,
 	forbidOnly: !!process.env.CI,
