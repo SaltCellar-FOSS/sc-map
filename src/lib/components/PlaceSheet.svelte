@@ -35,6 +35,15 @@
 
 	let editPlaceOpen = $state(false);
 
+	function getMapsUrl(): string {
+		const { lat, lng, name } = place;
+		const isApple = /iPad|iPhone/.test(navigator.userAgent);
+		if (isApple) {
+			return `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(name)}`;
+		}
+		return `https://www.google.com/maps/place/?q=place_id:${place.google_place_id}`;
+	}
+
 	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
 
 	function checkViewport() {
@@ -48,6 +57,12 @@
 </script>
 
 {#snippet sheetContent(contentClass: string)}
+	<Button variant="tonal" onclick={onaddvisit} class="add-visit">
+		{#snippet icon()}
+			<Icon name="addReview" />
+		{/snippet}
+		Add Review
+	</Button>
 	<div class:contentClass>
 		{#await visits}
 			<p class="empty-state">Loading...</p>
@@ -66,9 +81,9 @@
 {/snippet}
 
 {#snippet headerActions()}
-	<Button variant="text" onclick={onaddvisit}>
+	<Button variant="text" href={getMapsUrl()} target="_blank" title="Open in maps">
 		{#snippet icon()}
-			<Icon name="addReview" />
+			<Icon name="map" />
 		{/snippet}
 	</Button>
 {/snippet}
@@ -80,11 +95,13 @@
 				<Icon name={getPlaceIcon(place.type)} size={32} />
 			{/snippet}
 		</Button>
-		<h2>{place.name}</h2>
+		{place.name}
 	</div>
 {/snippet}
 
-<EditPlaceDialog bind:open={editPlaceOpen} savedPlace={place} onsuccess={oneditplace} />
+{#key place.id}
+	<EditPlaceDialog bind:open={editPlaceOpen} savedPlace={place} onsuccess={oneditplace} />
+{/key}
 
 {#if isDesktop}
 	<SideSheet variant="standard" bind:open {onclose} {headerActions} {title}>
@@ -129,5 +146,11 @@
 		min-width: 48px;
 		border-radius: 50%;
 		padding: 0;
+	}
+
+	:global(.add-visit) {
+		width: 100%;
+		margin-bottom: 12px;
+		border-radius: var(--md-sys-shape-corner-medium);
 	}
 </style>
