@@ -6,25 +6,45 @@ import {
 	type VisitWithUser,
 	type VisitInsert,
 	type VisitUpdate
-} from '../../../schemas/visit';
+} from '$lib/schemas/visit';
 import { isPostgresError } from '$lib/db/utils';
 import { PG_ERRORS } from '$lib/db/errors';
+import { BaseDao } from '../base';
+import { NotFoundError } from '../errors';
 
-export class VisitNotFoundError extends Error {}
+export class VisitNotFoundError extends NotFoundError {
+	constructor(id: string) {
+		super('visits', id);
+		this.name = 'VisitNotFoundError';
+	}
+}
+
 export class DuplicateVisitError extends Error {}
 
-export class VisitsDao {
-	constructor(private readonly sql: SQL) {}
+export class VisitsDao extends BaseDao<Visit, VisitInsert, VisitUpdate> {
+	constructor(sql: SQL) {
+		super({
+			sql,
+			tableName: 'visits',
+			schema: VisitSchema,
+			notFoundError: VisitNotFoundError
+		});
+	}
+
+	protected getUniqueViolationFields(): Record<string, string> {
+		return {};
+	}
+
+	protected getCheckConstraints(): Record<string, (value: unknown) => string> {
+		return {};
+	}
 
 	public async retrieveVisit(visitId: bigint): Promise<Visit> {
-		const [result] = await this.sql`SELECT * FROM visits WHERE id = ${visitId}`;
-		if (!result) throw new VisitNotFoundError(String(visitId));
-		return VisitSchema.parse(result);
+		return this.retrieve(visitId);
 	}
 
 	public async listVisits(): Promise<Visit[]> {
-		const results = await this.sql`SELECT * FROM visits`;
-		return results.map((row: unknown) => VisitSchema.parse(row));
+		return this.list();
 	}
 
 	public async listVisitsByUser(userId: bigint): Promise<Visit[]> {
@@ -54,9 +74,9 @@ export class VisitsDao {
 	}
 
 	public async insertVisit(visitInsert: VisitInsert, tx?: TransactionSQL): Promise<Visit> {
-		const sql = tx ?? this.sql;
+		const db = tx ?? this.sql;
 		try {
-			const [result] = await sql`INSERT INTO visits ${sql(visitInsert)} RETURNING *`;
+			const [result] = await db`INSERT INTO visits ${db(visitInsert)} RETURNING *`;
 			return VisitSchema.parse(result);
 		} catch (e) {
 			if (isPostgresError(e)) {
@@ -71,25 +91,11 @@ export class VisitsDao {
 		visitUpdate: VisitUpdate,
 		tx?: TransactionSQL
 	): Promise<Visit> {
-		const sql = tx ?? this.sql;
-		try {
-			const [result] =
-				await sql`UPDATE visits SET ${sql(visitUpdate)} WHERE id = ${visitId} RETURNING *`;
-			if (!result) throw new VisitNotFoundError(String(visitId));
-			return VisitSchema.parse(result);
-		} catch (e) {
-			if (isPostgresError(e)) {
-				if (e.errno === PG_ERRORS.UNIQUE_VIOLATION) throw new DuplicateVisitError();
-			}
-			throw e;
-		}
+		return this.update(visitId, visitUpdate, tx);
 	}
 
 	public async deleteVisit(visitId: bigint, tx?: TransactionSQL): Promise<Visit> {
-		const sql = tx ?? this.sql;
-		const [result] = await sql`DELETE FROM visits WHERE id = ${visitId} RETURNING *`;
-		if (!result) throw new VisitNotFoundError(String(visitId));
-		return VisitSchema.parse(result);
+		return this.delete(visitId, tx);
 	}
 
 	public async countContributors(): Promise<number> {
