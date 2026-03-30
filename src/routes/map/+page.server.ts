@@ -98,7 +98,8 @@ export const actions = {
 
 		// Handle image uploads after visit creation
 		if (visitId) {
-			const imageFiles = data.getAll('images') as File[];
+			// Server-side enforcement: max 3 photos per visit
+			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
 			for (const file of imageFiles) {
 				if (!(file instanceof File) || file.size === 0) continue;
 
@@ -215,11 +216,22 @@ export const actions = {
 
 		if (existing.user_id !== userId) return fail(403, { error: 'Forbidden' });
 
+		// Capture photo URLs before deletion so we can clean up files afterward
+		const photoUrls = await visitsDao.listVisitPhotos(visitId);
+
 		try {
 			await visitsDao.deleteVisit(visitId);
 		} catch (e) {
 			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
 			throw e;
+		}
+
+		// Delete image files after DB deletion succeeds (DB rows are cascade-deleted)
+		for (const url of photoUrls) {
+			const result = await deleteImage(url);
+			if (!result.ok) {
+				console.error('Failed to delete image file during visit deletion:', result.error);
+			}
 		}
 
 		return { success: true };
@@ -234,8 +246,6 @@ export const actions = {
 
 		const data = await request.formData();
 
-		// For new visits, we don't have a visitId yet, so we need to create a temporary visit
-		// The frontend should handle this by creating the visit first, then uploading photos
 		const visitIdResult = z.coerce.bigint().optional().safeParse(data.get('visitId')?.toString());
 		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
 		const visitId = visitIdResult.data;
@@ -283,7 +293,6 @@ export const actions = {
 		try {
 			await visitsDao.insertVisitPhoto(visitId, savedImage.value);
 		} catch (error) {
-			// If database insert fails, try to clean up the saved file
 			await deleteImage(savedImage.value);
 			throw error;
 		}
@@ -330,7 +339,6 @@ export const actions = {
 		// Then delete from file system
 		const deleteResult = await deleteImage(imageUrl);
 		if (!deleteResult.ok) {
-			// Log the error but don't fail the request since the DB record is gone
 			console.error('Failed to delete image file:', deleteResult.error);
 		}
 

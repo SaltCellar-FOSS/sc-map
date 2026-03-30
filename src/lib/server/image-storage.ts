@@ -62,27 +62,3 @@ export async function deleteImage(url: string): Promise<Result<void, string>> {
 	}
 }
 
-/**
- * Checks if an image exists on the file system
- */
-export async function imageExists(url: string): Promise<boolean> {
-	const filename = url.replace('/images/', '');
-	if (!filename || filename === url) {
-		return false;
-	}
-
-	const filePath = join(IMAGES_DIR, filename);
-
-	try {
-		await writeFile(filePath, Buffer.alloc(0), { flag: 'wx' });
-		// If we get here, file doesn't exist (wx flag would fail)
-		return false;
-	} catch (error) {
-		// If error code is EEXIST, file exists
-		if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
-			return true;
-		}
-		// For other errors, assume file doesn't exist or is inaccessible
-		return false;
-	}
-}
