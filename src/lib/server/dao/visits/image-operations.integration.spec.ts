@@ -19,7 +19,7 @@ describe('VisitsDao - Image Operations', () => {
 			user_id: testUserId,
 			place_id: testPlaceId,
 			summary: 'Test visit for image operations',
-			visited_at: new Date().toISOString()
+			visited_at: new Date().toISOString().split('T')[0] as never
 		});
 		testVisitId = visit.id;
 	});
@@ -57,7 +57,7 @@ describe('VisitsDao - Image Operations', () => {
 				user_id: testUserId,
 				place_id: testPlaceId,
 				summary: 'Empty visit test',
-				visited_at: new Date().toISOString()
+				visited_at: new Date().toISOString().split('T')[0] as never
 			});
 
 			const photos = await visitsDao.listVisitPhotos(emptyVisit.id);
