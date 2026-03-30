@@ -50,6 +50,14 @@ export const actions: Actions = {
 			});
 		}
 
+		// Validate selectedType up front — returning fail() inside sql.begin() only
+		// returns from the callback, not from the action handler.
+		const rawSelectedType = data.get('selectedType')?.toString() ?? '';
+		if (!isSavedPlaceType(rawSelectedType)) {
+			return fail(400, { error: 'Missing or invalid selectedType' });
+		}
+		const selectedType = rawSelectedType;
+
 		let visitId: bigint | undefined;
 
 		await sql.begin(async (tx) => {
@@ -66,14 +74,6 @@ export const actions: Actions = {
 
 				const googlePlace = await getGooglePlaceById(googlePlaceId);
 				if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
-
-				const selectedType = data.get('selectedType')?.toString();
-				if (!selectedType) {
-					return fail(400, { error: 'Missing selectedType' });
-				}
-				if (!isSavedPlaceType(selectedType)) {
-					return fail(400, { error: 'Received selectedType value was invalid.' });
-				}
 
 				const place = await savedPlacesDao.insertSavedPlace(
 					{

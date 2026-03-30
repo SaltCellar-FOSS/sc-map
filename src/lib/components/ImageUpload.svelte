@@ -21,7 +21,8 @@
 		const input = event.target as HTMLInputElement;
 		const selectedFiles = Array.from(input.files || []);
 
-		// Reset previous state
+		// Reset previous state, releasing any existing object URLs
+		previews.forEach(URL.revokeObjectURL);
 		files = [];
 		previews = [];
 		errors = [];
@@ -70,15 +71,11 @@
 	}
 
 	function removeFile(index: number) {
+		URL.revokeObjectURL(previews[index]);
 		files = files.filter((_, i) => i !== index);
 		previews = previews.filter((_, i) => i !== index);
 		onFilesChange?.(files);
 	}
-
-	// Expose files to parent component
-	$effect(() => {
-		onFilesChange?.(files);
-	});
 </script>
 
 <div class="image-upload">
