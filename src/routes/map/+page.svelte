@@ -90,6 +90,11 @@
 		}
 	}
 
+	async function handlePlaceDeleted() {
+		await invalidate('app:places');
+		selectedPlace = null;
+	}
+
 	const fetchAutocompleteResults = async (
 		query: string
 	): Promise<(AutocompleteSuggestion | SavedPlace)[]> => {
@@ -129,6 +134,7 @@
 		oneditvisit={handleOnEditVisit}
 		ondeletevisit={handleOnDeleteVisit}
 		oneditplace={handlePlaceEdited}
+		ondeleteplace={handlePlaceDeleted}
 	/>
 {/if}
 

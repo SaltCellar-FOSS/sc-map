@@ -352,5 +352,42 @@ export const actions: Actions = {
 		}
 
 		return { success: true };
+	},
+
+	deletePlace: async ({ request, cookies }) => {
+		try {
+			await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const placeIdResult = z.coerce.bigint().safeParse(data.get('placeId')?.toString());
+
+		if (!placeIdResult.success) {
+			return fail(400, { error: 'Invalid placeId' });
+		}
+
+		const placeId = placeIdResult.data;
+
+		try {
+			await savedPlacesDao.retrieveSavedPlace(placeId);
+			const visits = await visitsDao.listVisitsByPlace(placeId);
+			if (visits.length > 0) {
+				return fail(400, { error: 'Cannot delete a saved place with attached visits' });
+			}
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
+
+		try {
+			await savedPlacesDao.deleteSavedPlace(placeId);
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
 	}
 };
