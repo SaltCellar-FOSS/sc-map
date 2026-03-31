@@ -11,7 +11,9 @@
 	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { invalidate } from '$app/navigation';
+	import { invalidate, pushState, replaceState } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { slugifyPlace, parsePlaceId } from '$lib/place-slug';
 	import type VisitDialogType from '$lib/components/VisitDialog.svelte';
 	import type DeleteVisitConfirmationDialogType from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 
@@ -36,9 +38,10 @@
 	let DeleteVisitConfirmationDialog = $state<typeof DeleteVisitConfirmationDialogType | null>(null);
 
 	function handlePlaceSelect(place: Place | null) {
-		selectedPlace = place;
 		if (place === null) {
+			selectedPlace = null;
 			searchQuery = '';
+			replaceState('', {});
 			return;
 		}
 
@@ -47,8 +50,41 @@
 		if (isSavedPlace(place)) {
 			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
+			const param = `?place=${slugifyPlace(place)}`;
+			selectedPlace = place;
+			if ($page.url.searchParams.has('place')) {
+				replaceState(param, {});
+			} else {
+				pushState(param, {});
+			}
+		} else {
+			selectedPlace = place;
 		}
 	}
+
+	$effect(() => {
+		const param = $page.url.searchParams.get('place');
+		const id = param ? parsePlaceId(param) : null;
+
+		if (!id) {
+			if (selectedPlace !== null) {
+				selectedPlace = null;
+				sheetOpen = false;
+				searchQuery = '';
+			}
+			return;
+		}
+
+		if (selectedPlace && isSavedPlace(selectedPlace) && selectedPlace.id === id) return;
+
+		const place = Object.values(data.savedPlaces).find((p) => p.id === id);
+		if (place) {
+			selectedPlace = place;
+			searchQuery = place.name;
+			visitsResult = getVisitsForPlace(place.id);
+			sheetOpen = true;
+		}
+	});
 
 	async function handleOnAddVisit() {
 		if (!VisitDialog) {
@@ -165,6 +201,7 @@
 								searchQuery = '';
 								selectedPlace = null;
 								sheetOpen = false;
+								replaceState('', {});
 							}}
 						>
 							<Icon name="close" class="md-search-bar__icon" />
