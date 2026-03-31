@@ -1,46 +1,54 @@
-# Database Access Object (DAO) Implementations
+# Database Access Objects (DAOs)
 
-## Directory Structure
+## Directory structure
 
-Each entity gets its own subdirectory:
+Each entity gets its own subdirectory under `src/lib/server/dao/`:
 
 ```
-src/lib/dao/<entity>/
-  types.ts       — Zod schemas and inferred TypeScript types
-  index.ts       — DAO class and domain error classes
-  index.test.ts  — Integration tests against a real database
+src/lib/server/dao/<entity>/
+  types.ts                   — Zod schemas and inferred TypeScript types
+  index.ts                   — DAO class and domain error classes
+  index.test.ts              — Unit tests (mocked SQL)
+  index.integration.spec.ts  — Integration tests (real database)
 ```
+
+Shared files in `src/lib/server/dao/`:
+
+- `base.ts` — `BaseDao<T, TInsert, TUpdate>` abstract class; provides `retrieve`, `list`, `insert`, `update`, `delete` and maps Postgres constraint errors to domain errors automatically.
+- `errors.ts` — Shared domain error classes: `NotFoundError`, `DuplicateError`, `ForeignKeyError`, `CheckViolationError`.
+- `mock.ts` — Test utilities: `createMockSQL(rows)` and `createErrorSQL(pgErrorCode)`.
 
 ## types.ts
 
-Define Zod schemas for the entity, then derive TypeScript types from them using `z.infer<>`.
+Define Zod schemas for the entity, then derive TypeScript types with `z.infer<>`.
 
-- Use `z.bigint()` for all `bigint` columns (`id`, foreign keys, etc.). The SQL client is configured with `bigint: true`, so the driver returns bigint columns as native `bigint` values.
+- Use `z.bigint()` for all bigint columns (`id`, foreign keys). The SQL client returns these as native `bigint` with `bigint: true`.
 - Export named schemas (`EntitySchema`, `EntityInsertSchema`, `EntityUpdateSchema`) alongside their inferred types (`Entity`, `EntityInsert`, `EntityUpdate`).
 - `InsertSchema` is typically `EntitySchema.omit({ id: true, created_at: true })`.
 - `UpdateSchema` is typically `EntitySchema.omit({ id: true }).partial()`.
 
 ## index.ts
 
-- Export a single `EntityDao` class that takes a `SQL` instance in its constructor.
-- Parse all database results through the Zod schema (e.g. `EntitySchema.parse(row)`) instead of casting with `as`.
-- Define and export domain-specific error classes (`EntityNotFoundError`, `DuplicateFieldError`, etc.) in this file.
+- Export a single `EntityDao` class. Its constructor takes a `SQL` instance (or `TransactionSQL` for transaction support).
+- Extend `BaseDao` for standard CRUD, or implement methods directly for complex queries.
+- Parse all database results through the Zod schema (e.g. `EntitySchema.parse(row)`) — never cast with `as`.
+- Define and export domain-specific error classes (`EntityNotFoundError`, `DuplicateFieldError`, etc.) in this file, extending the shared base errors from `errors.ts`.
 - Export union types for each operation's possible errors (e.g. `InsertEntityError`, `UpdateEntityError`).
-- Methods that write to the database accept an optional `tx?: TransactionSQL` parameter to support transactions.
+- Write methods accept an optional `tx?: TransactionSQL` parameter to support multi-DAO transactions.
 
 ## index.test.ts
 
 - Mock the database — do not use a real database connection.
-- Create two mock SQL factory functions: one returning rows (`createMockSQL`), one throwing Postgres errors (`createErrorSQL`). Each returns a function that satisfies the tagged template literal interface and passes through `sql(object)` interpolation calls unchanged.
-- Mock row fixtures should use native `bigint` values for bigint columns (e.g. `id: 1n`), matching what the SQL client returns with `bigint: true`.
-- Each test constructs its own DAO instance with the appropriate mock — no shared state or `beforeEach` DB setup needed.
+- Use `createMockSQL(rows)` for success cases and `createErrorSQL(pgErrorCode)` for constraint error cases. Both are imported from `../mock`.
+- Mock row fixtures must use native `bigint` for bigint columns (e.g. `id: 1n`), matching what the SQL client returns.
+- Each test constructs its own DAO instance — no shared state or `beforeEach` DB setup needed.
 
 ## index.integration.spec.ts
 
 - Test against a real database using `sql` from `$lib/db`.
-- Use `beforeEach` to create a fresh DAO instance and set up required test data (e.g., users, places).
-- Use `afterEach` to clean up all inserted data in the correct order to respect foreign key constraints (e.g., delete visits before saved_places, delete saved_places before users).
-- The test file name must be `index.integration.spec.ts` to be recognized as an integration test.
-- Follow the structure: `describe('Integration', () => { ... })` with nested `describe` blocks for each method.
-- Test both success cases and constraint errors (duplicate, not found, invalid foreign key, etc.).
-- Import domain error classes from the DAO's index.ts and use `.rejects.toBeInstanceOf()` for error assertions.
+- Use `beforeEach` to create a fresh DAO instance and insert required test fixtures (e.g. users, places in FK order).
+- Use `afterEach` to delete all inserted data in reverse FK order (e.g. delete visits → saved_places → users).
+- File name must be `index.integration.spec.ts` to be picked up by the integration test runner.
+- Top-level describe: `describe('Integration', () => { ... })` with nested describes per method.
+- Test both success cases and constraint errors (duplicate, not found, invalid FK, check violation).
+- Use `.rejects.toBeInstanceOf(ErrorClass)` for error assertions.
