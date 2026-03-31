@@ -12,7 +12,6 @@
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
 	import { invalidate, pushState, replaceState } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { slugifyPlace, parsePlaceId } from '$lib/place-slug';
 	import type VisitDialogType from '$lib/components/VisitDialog.svelte';
@@ -51,12 +50,12 @@
 		if (isSavedPlace(place)) {
 			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
-			const resolvedUrl = resolve(`${$page.url.pathname}?place=${slugifyPlace(place)}`);
+			const url = `${$page.url.pathname}?place=${slugifyPlace(place)}`;
 			selectedPlace = place;
 			if ($page.url.searchParams.has('place')) {
-				replaceState(resolvedUrl, {});
+				replaceState(url, {});
 			} else {
-				pushState(resolvedUrl, {});
+				pushState(url, {});
 			}
 		} else {
 			selectedPlace = place;
