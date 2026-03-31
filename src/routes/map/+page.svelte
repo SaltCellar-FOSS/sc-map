@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, onMount } from 'svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -33,6 +33,7 @@
 	let visitsResult = $state<ReturnType<typeof getVisitsForPlace> | null>(null);
 
 	let sessionToken: string | null = null;
+	let mounted = false;
 
 	// Dialog components — lazily loaded on first use
 	let VisitDialog = $state<typeof VisitDialogType | null>(null);
@@ -63,8 +64,11 @@
 		}
 	}
 
+	// Sync URL → state for back/forward navigation (skips initial mount, which is handled by onMount).
 	$effect(() => {
 		const param = $page.url.searchParams.get('place');
+		if (!mounted) return;
+
 		const id = param ? parsePlaceId(param) : null;
 
 		if (!id) {
@@ -80,12 +84,19 @@
 			return;
 
 		const place = Object.values(data.savedPlaces).find((p) => p.id === id);
-		if (place) {
-			selectedPlace = place;
-			searchQuery = place.name;
-			visitsResult = getVisitsForPlace(place.id);
-			sheetOpen = true;
+		if (place) handlePlaceSelect(place);
+	});
+
+	// Pan the map whenever a saved place is selected.
+	$effect(() => {
+		if (selectedPlace && isSavedPlace(selectedPlace) && placeMap) {
+			placeMap.panTo(selectedPlace.lat, selectedPlace.lng);
 		}
+	});
+
+	onMount(() => {
+		mounted = true;
+		if (data.initialPlace) handlePlaceSelect(data.initialPlace);
 	});
 
 	async function handleOnAddVisit() {
