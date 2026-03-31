@@ -51,6 +51,7 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
       BODY_SIZE_LIMIT: '33554432' # 32MB — supports up to 3×10MB image uploads
+      IMAGES_DIR: /app/images
 
   backup:
     image: postgres:17-alpine

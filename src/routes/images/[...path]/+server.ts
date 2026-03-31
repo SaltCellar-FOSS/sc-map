@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { join, normalize, extname } from 'node:path';
 import type { RequestHandler } from './$types';
 
-const IMAGES_DIR = '/app/images';
+const IMAGES_DIR = process.env.IMAGES_DIR ?? './images';
 
 const MIME_TYPES: Record<string, string> = {
 	'.jpg': 'image/jpeg',

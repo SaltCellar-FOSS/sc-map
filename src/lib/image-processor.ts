@@ -1,14 +1,14 @@
 import sharp from 'sharp';
 import { Result } from './result';
 
-export interface ImageProcessingOptions {
+interface ImageProcessingOptions {
 	maxWidth: number;
 	maxHeight: number;
 	quality: number;
 	format: 'jpeg' | 'png' | 'webp';
 }
 
-export interface ProcessedImage {
+interface ProcessedImage {
 	buffer: Buffer;
 	filename: string;
 	mimeType: string;
