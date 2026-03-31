@@ -48,7 +48,7 @@
 				target="_blank"
 				onclick={handleClose}
 			>
-				{#snippet icon()}<Icon name="pin" size={28} />{/snippet}
+				{#snippet icon()}<Icon name="map" size={28} />{/snippet}
 			</Button>
 			<span class="map-label">Google Maps</span>
 		</div>
