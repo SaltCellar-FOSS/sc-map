@@ -11,6 +11,7 @@
 	import DeletePlaceConfirmationDialog from './DeletePlaceConfirmationDialog.svelte';
 	import ShareDialog from './ShareDialog.svelte';
 	import { isAppleDevice } from '$lib/platform';
+	import { getGoogleMapsUrl } from '$lib/share';
 
 	type Props = {
 		open?: boolean;
@@ -90,7 +91,7 @@
 	{:else}
 		<Button
 			variant="text"
-			href="https://www.google.com/maps/place/?q=place_id:{place.google_place_id}"
+			href={getGoogleMapsUrl(place)}
 			target="_blank"
 			title="Open in Google Maps"
 		>
