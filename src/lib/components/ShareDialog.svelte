@@ -16,7 +16,7 @@
 	const isApple = isAppleDevice();
 
 	function getGoogleMapsUrl() {
-		return `https://www.google.com/maps/place/?q=place_id:${place.google_place_id}`;
+		return `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}&query_place_id=${place.google_place_id}`;
 	}
 
 	function getAppleMapsUrl() {
