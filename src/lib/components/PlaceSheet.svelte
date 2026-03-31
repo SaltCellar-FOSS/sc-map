@@ -9,6 +9,8 @@
 	import { getPlaceIcon } from '$lib/categories';
 	import EditPlaceDialog from './EditPlaceDialog.svelte';
 	import DeletePlaceConfirmationDialog from './DeletePlaceConfirmationDialog.svelte';
+	import ShareDialog from './ShareDialog.svelte';
+	import { isAppleDevice } from '$lib/platform';
 
 	type Props = {
 		open?: boolean;
@@ -38,15 +40,9 @@
 
 	let editPlaceOpen = $state(false);
 	let deletePlaceOpen = $state(false);
+	let sharePlaceOpen = $state(false);
 
-	function getMapsUrl(): string {
-		const { lat, lng, name } = place;
-		const isApple = /iPad|iPhone/.test(navigator.userAgent);
-		if (isApple) {
-			return `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(name)}`;
-		}
-		return `https://www.google.com/maps/place/?q=place_id:${place.google_place_id}`;
-	}
+	const isApple = isAppleDevice();
 
 	let isDesktop = $state(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
 
@@ -85,11 +81,24 @@
 {/snippet}
 
 {#snippet headerActions()}
-	<Button variant="text" href={getMapsUrl()} target="_blank" title="Open in maps">
-		{#snippet icon()}
-			<Icon name="map" />
-		{/snippet}
-	</Button>
+	{#if isApple}
+		<Button variant="text" onclick={() => (sharePlaceOpen = true)} title="Share place">
+			{#snippet icon()}
+				<Icon name="share" />
+			{/snippet}
+		</Button>
+	{:else}
+		<Button
+			variant="text"
+			href="https://www.google.com/maps/place/?q=place_id:{place.google_place_id}"
+			target="_blank"
+			title="Open in Google Maps"
+		>
+			{#snippet icon()}
+				<Icon name="map" />
+			{/snippet}
+		</Button>
+	{/if}
 
 	{#await visits then visits}
 		{#if visits.length === 0}
@@ -120,6 +129,9 @@
 		placeId={place.id}
 		onsuccess={ondeleteplace}
 	/>
+	{#if isApple}
+		<ShareDialog bind:open={sharePlaceOpen} {place} />
+	{/if}
 {/key}
 
 {#if isDesktop}
