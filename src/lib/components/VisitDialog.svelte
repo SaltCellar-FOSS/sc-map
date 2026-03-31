@@ -27,6 +27,7 @@
 	let { open = $bindable(false), place, mode, visit, onclose, onsuccess }: Props = $props();
 
 	let formRef = $state<VisitForm | null>(null);
+	let submitting = $state(false);
 
 	function handleClose() {
 		onclose?.();
@@ -44,17 +45,17 @@
 	<div class="dialog-body">
 		{#if mode === 'add'}
 			{#key place.google_place_id}
-				<VisitForm bind:this={formRef} {mode} {place} onsuccess={handleSuccess} />
+				<VisitForm bind:this={formRef} bind:submitting {mode} {place} onsuccess={handleSuccess} />
 			{/key}
 		{:else if mode === 'edit' && visit}
 			{#key visit.id}
-				<VisitForm bind:this={formRef} {mode} {visit} onsuccess={handleSuccess} />
+				<VisitForm bind:this={formRef} bind:submitting {mode} {visit} onsuccess={handleSuccess} />
 			{/key}
 		{/if}
 		<div class="md-dialog__actions">
-			<Button variant="text" onclick={handleClose}>Cancel</Button>
-			<Button variant="text" onclick={() => formRef?.submit()}>
-				{mode === 'add' ? 'Post' : 'Save'}
+			<Button variant="text" onclick={handleClose} disabled={submitting}>Cancel</Button>
+			<Button variant="text" onclick={() => formRef?.submit()} disabled={submitting}>
+				{submitting ? 'Saving…' : mode === 'add' ? 'Post' : 'Save'}
 			</Button>
 		</div>
 	</div>

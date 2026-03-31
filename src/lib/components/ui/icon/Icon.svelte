@@ -18,6 +18,7 @@
 	import editIcon from '$lib/icons/EditIcon.svg?raw';
 	import deleteIcon from '$lib/icons/DeleteIcon.svg?raw';
 	import mapIcon from '$lib/icons/MapIcon.svg?raw';
+	import photoIcon from '$lib/icons/PhotoIcon.svg?raw';
 
 	export type IconName =
 		| 'bar'
@@ -36,7 +37,8 @@
 		| 'addReview'
 		| 'edit'
 		| 'delete'
-		| 'map';
+		| 'map'
+		| 'photo';
 
 	type Props = {
 		name: IconName;
@@ -62,7 +64,8 @@
 		dessert: dessertIcon,
 		foodTruck: foodTruckIcon,
 		otherDestination: otherDestinationIcon,
-		map: mapIcon
+		map: mapIcon,
+		photo: photoIcon
 	};
 
 	let { name, size = 24, class: className = '', ariaLabel }: Props = $props();

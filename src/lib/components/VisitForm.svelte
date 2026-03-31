@@ -1,5 +1,7 @@
 <script lang="ts">
 	import ChipSelector from './ChipSelector.svelte';
+	import Button from './ui/button/Button.svelte';
+	import Icon from './ui/icon/Icon.svelte';
 	import TextField from './ui/text-field/TextField.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
@@ -12,6 +14,7 @@
 
 	type BaseProps = {
 		onsuccess?: () => void;
+		submitting?: boolean;
 	};
 
 	type AddModeProps = BaseProps & {
@@ -28,7 +31,7 @@
 
 	type Props = AddModeProps | EditModeProps;
 
-	let { mode, place, visit, onsuccess }: Props = $props();
+	let { mode, place, visit, onsuccess, submitting = $bindable(false) }: Props = $props();
 
 	let formEl = $state<HTMLFormElement | null>(null);
 
@@ -43,6 +46,9 @@
 		untrack(() => (visit ? visit.visited_at.toString() : Temporal.Now.plainDateISO().toString()))
 	);
 	let selectedType = $state<SavedPlaceType | undefined>();
+	let selectedImages = $state<File[]>([]);
+	let photoUrls = $state<string[]>([]);
+	let fileInput = $state<HTMLInputElement | null>(null);
 	let submitted = $state(false);
 	let formError = $state('');
 
@@ -66,7 +72,27 @@
 		return validate(summary, visitDate);
 	});
 
-	const enhanceForm: SubmitFunction = ({ cancel }) => {
+	const MAX_PHOTOS = 3;
+
+	function handleFileChange(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const files = Array.from(input.files ?? []);
+		const remaining = MAX_PHOTOS - selectedImages.length;
+		const toAdd = files.slice(0, remaining);
+		selectedImages = [...selectedImages, ...toAdd];
+		for (const file of toAdd) {
+			photoUrls = [...photoUrls, URL.createObjectURL(file)];
+		}
+		input.value = '';
+	}
+
+	function removePhoto(index: number) {
+		URL.revokeObjectURL(photoUrls[index]);
+		selectedImages = selectedImages.filter((_, i) => i !== index);
+		photoUrls = photoUrls.filter((_, i) => i !== index);
+	}
+
+	const enhanceForm: SubmitFunction = ({ cancel, formData }) => {
 		submitted = true;
 		formError = '';
 		const errors = validate(summary, visitDate);
@@ -74,7 +100,18 @@
 			cancel();
 			return;
 		}
+
+		submitting = true;
+
+		// Append selected images to FormData for add mode
+		if (isAddMode) {
+			for (const file of selectedImages) {
+				formData.append('images', file);
+			}
+		}
+
 		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			submitting = false;
 			if (result.type === 'success') {
 				onsuccess?.();
 			}
@@ -93,6 +130,7 @@
 	class="form-body"
 	method="POST"
 	action="/map?/{isAddMode ? 'addVisit' : 'editVisit'}"
+	enctype="multipart/form-data"
 >
 	{#if isAddMode}
 		<input type="hidden" name="googlePlaceId" value={googlePlaceId} />
@@ -130,6 +168,45 @@
 		<ChipSelector bind:selectedType></ChipSelector>
 	{/if}
 
+	{#if isAddMode}
+		<div class="photos-row">
+			{#if selectedImages.length < MAX_PHOTOS}
+				<Button variant="tonal" onclick={() => fileInput?.click()}>
+					{#snippet icon()}
+						<Icon name="photo" class="md-btn__icon" />
+					{/snippet}
+					Add photos
+				</Button>
+				<input
+					bind:this={fileInput}
+					type="file"
+					accept="image/*"
+					multiple
+					style="display:none"
+					onchange={handleFileChange}
+				/>
+			{/if}
+		</div>
+
+		{#if photoUrls.length > 0}
+			<div class="photo-strip" role="list" aria-label="Added photos">
+				{#each photoUrls as url, i (url)}
+					<div class="photo-thumb" role="listitem">
+						<img src={url} alt="Photo {i + 1}" />
+						<button
+							type="button"
+							class="photo-remove"
+							aria-label="Remove photo {i + 1}"
+							onclick={() => removePhoto(i)}
+						>
+							<Icon name="close" size={16} />
+						</button>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/if}
+
 	{#if formError}
 		<p class="field-error" role="alert">{formError}</p>
 	{/if}
@@ -148,5 +225,53 @@
 
 	:global(.type-toggle) {
 		width: 100%;
+	}
+
+	.photos-row {
+		display: grid;
+	}
+
+	.photo-strip {
+		display: flex;
+		gap: 8px;
+		overflow-x: auto;
+		padding-bottom: 4px;
+		scrollbar-width: none;
+	}
+
+	.photo-strip::-webkit-scrollbar {
+		display: none;
+	}
+
+	.photo-thumb {
+		flex: 0 0 140px;
+		height: 140px;
+		border-radius: 12px;
+		overflow: hidden;
+		border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+		position: relative;
+	}
+
+	.photo-thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.photo-remove {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0, 0, 0, 0.55);
+		color: #fff;
+		padding: 0;
 	}
 </style>

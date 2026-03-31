@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: sc_map
       POSTGRES_DB: sc_map
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./db_data:/var/lib/postgresql/data
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:
       - internal
@@ -32,6 +32,8 @@ services:
         condition: service_healthy
     ports:
       - '3000:3000'
+    volumes:
+      - ./images:/app/images
     networks:
       - internal
     environment:
@@ -43,6 +45,4 @@ services:
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
-
-volumes:
-  db_data:
+      BODY_SIZE_LIMIT: '33554432' # 32MB — supports up to 3×10MB image uploads

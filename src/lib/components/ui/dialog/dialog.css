@@ -129,6 +129,7 @@
 	width: 100%;
 	min-width: var(--md-comp-dialog-container-min-width);
 	max-width: var(--md-comp-dialog-container-max-width);
+	max-height: calc(100vh - 48px);
 
 	/* Shape */
 	border-radius: var(--md-comp-dialog-container-shape);

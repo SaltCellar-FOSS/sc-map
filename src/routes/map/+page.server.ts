@@ -7,10 +7,19 @@ import { VisitNotFoundError, VisitsDao } from '$lib/server/dao/visits';
 import { getGooglePlaceById } from '$lib/google-places';
 import { isSavedPlaceType } from '$lib/schemas/saved-place';
 import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
+import { processImage } from '$lib/image-processor';
+import { saveImage, deleteImage } from '$lib/server/image-storage';
 import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$lib/server/guards';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
+
+class InvalidPlaceTypeError extends Error {
+	constructor() {
+		super('Missing or invalid selectedType');
+		this.name = 'InvalidPlaceTypeError';
+	}
+}
 
 const VisitInsertWithoutPlaceSchema = VisitInsertSchema.omit({ place_id: true });
 
@@ -48,52 +57,71 @@ export const actions: Actions = {
 			});
 		}
 
-		await sql.begin(async (tx) => {
-			let placeId: bigint;
+		let visitId: bigint | undefined;
 
-			try {
-				const existing = await savedPlacesDao.retrieveSavedPlaceByGooglePlaceId(googlePlaceId);
+		try {
+			await sql.begin(async (tx) => {
+				let placeId: bigint;
 
-				placeId = existing.id;
-			} catch (error) {
-				if (!(error instanceof SavedPlaceNotFoundError)) {
-					throw error;
+				try {
+					const existing = await savedPlacesDao.retrieveSavedPlaceByGooglePlaceId(googlePlaceId);
+					placeId = existing.id;
+				} catch (error) {
+					if (!(error instanceof SavedPlaceNotFoundError)) throw error;
+
+					const googlePlace = await getGooglePlaceById(googlePlaceId);
+					if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
+
+					// selectedType is only required when creating a new place
+					const rawSelectedType = data.get('selectedType')?.toString() ?? '';
+					if (!isSavedPlaceType(rawSelectedType)) throw new InvalidPlaceTypeError();
+
+					const place = await savedPlacesDao.insertSavedPlace(
+						{
+							name: googlePlace.name,
+							lat: googlePlace.geometry.location.lat,
+							lng: googlePlace.geometry.location.lng,
+							formatted_address: googlePlace.formatted_address,
+							google_place_id: googlePlace.place_id,
+							type: rawSelectedType,
+							submitted_by: userId
+						},
+						tx
+					);
+					placeId = place.id;
 				}
 
-				const googlePlace = await getGooglePlaceById(googlePlaceId);
-				if (!googlePlace) throw new Error(`Google place not found: ${googlePlaceId}`);
-
-				const selectedType = data.get('selectedType')?.toString();
-				if (!selectedType) {
-					return fail(400, { error: 'Missing selectedType' });
-				}
-				if (!isSavedPlaceType(selectedType)) {
-					return fail(400, { error: 'Received selectedType value was invalid.' });
-				}
-
-				const place = await savedPlacesDao.insertSavedPlace(
+				const visit = await visitsDao.insertVisit(
 					{
-						name: googlePlace.name,
-						lat: googlePlace.geometry.location.lat,
-						lng: googlePlace.geometry.location.lng,
-						formatted_address: googlePlace.formatted_address,
-						google_place_id: googlePlace.place_id,
-						type: selectedType,
-						submitted_by: userId
+						place_id: placeId,
+						...parseResult.data
 					},
 					tx
 				);
-				placeId = place.id;
-			}
+				visitId = visit.id;
+			});
+		} catch (e) {
+			if (e instanceof InvalidPlaceTypeError) return fail(400, { error: e.message });
+			throw e;
+		}
 
-			await visitsDao.insertVisit(
-				{
-					place_id: placeId,
-					...parseResult.data
-				},
-				tx
-			);
-		});
+		// Handle image uploads after visit creation
+		// Result values are awaitable (PromiseLike): success resolves, failure rejects
+		if (visitId) {
+			// Server-side enforcement: max 3 photos per visit
+			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
+			for (const file of imageFiles) {
+				if (!(file instanceof File) || file.size === 0) continue;
+
+				try {
+					const processed = await processImage(file);
+					const url = await saveImage(processed.buffer, processed.filename);
+					await visitsDao.insertVisitPhoto(visitId, url);
+				} catch (e) {
+					console.error('Failed to process/save image:', e instanceof Error ? e.message : e);
+				}
+			}
+		}
 
 		return { success: true };
 	},
@@ -196,6 +224,9 @@ export const actions: Actions = {
 		const ownershipResult = requireOwnership(userId, (v) => v.user_id, existing);
 		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
 
+		// Capture photo URLs before deletion so we can clean up files afterward
+		const photoUrls = await visitsDao.listVisitPhotos(visitId);
+
 		try {
 			await visitsDao.deleteVisit(visitId);
 		} catch (e) {
@@ -203,6 +234,165 @@ export const actions: Actions = {
 			throw e;
 		}
 
+		// Delete image files after DB deletion succeeds (DB rows are cascade-deleted)
+		for (const url of photoUrls) {
+			try {
+				await deleteImage(url);
+			} catch (e) {
+				console.error(
+					'Failed to delete image file during visit deletion:',
+					e instanceof Error ? e.message : e
+				);
+			}
+		}
+
 		return { success: true };
+	},
+
+	uploadPhoto: async ({ request, cookies }) => {
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().optional().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		if (!visitId) {
+			return fail(400, { error: 'visitId is required for photo uploads' });
+		}
+
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
+
+		// Check current photo count
+		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (currentPhotos.length >= 3) {
+			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
+		}
+
+		const file = data.get('images') as File;
+		if (!file || !(file instanceof File)) {
+			return fail(400, { error: 'No file uploaded' });
+		}
+
+		let imageUrl: string;
+		try {
+			const processed = await processImage(file);
+			imageUrl = await saveImage(processed.buffer, processed.filename);
+		} catch (e) {
+			const message = e instanceof Error ? e.message : 'Image processing failed';
+			return fail(400, { error: message });
+		}
+
+		try {
+			await visitsDao.insertVisitPhoto(visitId, imageUrl);
+		} catch (e) {
+			// DB insert failed — clean up the saved file
+			try {
+				await deleteImage(imageUrl);
+			} catch {
+				/* best-effort */
+			}
+			throw e;
+		}
+
+		return { success: true, imageUrl };
+	},
+
+	deletePhoto: async ({ request, cookies }) => {
+		let userId: bigint;
+		try {
+			userId = await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const visitIdResult = z.coerce.bigint().safeParse(data.get('visitId')?.toString());
+		if (!visitIdResult.success) return fail(400, { error: 'Invalid visitId' });
+		const visitId = visitIdResult.data;
+
+		const imageUrl = data.get('imageUrl')?.toString();
+		if (!imageUrl) return fail(400, { error: 'Missing imageUrl' });
+
+		let visit;
+		try {
+			visit = await visitsDao.retrieveVisit(visitId);
+		} catch (e) {
+			if (e instanceof VisitNotFoundError) return fail(404, { error: 'Visit not found' });
+			throw e;
+		}
+
+		const ownershipResult = requireOwnership(userId, (v) => v.user_id, visit);
+		if (!ownershipResult.ok) return fail(403, { error: ownershipResult.error.message });
+
+		const visitPhotos = await visitsDao.listVisitPhotos(visitId);
+		if (!visitPhotos.includes(imageUrl)) {
+			return fail(404, { error: 'Image not found for this visit' });
+		}
+
+		await visitsDao.deleteVisitPhoto(visitId, imageUrl);
+
+		try {
+			await deleteImage(imageUrl);
+		} catch (e) {
+			console.error('Failed to delete image file:', e instanceof Error ? e.message : e);
+		}
+
+		return { success: true };
+	},
+
+	deletePlace: async ({ request, cookies }) => {
+		try {
+			await requireAuth(cookies);
+		} catch (e) {
+			if (e instanceof AuthError) return fail(e.status, { error: e.message });
+			throw e;
+		}
+
+		const data = await request.formData();
+
+		const placeIdResult = z.coerce.bigint().safeParse(data.get('placeId')?.toString());
+
+		if (!placeIdResult.success) {
+			return fail(400, { error: 'Invalid placeId' });
+		}
+
+		const placeId = placeIdResult.data;
+
+		try {
+			await savedPlacesDao.retrieveSavedPlace(placeId);
+			const visits = await visitsDao.listVisitsByPlace(placeId);
+			if (visits.length > 0) {
+				return fail(400, { error: 'Cannot delete a saved place with attached visits' });
+			}
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
+
+		try {
+			await savedPlacesDao.deleteSavedPlace(placeId);
+		} catch (e) {
+			if (e instanceof SavedPlaceNotFoundError) return fail(404, { error: 'Place not found' });
+			throw e;
+		}
 	}
 };

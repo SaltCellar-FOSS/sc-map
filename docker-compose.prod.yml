@@ -38,6 +38,9 @@ services:
       db:
         condition: service_healthy
 
+    volumes:
+      - ${IMAGES_PATH:-./images}:/app/images
+
     environment:
       SQL_URL: postgres://sc_map:sc_map@db:5432/sc_map
       ORIGIN: ${ORIGIN}
@@ -47,6 +50,8 @@ services:
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
       DISCORD_GOATED_ROLE_ID: ${DISCORD_GOATED_ROLE_ID}
+      BODY_SIZE_LIMIT: '33554432' # 32MB — supports up to 3×10MB image uploads
+      IMAGES_DIR: /app/images
 
   backup:
     image: postgres:17-alpine

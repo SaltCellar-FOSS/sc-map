@@ -8,6 +8,7 @@
 	import { type SavedPlace } from '$lib/schemas/saved-place';
 	import { getPlaceIcon } from '$lib/categories';
 	import EditPlaceDialog from './EditPlaceDialog.svelte';
+	import DeletePlaceConfirmationDialog from './DeletePlaceConfirmationDialog.svelte';
 
 	type Props = {
 		open?: boolean;
@@ -19,6 +20,7 @@
 		oneditvisit?: (visit: VisitWithUser) => void;
 		ondeletevisit?: (visit: VisitWithUser) => void;
 		oneditplace?: () => void;
+		ondeleteplace?: () => void;
 	};
 
 	let {
@@ -30,10 +32,12 @@
 		onaddvisit,
 		oneditvisit,
 		ondeletevisit,
-		oneditplace
+		oneditplace,
+		ondeleteplace
 	}: Props = $props();
 
 	let editPlaceOpen = $state(false);
+	let deletePlaceOpen = $state(false);
 
 	function getMapsUrl(): string {
 		const { lat, lng, name } = place;
@@ -86,6 +90,16 @@
 			<Icon name="map" />
 		{/snippet}
 	</Button>
+
+	{#await visits then visits}
+		{#if visits.length === 0}
+			<Button variant="text" onclick={() => (deletePlaceOpen = true)} title="Delete place">
+				{#snippet icon()}
+					<Icon name="delete" />
+				{/snippet}
+			</Button>
+		{/if}
+	{/await}
 {/snippet}
 
 {#snippet title()}
@@ -101,6 +115,11 @@
 
 {#key place.id}
 	<EditPlaceDialog bind:open={editPlaceOpen} savedPlace={place} onsuccess={oneditplace} />
+	<DeletePlaceConfirmationDialog
+		bind:open={deletePlaceOpen}
+		placeId={place.id}
+		onsuccess={ondeleteplace}
+	/>
 {/key}
 
 {#if isDesktop}
