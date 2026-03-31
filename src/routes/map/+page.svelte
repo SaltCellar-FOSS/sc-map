@@ -34,6 +34,7 @@
 
 	let sessionToken: string | null = null;
 	let mounted = false;
+	let pendingPanPlace = $state<SavedPlace | null>(null);
 
 	// Dialog components — lazily loaded on first use
 	let VisitDialog = $state<typeof VisitDialogType | null>(null);
@@ -80,23 +81,35 @@
 			return;
 		}
 
-		if (untrack(() => selectedPlace && isSavedPlace(selectedPlace) && selectedPlace.id === id))
+		if (
+			untrack(
+				() =>
+					selectedPlace && isSavedPlace(selectedPlace) && String(selectedPlace.id) === String(id)
+			)
+		)
 			return;
 
-		const place = Object.values(data.savedPlaces).find((p) => p.id === id);
-		if (place) handlePlaceSelect(place);
+		const place = Object.values(data.savedPlaces).find((p) => String(p.id) === String(id));
+		if (place) {
+			handlePlaceSelect(place);
+			pendingPanPlace = place;
+		}
 	});
 
-	// Pan the map whenever a saved place is selected.
+	// Pan to a place once the map is ready (used for URL load and forward navigation).
 	$effect(() => {
-		if (selectedPlace && isSavedPlace(selectedPlace) && placeMap) {
-			placeMap.panTo(selectedPlace.lat, selectedPlace.lng);
+		if (pendingPanPlace && placeMap) {
+			placeMap.panTo(pendingPanPlace.lat, pendingPanPlace.lng);
+			pendingPanPlace = null;
 		}
 	});
 
 	onMount(() => {
 		mounted = true;
-		if (data.initialPlace) handlePlaceSelect(data.initialPlace);
+		if (data.initialPlace) {
+			handlePlaceSelect(data.initialPlace);
+			pendingPanPlace = data.initialPlace;
+		}
 	});
 
 	async function handleOnAddVisit() {
