@@ -4,6 +4,7 @@
 	import Icon from './ui/icon/Icon.svelte';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import { isAppleDevice } from '$lib/platform';
+	import { getAppleMapsUrl, getGoogleMapsUrl } from '$lib/share';
 
 	type Props = {
 		open?: boolean;
@@ -14,14 +15,6 @@
 	let { open = $bindable(false), place, onclose }: Props = $props();
 
 	const isApple = isAppleDevice();
-
-	function getGoogleMapsUrl() {
-		return `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}&query_place_id=${place.google_place_id}`;
-	}
-
-	function getAppleMapsUrl() {
-		return `https://maps.apple.com/?ll=${place.lat},${place.lng}&q=${encodeURIComponent(place.name)}`;
-	}
 
 	function handleClose() {
 		onclose?.();
@@ -38,7 +31,7 @@
 				<Button
 					variant="text"
 					class="map-btn"
-					href={getAppleMapsUrl()}
+					href={getAppleMapsUrl(place)}
 					target="_blank"
 					onclick={handleClose}
 				>
@@ -51,7 +44,7 @@
 			<Button
 				variant="text"
 				class="map-btn"
-				href={getGoogleMapsUrl()}
+				href={getGoogleMapsUrl(place)}
 				target="_blank"
 				onclick={handleClose}
 			>
