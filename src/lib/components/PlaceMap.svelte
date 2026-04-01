@@ -10,30 +10,27 @@
 
 	type Props = {
 		savedPlaces: { [googlePlaceId: string]: SavedPlace };
+		selectedPlace: Place | null;
 		onsaveplace: (place: Place) => void;
 		onplacechange: (place: Place | null) => void;
 	};
 
-	let { savedPlaces, onsaveplace, onplacechange }: Props = $props();
+	let { savedPlaces, selectedPlace, onsaveplace, onplacechange }: Props = $props();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
 	let AdvancedMarkerClass = $state<typeof google.maps.marker.AdvancedMarkerElement | null>(null);
-	let selectedPlace = $state<Place | null>(null);
 	let currentInfoWindow = $state<google.maps.InfoWindow | null>(null);
 	let currentMarker = $state<google.maps.marker.AdvancedMarkerElement | null>(null);
 
-	let pendingPan: { lat: number; lng: number } | null = null;
-
-	export const panTo = (lat: number, lng: number) => {
-		if (map) {
-			map.panTo({ lat, lng });
-			map.setZoom(15);
-		} else {
-			pendingPan = { lat, lng };
-		}
-	};
-
+	/**
+	 * Given a Google Place ID and an optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens),
+	 * retrieves the info needed to render a place on the map.
+	 *
+	 * Exposed externally so that clicking a search result can reuse the same behavior as clicking a location on the map.
+	 * @param googlePlaceId The [Google Place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of a location.
+	 * @param sessionToken An optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens), used to minimize autocomplete costs.
+	 */
 	export const handlePlaceSelected = async (googlePlaceId: string, sessionToken: string | null) => {
 		if (googlePlaceId in savedPlaces) {
 			clearCurrentInfoWindow();
@@ -190,12 +187,6 @@
 		});
 
 		map.addListener('click', handleMapClick);
-
-		if (pendingPan) {
-			map.panTo(pendingPan);
-			map.setZoom(15);
-			pendingPan = null;
-		}
 	});
 </script>
 

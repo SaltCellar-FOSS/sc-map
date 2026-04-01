@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { untrack, onMount } from 'svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -12,9 +11,8 @@
 	import { autocompletePlaces, type AutocompleteSuggestion } from '$lib/google-places';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
 	import type { VisitWithUser } from '$lib/schemas/visit';
-	import { invalidate, pushState, replaceState } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { slugifyPlace, parsePlaceId } from '$lib/place-slug';
+	import { invalidate, replaceState } from '$app/navigation';
+	import { onMount, untrack } from 'svelte';
 	import type VisitDialogType from '$lib/components/VisitDialog.svelte';
 	import type DeleteVisitConfirmationDialogType from '$lib/components/DeleteVisitConfirmationDialog.svelte';
 
@@ -22,7 +20,7 @@
 
 	let placeMap = $state<PlaceMap | null>(null);
 
-	let selectedPlace = $state<Place | null>(null);
+	let selectedPlace = $state<Place | null>(untrack(() => data.initialPlace));
 	let dialogOpen = $state(false);
 	let editDialogOpen = $state(false);
 	let visitBeingEdited = $state<VisitWithUser | null>(null);
@@ -35,73 +33,43 @@
 	let sessionToken: string | null = null;
 	let mounted = false;
 
+	onMount(() => {
+		if (data.initialPlace) {
+			updateState(data.initialPlace);
+		}
+		mounted = true;
+	});
+
 	// Dialog components — lazily loaded on first use
 	let VisitDialog = $state<typeof VisitDialogType | null>(null);
 	let DeleteVisitConfirmationDialog = $state<typeof DeleteVisitConfirmationDialogType | null>(null);
 
-	function handlePlaceSelect(place: Place | null) {
+	const updateState = (place: Place | null) => {
+		selectedPlace = place;
 		if (place === null) {
-			selectedPlace = null;
 			searchQuery = '';
-			replaceState('', {});
 			return;
 		}
-
 		searchQuery = place.name;
-
 		if (isSavedPlace(place)) {
 			visitsResult = getVisitsForPlace(place.id);
 			sheetOpen = true;
-			const url = `${$page.url.pathname}?place=${slugifyPlace(place)}`;
-			selectedPlace = place;
-			if ($page.url.searchParams.has('place')) {
-				replaceState(url, {});
-			} else {
-				pushState(url, {});
-			}
-		} else {
-			selectedPlace = place;
 		}
-	}
+	};
 
-	// Sync URL → state for back/forward navigation (skips initial mount, which is handled by onMount).
-	$effect(() => {
-		const param = $page.url.searchParams.get('place');
+	const updateUrl = (place: Place | null) => {
 		if (!mounted) return;
-
-		const id = param ? parsePlaceId(param) : null;
-
-		if (!id) {
-			if (untrack(() => selectedPlace) !== null) {
-				selectedPlace = null;
-				sheetOpen = false;
-				searchQuery = '';
-			}
-			return;
+		if (place === null || !isSavedPlace(place)) {
+			replaceState('/map', {});
+		} else {
+			replaceState(`/map?place_id=${place.id}`, {});
 		}
+	};
 
-		if (
-			untrack(
-				() =>
-					selectedPlace && isSavedPlace(selectedPlace) && String(selectedPlace.id) === String(id)
-			)
-		)
-			return;
-
-		const place = Object.values(data.savedPlaces).find((p) => String(p.id) === String(id));
-		if (place) {
-			handlePlaceSelect(place);
-			placeMap?.panTo(place.lat, place.lng);
-		}
-	});
-
-	onMount(() => {
-		mounted = true;
-		if (data.initialPlace) {
-			handlePlaceSelect(data.initialPlace);
-			placeMap?.panTo(data.initialPlace.lat, data.initialPlace.lng);
-		}
-	});
+	const handlePlaceSelect = (place: Place | null) => {
+		updateState(place);
+		updateUrl(place);
+	};
 
 	async function handleOnAddVisit() {
 		if (!VisitDialog) {
@@ -170,6 +138,7 @@
 	<PlaceMap
 		bind:this={placeMap}
 		savedPlaces={data.savedPlaces}
+		{selectedPlace}
 		onsaveplace={() => {
 			handleOnAddVisit();
 		}}
@@ -183,6 +152,7 @@
 		visits={visitsResult}
 		currentUserId={data.user?.id}
 		bind:open={sheetOpen}
+		onclose={() => handlePlaceSelect(null)}
 		onaddvisit={handleOnAddVisit}
 		oneditvisit={handleOnEditVisit}
 		ondeletevisit={handleOnDeleteVisit}
@@ -218,7 +188,6 @@
 								searchQuery = '';
 								selectedPlace = null;
 								sheetOpen = false;
-								replaceState('', {});
 							}}
 						>
 							<Icon name="close" class="md-search-bar__icon" />

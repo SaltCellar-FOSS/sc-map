@@ -1,5 +1,4 @@
-import type { SavedPlace } from '$lib/schemas/saved-place';
-import { parsePlaceId } from '$lib/place-slug';
+import { SavedPlaceSchema, type SavedPlace } from '$lib/schemas/saved-place';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -10,17 +9,20 @@ export const load: PageLoad = async ({ fetch, parent, depends, url }) => {
 		redirect(307, '/');
 	}
 	const res = await fetch('/api/places');
-	const savedPlacesList: SavedPlace[] = await res.json();
+	const savedPlacesList: SavedPlace[] = SavedPlaceSchema.array().parse(await res.json());
 
 	const savedPlaces: Record<string, SavedPlace> = Object.fromEntries(
 		savedPlacesList.map((savedPlace) => [savedPlace.google_place_id, savedPlace])
 	);
 
-	const placeParam = url.searchParams.get('place');
-	const placeId = placeParam ? parsePlaceId(placeParam) : null;
-	const initialPlace = placeId
-		? (Object.values(savedPlaces).find((p) => String(p.id) === String(placeId)) ?? null)
-		: null;
+	const placeIdStr = url.searchParams.get('place_id');
+	if (!placeIdStr) return { savedPlaces, initialPlace: null };
 
-	return { savedPlaces, initialPlace };
+	try {
+		const placeId = BigInt(placeIdStr);
+		const initialPlace = savedPlacesList.find((p) => p.id === placeId) ?? null;
+		return { savedPlaces, initialPlace };
+	} catch {
+		return { savedPlaces, initialPlace: null };
+	}
 };
