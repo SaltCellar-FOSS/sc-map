@@ -36,13 +36,7 @@ export default defineConfig(
 			}
 		},
 		rules: {
-			'@typescript-eslint/consistent-type-assertions': 'error',
-			// pushState/replaceState are used for shallow query-param routing on the current page;
-			// the resolve() requirement doesn't apply here since the path never changes.
-			'svelte/no-navigation-without-resolve': [
-				'error',
-				{ ignorePushState: true, ignoreReplaceState: true }
-			]
+			'@typescript-eslint/consistent-type-assertions': 'error'
 		}
 	}
 );
