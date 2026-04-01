@@ -186,8 +186,11 @@
 		handlePlaceSelected(event.placeId, null);
 	};
 
+	let lastPannedPlaceId: string | null = null;
+
 	$effect(() => {
-		if (map && selectedPlace) {
+		if (map && selectedPlace && selectedPlace.google_place_id !== lastPannedPlaceId) {
+			lastPannedPlaceId = selectedPlace.google_place_id;
 			map.panTo({ lat: selectedPlace.lat, lng: selectedPlace.lng });
 			map.setZoom(15);
 		}
