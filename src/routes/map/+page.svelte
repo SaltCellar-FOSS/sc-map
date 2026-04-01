@@ -34,6 +34,7 @@
 
 	let sessionToken: string | null = null;
 	let mounted = false;
+	let pendingPanPlace = $state<SavedPlace | null>(null);
 
 	// Dialog components — lazily loaded on first use
 	let VisitDialog = $state<typeof VisitDialogType | null>(null);
@@ -91,7 +92,15 @@
 		const place = Object.values(data.savedPlaces).find((p) => String(p.id) === String(id));
 		if (place) {
 			handlePlaceSelect(place);
-			placeMap?.panTo(place.lat, place.lng);
+			pendingPanPlace = place;
+		}
+	});
+
+	// Pan to a place once the map is ready (used for URL load and forward navigation).
+	$effect(() => {
+		if (pendingPanPlace && placeMap) {
+			placeMap.panTo(pendingPanPlace.lat, pendingPanPlace.lng);
+			pendingPanPlace = null;
 		}
 	});
 
@@ -99,7 +108,7 @@
 		mounted = true;
 		if (data.initialPlace) {
 			handlePlaceSelect(data.initialPlace);
-			placeMap?.panTo(data.initialPlace.lat, data.initialPlace.lng);
+			pendingPanPlace = data.initialPlace;
 		}
 	});
 
