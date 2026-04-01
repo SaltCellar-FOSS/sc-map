@@ -23,6 +23,9 @@
 
 	let marker: google.maps.marker.AdvancedMarkerElement | null = $state(null);
 
+	let cachedContent: Element | null = null;
+	let cachedType: SavedPlaceType | null = null;
+
 	const iconMap: Record<SavedPlaceType, string> = {
 		[SavedPlaceType.Restaurant]: restaurantIcon,
 		[SavedPlaceType.Bar]: barIcon,
@@ -35,6 +38,10 @@
 	};
 
 	const buildContent = (savedPlace: SavedPlace) => {
+		if (cachedType === savedPlace.type && cachedContent) {
+			return cachedContent;
+		}
+
 		const content = document.createElement('div');
 		content.innerHTML = iconMap[savedPlace.type];
 		content.style.width = '32px';
@@ -44,6 +51,9 @@
 			svgEl.setAttribute('width', '32');
 			svgEl.setAttribute('height', '32');
 		}
+
+		cachedType = savedPlace.type;
+		cachedContent = content;
 		return content;
 	};
 
@@ -64,7 +74,15 @@
 	$effect(() => {
 		if (marker) {
 			marker.map = visible ? map : null;
-			marker.content = buildContent(place);
+		}
+	});
+
+	$effect(() => {
+		if (marker) {
+			const content = buildContent(place);
+			if (marker.content !== content) {
+				marker.content = content;
+			}
 		}
 	});
 
