@@ -1,5 +1,8 @@
 # Salt Cellar Map
 
+![The home map view. There are 275 locations visible on-screen](./docs/maps-page.png)
+![Detail view of a review for Franklin Barbecue](./docs/place-details.png)
+
 A Discord-gated web app for Salt Cellar members to discover, submit, and review food & drink venues on an interactive map.
 
 Access is tied to Discord guild membership. Members can browse and submit places; "Goated" role holders get permanent lifetime access.
