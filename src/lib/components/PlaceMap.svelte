@@ -10,16 +10,16 @@
 
 	type Props = {
 		savedPlaces: { [googlePlaceId: string]: SavedPlace };
+		selectedPlace: Place | null;
 		onsaveplace: (place: Place) => void;
 		onplacechange: (place: Place | null) => void;
 	};
 
-	let { savedPlaces, onsaveplace, onplacechange }: Props = $props();
+	let { savedPlaces, selectedPlace, onsaveplace, onplacechange }: Props = $props();
 
 	let map: google.maps.Map | null = $state(null);
 	let InfoWindowClass = $state<typeof google.maps.InfoWindow | null>(null);
 	let AdvancedMarkerClass = $state<typeof google.maps.marker.AdvancedMarkerElement | null>(null);
-	let selectedPlace = $state<Place | null>(null);
 	let currentInfoWindow = $state<google.maps.InfoWindow | null>(null);
 	let currentMarker = $state<google.maps.marker.AdvancedMarkerElement | null>(null);
 

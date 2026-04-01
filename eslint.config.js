@@ -36,7 +36,8 @@ export default defineConfig(
 			}
 		},
 		rules: {
-			'@typescript-eslint/consistent-type-assertions': 'error'
+			'@typescript-eslint/consistent-type-assertions': 'error',
+			'svelte/no-navigation-without-resolve': ['error', { ignoreReplaceState: true }]
 		}
 	}
 );
