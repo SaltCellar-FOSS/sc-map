@@ -1,12 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+	import { MarkerClusterer, defaultOnClusterClickHandler } from '@googlemaps/markerclusterer';
 	import type { SavedPlace } from '$lib/schemas/saved-place';
-	import PlaceMarker from './PlaceMarker.svelte';
+	import { SavedPlaceType } from '$lib/schemas/saved-place';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
 	import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, MAP_ID } from './map-constants';
 	import type { Place } from '$lib/schemas/place';
 	import { getGooglePlaceById } from '$lib/google-places';
+
+	const markerIconMap: Record<SavedPlaceType, string> = {
+		[SavedPlaceType.Restaurant]: '/marker-icons/restaurant.png',
+		[SavedPlaceType.Bar]: '/marker-icons/bar.png',
+		[SavedPlaceType.Bakery]: '/marker-icons/bakery.png',
+		[SavedPlaceType.Cafe]: '/marker-icons/cafe.png',
+		[SavedPlaceType.Deli]: '/marker-icons/deli.png',
+		[SavedPlaceType.FoodTruck]: '/marker-icons/food-truck.png',
+		[SavedPlaceType.Dessert]: '/marker-icons/dessert.png',
+		[SavedPlaceType.OtherDestination]: '/marker-icons/other-destination.png'
+	};
 
 	type Props = {
 		savedPlaces: { [googlePlaceId: string]: SavedPlace };
@@ -23,6 +36,40 @@
 	let currentInfoWindow = $state<google.maps.InfoWindow | null>(null);
 	let currentMarker = $state<google.maps.marker.AdvancedMarkerElement | null>(null);
 
+	let clusterer: MarkerClusterer | null = $state(null);
+	let markerByPlaceId = new SvelteMap<string, google.maps.marker.AdvancedMarkerElement>();
+
+	let cachedMarkerContent = new SvelteMap<SavedPlaceType, Element>();
+
+	const buildContent = (type: SavedPlaceType): Element => {
+		if (cachedMarkerContent.has(type)) {
+			return cachedMarkerContent.get(type)!;
+		}
+
+		const img = document.createElement('img');
+		img.src = markerIconMap[type];
+		img.width = 32;
+		img.height = 32;
+		img.alt = type;
+
+		cachedMarkerContent.set(type, img);
+		return img;
+	};
+
+	const createMarker = (place: SavedPlace): google.maps.marker.AdvancedMarkerElement => {
+		const marker = new AdvancedMarkerClass!({
+			position: { lat: place.lat, lng: place.lng },
+			title: place.name,
+			content: buildContent(place.type)
+		});
+
+		marker.addListener('click', () => {
+			handlePlaceSelected(place.google_place_id, null);
+		});
+
+		return marker;
+	};
+
 	/**
 	 * Given a Google Place ID and an optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens),
 	 * retrieves the info needed to render a place on the map.
@@ -35,21 +82,14 @@
 		if (googlePlaceId in savedPlaces) {
 			clearCurrentInfoWindow();
 			clearCurrentMarker();
-			// This place is in our saved places, we can save ourselves a query to Google
-			// (thus avoiding incurring charges) by just using the saved place instead.
 			const savedPlace = savedPlaces[googlePlaceId];
 			onplacechange(savedPlace);
 			return;
 		}
 
-		// This is a new place that isn't saved in our database. We need to retrieve
-		// information for it from Google and ask the user if they want to save it.
-
-		// Fetch the place by its Google Place ID (hits Google APIs and incurs cost)
 		const googlePlace = await getGooglePlaceById(googlePlaceId, sessionToken);
 
 		if (googlePlace === null) {
-			// TODO: Visually handle error
 			return;
 		}
 
@@ -61,14 +101,10 @@
 			google_place_id: googlePlace.place_id
 		};
 
-		// Signal to the parent that the place has changed.
 		onplacechange(unsavedPlace);
-
-		// Show an InfoWindow so the user can save the place if desired.
 		openInfoWindowForPlace(unsavedPlace);
 	};
 
-	/** Clears the current marker from Google's map, then de-references it (for GC).*/
 	const clearCurrentMarker = () => {
 		if (currentMarker === null) {
 			return;
@@ -78,7 +114,6 @@
 		currentMarker = null;
 	};
 
-	/** Closes the current InfoWindow so the user doesn't see it, then de-references it (for GC).*/
 	const clearCurrentInfoWindow = () => {
 		if (currentInfoWindow === null) {
 			return;
@@ -88,7 +123,6 @@
 		currentInfoWindow = null;
 	};
 
-	// Close the current InfoWindow before indicating that the current place should be saved.
 	const handleSavePlace = (place: Place) => {
 		clearCurrentInfoWindow();
 		onsaveplace(place);
@@ -136,16 +170,12 @@
 	};
 
 	const handleMapClick = async (event: google.maps.MapMouseEvent & { placeId?: string }) => {
-		// If setup hasn't completed for some reason, do nothing.
-		// Failed setup will cause serious downstream issues.
 		if (InfoWindowClass === null || AdvancedMarkerClass === null) {
 			return;
 		}
 		clearCurrentMarker();
 		clearCurrentInfoWindow();
 
-		// If the user has just clicked on the map, we don't want to create new UI.
-		// Early exit.
 		if (event.placeId === undefined) {
 			onplacechange(null);
 			return;
@@ -163,12 +193,45 @@
 		}
 	});
 
+	$effect(() => {
+		if (!clusterer || !AdvancedMarkerClass) return;
+
+		const newIds = new Set(Object.keys(savedPlaces));
+		const oldIds = new Set(markerByPlaceId.keys());
+
+		const toRemove = [...oldIds].filter((id) => !newIds.has(id));
+		const toAdd = [...newIds].filter((id) => !oldIds.has(id));
+
+		if (toRemove.length > 0) {
+			const markersToRemove = toRemove.map((id) => markerByPlaceId.get(id)!);
+			clusterer.removeMarkers(markersToRemove);
+			for (const id of toRemove) {
+				markerByPlaceId.delete(id);
+			}
+		}
+
+		if (toAdd.length > 0) {
+			const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+			for (const id of toAdd) {
+				const place = savedPlaces[id];
+				const marker = createMarker(place);
+				markerByPlaceId.set(id, marker);
+				newMarkers.push(marker);
+			}
+			clusterer.addMarkers(newMarkers);
+		}
+
+		if (toRemove.length > 0 || toAdd.length > 0) {
+			clusterer.render();
+		}
+	});
+
 	let mapEl: HTMLDivElement;
 
 	onMount(async () => {
 		setOptions({ key: PUBLIC_GOOGLE_MAPS_API_KEY });
 
-		const [{ Map, InfoWindow }, { AdvancedMarkerElement }] = await Promise.all([
+		const [{ Map: MapClass, InfoWindow }, { AdvancedMarkerElement }] = await Promise.all([
 			importLibrary('maps') as Promise<google.maps.MapsLibrary>,
 			importLibrary('marker') as Promise<google.maps.MarkerLibrary>
 		]);
@@ -176,7 +239,7 @@
 		InfoWindowClass = InfoWindow;
 		AdvancedMarkerClass = AdvancedMarkerElement;
 
-		map = new Map(mapEl, {
+		map = new MapClass(mapEl, {
 			center: DEFAULT_MAP_CENTER,
 			zoom: DEFAULT_MAP_ZOOM,
 			mapId: MAP_ID,
@@ -187,21 +250,23 @@
 		});
 
 		map.addListener('click', handleMapClick);
+
+		const initialMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+		for (const place of Object.values(savedPlaces)) {
+			const marker = createMarker(place);
+			markerByPlaceId.set(place.id.toString(), marker);
+			initialMarkers.push(marker);
+		}
+
+		clusterer = new MarkerClusterer({
+			markers: initialMarkers,
+			map,
+			onClusterClick: defaultOnClusterClickHandler
+		});
 	});
 </script>
 
 <div bind:this={mapEl} class="map"></div>
-
-{#if map}
-	{#each Object.values(savedPlaces) as place (place.id)}
-		<PlaceMarker
-			{map}
-			{place}
-			visible={true}
-			onclick={(place) => handlePlaceSelected(place.google_place_id, null)}
-		/>
-	{/each}
-{/if}
 
 <style>
 	.map {
