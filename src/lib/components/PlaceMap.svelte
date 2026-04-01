@@ -31,13 +31,6 @@
 	 * @param googlePlaceId The [Google Place ID](https://developers.google.com/maps/documentation/places/web-service/place-id) of a location.
 	 * @param sessionToken An optional [session token](https://developers.google.com/maps/documentation/places/web-service/place-details#session-tokens), used to minimize autocomplete costs.
 	 */
-	export const panTo = (lat: number, lng: number) => {
-		if (map) {
-			map.panTo({ lat, lng });
-			map.setZoom(15);
-		}
-	};
-
 	export const handlePlaceSelected = async (googlePlaceId: string, sessionToken: string | null) => {
 		if (googlePlaceId in savedPlaces) {
 			clearCurrentInfoWindow();
