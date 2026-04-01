@@ -39,11 +39,11 @@
 	let clusterer: MarkerClusterer | null = $state(null);
 	let markerByPlaceId = new SvelteMap<string, google.maps.marker.AdvancedMarkerElement>();
 
-	let cachedMarkerContent = new SvelteMap<SavedPlaceType, Element>();
+	const cachedMarkerContent = new SvelteMap<SavedPlaceType, Element>();
 
 	const buildContent = (type: SavedPlaceType): Element => {
 		if (cachedMarkerContent.has(type)) {
-			return cachedMarkerContent.get(type)!;
+			return cachedMarkerContent.get(type)!.cloneNode(true) as Element;
 		}
 
 		const img = document.createElement('img');
@@ -53,7 +53,7 @@
 		img.alt = type;
 
 		cachedMarkerContent.set(type, img);
-		return img;
+		return img.cloneNode(true) as Element;
 	};
 
 	const createMarker = (place: SavedPlace): google.maps.marker.AdvancedMarkerElement => {
