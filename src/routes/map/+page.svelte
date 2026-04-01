@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import PlaceMap from '$lib/components/PlaceMap.svelte';
 	import PlaceSheet from '$lib/components/PlaceSheet.svelte';
 	import SearchResults from '$lib/components/SearchResults.svelte';
@@ -68,7 +67,7 @@
 		const id = param ? parsePlaceId(param) : null;
 
 		if (!id) {
-			if (untrack(() => selectedPlace) !== null) {
+			if (selectedPlace !== null) {
 				selectedPlace = null;
 				sheetOpen = false;
 				searchQuery = '';
@@ -76,8 +75,7 @@
 			return;
 		}
 
-		if (untrack(() => selectedPlace && isSavedPlace(selectedPlace) && selectedPlace.id === id))
-			return;
+		if (selectedPlace && isSavedPlace(selectedPlace) && selectedPlace.id === id) return;
 
 		const place = Object.values(data.savedPlaces).find((p) => p.id === id);
 		if (place) {
