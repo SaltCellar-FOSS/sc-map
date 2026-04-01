@@ -45,6 +45,7 @@
 	},
 	"dependencies": {
 		"@googlemaps/js-api-loader": "^2.0.2",
+		"@googlemaps/markerclusterer": "^2.6.2",
 		"@js-temporal/polyfill": "^0.5.1",
 		"@storybook/addon-svelte-csf": "^5.0.12",
 		"sharp": "^0.33.0",
