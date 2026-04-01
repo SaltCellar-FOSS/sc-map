@@ -246,7 +246,8 @@
 			colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,
 			mapTypeControl: false,
 			streetViewControl: false,
-			fullscreenControl: false
+			fullscreenControl: false,
+			renderingType: google.maps.RenderingType.RASTER
 		});
 
 		map.addListener('click', handleMapClick);
