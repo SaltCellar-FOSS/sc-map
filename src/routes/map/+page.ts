@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ fetch, parent, depends, url }) => {
 	const placeParam = url.searchParams.get('place');
 	const placeId = placeParam ? parsePlaceId(placeParam) : null;
 	const initialPlace = placeId
-		? (Object.values(savedPlaces).find((p) => String(p.id) === String(placeId)) ?? null)
+		? (Object.values(savedPlaces).find((p) => p.id === placeId) ?? null)
 		: null;
 
 	return { savedPlaces, initialPlace };
