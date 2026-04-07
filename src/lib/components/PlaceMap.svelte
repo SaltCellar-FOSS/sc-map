@@ -186,8 +186,11 @@
 		handlePlaceSelected(event.placeId, null);
 	};
 
+	let lastPannedPlaceId: string | null = null;
+
 	$effect(() => {
-		if (map && selectedPlace) {
+		if (map && selectedPlace && selectedPlace.google_place_id !== lastPannedPlaceId) {
+			lastPannedPlaceId = selectedPlace.google_place_id;
 			map.panTo({ lat: selectedPlace.lat, lng: selectedPlace.lng });
 			map.setZoom(15);
 		}
@@ -246,7 +249,8 @@
 			colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,
 			mapTypeControl: false,
 			streetViewControl: false,
-			fullscreenControl: false
+			fullscreenControl: false,
+			renderingType: google.maps.RenderingType.RASTER
 		});
 
 		map.addListener('click', handleMapClick);

@@ -7,6 +7,8 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<link rel="preconnect" href="https://maps.googleapis.com" />
+	<link rel="preconnect" href="https://maps.gstatic.com" />
 </svelte:head>
 
 {@render children()}
