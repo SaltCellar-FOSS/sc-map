@@ -108,8 +108,8 @@ export const actions: Actions = {
 		// Handle image uploads after visit creation
 		// Result values are awaitable (PromiseLike): success resolves, failure rejects
 		if (visitId) {
-			// Server-side enforcement: max 3 photos per visit
-			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
+			// Server-side enforcement: max 4 photos per visit
+			const imageFiles = (data.getAll('images') as File[]).slice(0, 4);
 			for (const file of imageFiles) {
 				if (!(file instanceof File) || file.size === 0) continue;
 
@@ -281,8 +281,8 @@ export const actions: Actions = {
 
 		// Check current photo count
 		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
-		if (currentPhotos.length >= 3) {
-			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
+		if (currentPhotos.length >= 4) {
+			return fail(400, { error: 'Maximum 4 photos allowed per visit' });
 		}
 
 		const file = data.get('images') as File;
