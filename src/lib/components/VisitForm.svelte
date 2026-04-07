@@ -72,13 +72,31 @@
 		return validate(summary, visitDate);
 	});
 
-	const MAX_PHOTOS = 3;
+	const MAX_PHOTOS = 4;
+	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 	function handleFileChange(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
 		const files = Array.from(input.files ?? []);
+		formError = '';
+
 		const remaining = MAX_PHOTOS - selectedImages.length;
-		const toAdd = files.slice(0, remaining);
+		const toAdd: File[] = [];
+		const rejected: string[] = [];
+		for (const file of files) {
+			if (toAdd.length >= remaining) break;
+			if (file.size > MAX_FILE_SIZE) {
+				rejected.push(file.name);
+				continue;
+			}
+			toAdd.push(file);
+		}
+		if (rejected.length === 1) {
+			formError = `"${rejected[0]}" exceeds the 10 MB limit`;
+		} else if (rejected.length > 1) {
+			formError = `${rejected.length} files exceed the 10 MB limit`;
+		}
+
 		selectedImages = [...selectedImages, ...toAdd];
 		for (const file of toAdd) {
 			photoUrls = [...photoUrls, URL.createObjectURL(file)];
