@@ -11,6 +11,7 @@
 	import { isSavedPlace } from '$lib/schemas/place';
 	import { untrack } from 'svelte';
 	import { Temporal } from '@js-temporal/polyfill';
+	import { MAX_PHOTOS, MAX_FILE_SIZE, MAX_FILE_SIZE_LABEL } from '$lib/photo-constants';
 
 	type BaseProps = {
 		onsuccess?: () => void;
@@ -72,13 +73,22 @@
 		return validate(summary, visitDate);
 	});
 
-	const MAX_PHOTOS = 3;
-
 	function handleFileChange(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
 		const files = Array.from(input.files ?? []);
+		formError = '';
+
+		const oversized = files.filter((f) => f.size > MAX_FILE_SIZE);
+		const valid = files.filter((f) => f.size <= MAX_FILE_SIZE);
 		const remaining = MAX_PHOTOS - selectedImages.length;
-		const toAdd = files.slice(0, remaining);
+		const toAdd = valid.slice(0, remaining);
+
+		if (oversized.length === 1) {
+			formError = `The provided file exceeds the ${MAX_FILE_SIZE_LABEL} limit`;
+		} else if (oversized.length > 1) {
+			formError = `${oversized.length} files exceed the ${MAX_FILE_SIZE_LABEL} limit`;
+		}
+
 		selectedImages = [...selectedImages, ...toAdd];
 		for (const file of toAdd) {
 			photoUrls = [...photoUrls, URL.createObjectURL(file)];

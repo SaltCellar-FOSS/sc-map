@@ -87,14 +87,12 @@ export async function processImage(
 		const extension = processingOptions.format;
 		const filename = `${timestamp}-${randomSuffix}.${extension}`;
 
-		let sharpInstance = sharp(buffer).resize(
-			processingOptions.maxWidth,
-			processingOptions.maxHeight,
-			{
+		let sharpInstance = sharp(buffer)
+			.rotate()
+			.resize(processingOptions.maxWidth, processingOptions.maxHeight, {
 				fit: 'inside',
 				withoutEnlargement: true
-			}
-		);
+			});
 
 		switch (processingOptions.format) {
 			case 'jpeg':

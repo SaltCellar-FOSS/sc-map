@@ -10,6 +10,7 @@ import { VisitInsertSchema, VisitUpdateSchema } from '$lib/schemas/visit.js';
 import { processImage } from '$lib/image-processor';
 import { saveImage, deleteImage } from '$lib/server/image-storage';
 import { requireAuth, requireActiveUser, requireOwnership, AuthError } from '$lib/server/guards';
+import { MAX_PHOTOS } from '$lib/photo-constants';
 
 const savedPlacesDao = new SavedPlacesDao(sql);
 const visitsDao = new VisitsDao(sql);
@@ -106,19 +107,22 @@ export const actions: Actions = {
 		}
 
 		// Handle image uploads after visit creation
-		// Result values are awaitable (PromiseLike): success resolves, failure rejects
 		if (visitId) {
-			// Server-side enforcement: max 3 photos per visit
-			const imageFiles = (data.getAll('images') as File[]).slice(0, 3);
-			for (const file of imageFiles) {
-				if (!(file instanceof File) || file.size === 0) continue;
+			const confirmedVisitId = visitId;
+			const imageFiles = (data.getAll('images') as File[])
+				.filter((file) => file instanceof File && file.size > 0)
+				.slice(0, MAX_PHOTOS);
 
-				try {
+			const uploadResults = await Promise.allSettled(
+				imageFiles.map(async (file) => {
 					const processed = await processImage(file);
 					const url = await saveImage(processed.buffer, processed.filename);
-					await visitsDao.insertVisitPhoto(visitId, url);
-				} catch (e) {
-					console.error('Failed to process/save image:', e instanceof Error ? e.message : e);
+					await visitsDao.insertVisitPhoto(confirmedVisitId, url);
+				})
+			);
+			for (const result of uploadResults) {
+				if (result.status === 'rejected') {
+					console.error('Failed to process/save image:', result.reason);
 				}
 			}
 		}
@@ -281,8 +285,8 @@ export const actions: Actions = {
 
 		// Check current photo count
 		const currentPhotos = await visitsDao.listVisitPhotos(visitId);
-		if (currentPhotos.length >= 3) {
-			return fail(400, { error: 'Maximum 3 photos allowed per visit' });
+		if (currentPhotos.length >= MAX_PHOTOS) {
+			return fail(400, { error: `Maximum ${MAX_PHOTOS} photos allowed per visit` });
 		}
 
 		const file = data.get('images') as File;
